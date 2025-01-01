@@ -32,7 +32,6 @@ using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using Esri.ArcGISRuntime.Mapping;
 using MobileMapPackage = MapBoard.IO.MobileMapPackage;
 using FluentFTP;
-using FluentFTP.Logging;
 
 namespace MapBoard.Util
 {
