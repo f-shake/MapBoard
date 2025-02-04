@@ -37,6 +37,9 @@ namespace MapBoard.Mapping
             Editor.SnapSettings = new SnapSettings()
             {
                 IsEnabled = true,
+                IsHapticFeedbackEnabled=true,
+                IsFeatureSnappingEnabled=true,
+                IsGeometryGuidesEnabled=true
             };
             Editor.SnapSettings.SyncSourceSettings();
             foreach (var ss in Editor.SnapSettings.SourceSettings)
