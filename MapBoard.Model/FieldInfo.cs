@@ -99,7 +99,7 @@ namespace MapBoard.Model
         public static bool IsCompatibleType(FieldInfoType type, object propertyValue, out object value)
         {
             value = null;
-            if(propertyValue==null)
+            if (propertyValue == null)
             {
                 return true;
             }
