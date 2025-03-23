@@ -134,7 +134,6 @@ namespace MapBoard.UI.Bar
                     }
 
                     MapView.Selection.ClearSelection();
-                    Layers.Selected = dialog.SelectedLayer;
                 }
             }, "正在复制图形");
         }

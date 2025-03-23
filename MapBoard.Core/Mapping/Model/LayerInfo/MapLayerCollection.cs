@@ -142,9 +142,25 @@ namespace MapBoard.Mapping.Model
         /// </summary>
         /// <param name="layer"></param>
         /// <returns></returns>
-        public MapLayerInfo Find(FeatureLayer layer)
+        public MapLayerInfo Find(ILayerContent layer)
         {
-            return LayerList.Cast<MapLayerInfo>().FirstOrDefault(p => p.Layer == layer);
+            if (layer is FeatureLayer l)
+            {
+                return LayerList.Cast<MapLayerInfo>().FirstOrDefault(p => p.Layer == layer);
+            }
+            else if (layer is FeatureCollectionLayer cl)
+            {
+                foreach (var cll in cl.Layers)
+                {
+                    var result = Find(cll);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+                return null;
+            }
+            throw new NotSupportedException($"未知的图层类型{layer.GetType().Name}");
         }
 
         public ItemsOperationErrorCollection LoadErrors { get; } = new ItemsOperationErrorCollection();

@@ -4,6 +4,7 @@
     {
         MapPackage = 1,
         MapPackageRebuild = 2,
+        MapPackageFtp = 3,
         //GISToolBoxZip = 3,
         //GISToolBoxNet = 4,
         KML = 5,

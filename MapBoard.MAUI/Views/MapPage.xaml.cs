@@ -42,10 +42,10 @@ namespace MapBoard.Views
                     {
                         var index = await PopupMenu.PopupMenuAsync(btnLocate,
                                    [
-                                   new PopupMenu.PopupMenuItem("定位"),
-                            new PopupMenu.PopupMenuItem("导航"),
-                            new PopupMenu.PopupMenuItem("指南针"),
-                            ], "定位图标模式");
+                                    new PopupMenu.PopupMenuItem("定位"),
+                                    new PopupMenu.PopupMenuItem("导航"),
+                                    new PopupMenu.PopupMenuItem("指南针"),
+                                   ], "定位图标模式");
                         map.LocationDisplay.AutoPanMode = (LocationDisplayAutoPanMode)(1 + index);
                     }
                 };

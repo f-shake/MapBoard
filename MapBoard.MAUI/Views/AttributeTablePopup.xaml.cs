@@ -11,7 +11,7 @@ public partial class AttributeTablePopup : Popup
 {
     public AttributeTablePopup(Feature feature,bool creating)
     {
-        var layerInfo = MainMapView.Current.Layers.FindLayer(feature.FeatureTable.Layer);
+        var layerInfo = MainMapView.Current.Layers.Find(feature.FeatureTable.Layer);
         if (layerInfo == null)
         {
             throw new Exception("找不到feature对应的MapLayerInfo");

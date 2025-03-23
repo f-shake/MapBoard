@@ -284,7 +284,7 @@ public partial class EditBar : ContentView, ISidePanel
                 btnSaveEdit.IsEnabled = editor.Status is EditorStatus.Creating or EditorStatus.Editing;
                 break;
             case MapViewStatus.Select:
-                btnEdit.IsEnabled = map.Layers.FindLayer(map.SelectedFeature.FeatureTable.Layer).CanEdit;
+                btnEdit.IsEnabled = map.Layers.Find(map.SelectedFeature.FeatureTable.Layer).CanEdit;
                 break;
             default:
                 break;

@@ -50,7 +50,7 @@ namespace MapBoard.Mapping.Model
 
         public override object Clone()
         {
-            var result= this.Adapt<MgdbMapLayerInfo>();
+            var result = this.Adapt<MgdbMapLayerInfo>();
             result.IsLoaded = false;
             result.GenerateSourceName();
             return result;
@@ -107,7 +107,16 @@ namespace MapBoard.Mapping.Model
             {
                 throw new Exception($"在MGDB中找不到要素类{SourceName}");
             }
-            return MobileGeodatabase.Current.GetGeodatabaseFeatureTable(SourceName);
+            var table = MobileGeodatabase.Current.GetGeodatabaseFeatureTable(SourceName);
+            table.DisplayName = Name;
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Name))
+                {
+                    table.DisplayName = Name;
+                }
+            };
+            return table;
         }
     }
 }

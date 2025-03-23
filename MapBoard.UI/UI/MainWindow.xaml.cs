@@ -512,15 +512,19 @@ namespace MapBoard.UI
         /// <param name="e"></param>
         private async void ExportMenu_Click(object sender, RoutedEventArgs e)
         {
-            if (!Directory.Exists(FolderPaths.DataPath) || !Directory.EnumerateFiles(FolderPaths.DataPath).Any())
+            if (!arcMap.Layers.Any())
             {
                 SnakeBar.ShowError("没有任何数据");
                 return;
             }
             canClosing = false;
             ExportMapType type = (ExportMapType)int.Parse((sender as FrameworkElement).Tag as string);
-            string path = IOUtility.GetExportMapPath(type, this);
-            if (path != null)
+            string path = type switch
+            {
+                ExportMapType.MapPackageFtp => await CommonDialog.ShowInputDialogAsync("FTP地址", Config.LastFTP),
+                _ => IOUtility.GetExportMapPath(type, this)
+            };
+            if (!string.IsNullOrWhiteSpace(path))
             {
                 await DoAsync(async p =>
                  {
@@ -536,6 +540,23 @@ namespace MapBoard.UI
                                     arcMap.Layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true).ToArray())
                                  .ExportAsync();
                                  IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, this);
+                             }
+                             catch (Exception ex)
+                             {
+                                 App.Log.Error("导出失败", ex);
+                                 await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
+                             }
+                             break;
+
+                         case ExportMapType.MapPackageFtp:
+                             try
+                             {
+                                 Config.LastFTP = path;
+
+                                 await IOUtility.SaveToFtpAsync(path, arcMap.Layers, m => p.SetMessage(m));
+
+                                 SnakeBar snake = new SnakeBar(this);
+                                 snake.ShowMessage("已传输至FTP");
                              }
                              catch (Exception ex)
                              {

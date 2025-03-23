@@ -98,7 +98,8 @@ namespace MapBoard.IO
             else
             {
                 Geodatabase newMgdb = await Geodatabase.CreateAsync(Path.Combine(directory.FullName, MobileGeodatabase.MgdbFileName));
-                foreach (var table in MobileGeodatabase.Current.GeodatabaseFeatureTables)
+                //不知道为什么，这里GeodatabaseFeatureTables中有些Table，没有Load，可能是其他代码的问题，导致出现了部分废弃的表
+                foreach (var table in MobileGeodatabase.Current.GeodatabaseFeatureTables.Where(p=>p.LoadStatus==Esri.ArcGISRuntime.LoadStatus.Loaded))
                 {
                     await CopyTableToMgdbRebuildAsync(table, newMgdb);
                 }

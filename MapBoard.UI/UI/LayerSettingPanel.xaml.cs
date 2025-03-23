@@ -177,7 +177,7 @@ namespace MapBoard.UI
                 //    await CommonDialog.ShowErrorDialogAsync("新文件名不合法");
                 //}
                 //else
-                if (Layers.Any(p=>p.Name==newName))
+                if (Layers.Any(p => p.Name == newName))
                 {
                     await CommonDialog.ShowErrorDialogAsync("该名称的文件已存在");
                 }
@@ -618,6 +618,7 @@ namespace MapBoard.UI
             foreach (var key in KeyFields.Where(p => p.IsSelected))
             {
                 var keysOfThisField = (await layer.GetUniqueAttributeValues(key.ObjectData.Name))
+                    .Where(p => p != null)
                     .Select(p => p.ToString())
                     .ToList();
                 for (int i = 0; i < keysOfThisField.Count; i++)

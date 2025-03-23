@@ -77,35 +77,77 @@ namespace MapBoard.Model
         /// <exception cref="InvalidEnumArgumentException"></exception>
         public bool IsCompatibleType(object propertyValue, out object value)
         {
+            return IsCompatibleType(Type, propertyValue, out value);
+        }
+
+        /// <summary>
+        /// 判断属性值是否与字段类型对应
+        /// </summary>
+        /// <param name="propertyValue"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidEnumArgumentException"></exception>
+        public bool IsCompatibleType(ref object propertyValue)
+        {
+            if (IsCompatibleType(Type, propertyValue, out object newValue))
+            {
+                propertyValue = newValue;
+                return true;
+            }
+            return false;
+        }
+
+        public static bool IsCompatibleType(FieldInfoType type, object propertyValue, out object value)
+        {
             value = null;
-            switch (Type)
+            if (propertyValue == null)
+            {
+                return true;
+            }
+            switch (type)
             {
                 case FieldInfoType.Integer:
-                    if (propertyValue is long l)
                     {
-                        value = l;
-                        return true;
+                        if (propertyValue is long)
+                        {
+                            value = propertyValue;
+                            return true;
+                        }
+                        if (propertyValue is double d && d <= long.MaxValue)
+                        {
+                            value = Convert.ToInt64(d);
+                            return true;
+                        }
+                        if (CanConvertToLong(propertyValue))
+                        {
+                            value = Convert.ToInt64(propertyValue);
+                            return true;
+                        }
+                        if (propertyValue is string str && long.TryParse(str, out long l))
+                        {
+                            value = l;
+                            return true;
+                        }
+                        return false;
                     }
-                    if (CanConvertToLong(propertyValue))
-                    {
-                        value = Convert.ToInt64(propertyValue);
-                        return true;
-                    }
-                    return false;
-
                 case FieldInfoType.Float:
-                    if (propertyValue is double d)
                     {
-                        value = d;
-                        return true;
+                        if (propertyValue is double)
+                        {
+                            value = propertyValue;
+                            return true;
+                        }
+                        if (CanConvertToDouble(propertyValue))
+                        {
+                            value = Convert.ToDouble(propertyValue);
+                            return true;
+                        }
+                        if (propertyValue is string str && double.TryParse(str, out double d))
+                        {
+                            value = d;
+                            return true;
+                        }
+                        return propertyValue is double;
                     }
-                    if (CanConvertToDouble(propertyValue))
-                    {
-                        value = Convert.ToDouble(propertyValue);
-                        return true;
-                    }
-                    return propertyValue is double;
-
                 case FieldInfoType.Date:
                     {
                         if (propertyValue is DateOnly date)
@@ -123,19 +165,25 @@ namespace MapBoard.Model
                             value = DateOnly.FromDateTime(dto.DateTime);
                             return true;
                         }
+                        if (propertyValue is string str && DateTime.TryParse(str, out DateTime dt2))
+                        {
+                            value = DateOnly.FromDateTime(dt2);
+                            return true;
+                        }
                         return false;
                     }
                 case FieldInfoType.Text:
-                    if (propertyValue is string str)
                     {
-                        value = str;
+                        if (propertyValue is string str)
+                        {
+                            value = str;
+                        }
+                        else
+                        {
+                            value = propertyValue.ToString();
+                        }
+                        return true;
                     }
-                    else
-                    {
-                        value = propertyValue.ToString();
-                    }
-                    return true;
-
                 case FieldInfoType.DateTime:
                     {
                         if (propertyValue is DateOnly date)
@@ -153,6 +201,11 @@ namespace MapBoard.Model
                             value = dto.DateTime;
                             return true;
                         }
+                        if (propertyValue is string str && DateTime.TryParse(str, out DateTime dt2))
+                        {
+                            value = dt2;
+                            return true;
+                        }
                         return false;
                     }
                 default:
@@ -160,35 +213,6 @@ namespace MapBoard.Model
             }
         }
 
-        /// <summary>
-        /// 判断属性值是否与字段类型对应
-        /// </summary>
-        /// <param name="propertyValue"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidEnumArgumentException"></exception>
-        public bool IsCorrectType(object propertyValue)
-        {
-            switch (Type)
-            {
-                case FieldInfoType.Integer:
-                    return propertyValue is long;
-
-                case FieldInfoType.Float:
-                    return propertyValue is double;
-
-                case FieldInfoType.Date:
-                    return propertyValue is DateOnly;
-
-                case FieldInfoType.Text:
-                    return propertyValue is string;
-
-                case FieldInfoType.DateTime:
-                    return propertyValue is DateTime;
-
-                default:
-                    throw new InvalidEnumArgumentException();
-            }
-        }
         private static bool CanConvertToDouble(object o)
         {
             return System.Type.GetTypeCode(o.GetType()) switch

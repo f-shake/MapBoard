@@ -278,9 +278,9 @@ namespace MapBoard.Mapping.Model
         {
             ThrowIfNotEditable(source);
             Feature newFeature = rebuildFeature ? feature.Clone(this) : feature;
-            AddCreateTimeAttributeIfExistField(newFeature);
+            AddTimeAttributeIfExistField(newFeature, Parameters.CreateTimeFieldName, true);
             await table.AddFeatureAsync(newFeature);
-            NotifyFeaturesChanged(new[] { feature }, null, null, source);
+            NotifyFeaturesChanged([feature], null, null, source);
         }
 
         /// <summary>
@@ -328,14 +328,13 @@ namespace MapBoard.Mapping.Model
             {
                 foreach (var feature in features)
                 {
-                    if (!feature.Attributes.ContainsKey(Parameters.CreateTimeFieldName)
-                        || feature.Attributes[Parameters.CreateTimeFieldName] == null)
+                    if (!feature.Attributes.TryGetValue(Parameters.CreateTimeFieldName, out object value) || value == null) //一般Add
                     {
-                        AddCreateTimeAttributeIfExistField(feature);
+                        AddTimeAttributeIfExistField(feature, Parameters.CreateTimeFieldName, true);
                     }
-                    else
+                    else//从其他源导入或从其他图层复制
                     {
-                        AddModifiedTimeAttributeIfExistField(feature);
+                        AddTimeAttributeIfExistField(feature, Parameters.ModifiedTimeFieldName, false);
                     }
                 }
                 await table.AddFeaturesAsync(features);
@@ -399,7 +398,7 @@ namespace MapBoard.Mapping.Model
         public async Task UpdateFeatureAsync(UpdatedFeature feature, FeaturesChangedSource source)
         {
             ThrowIfNotEditable(source);
-            AddModifiedTimeAttributeIfExistField(feature.Feature);
+            AddTimeAttributeIfExistField(feature.Feature, Parameters.ModifiedTimeFieldName, false);
             await table.UpdateFeatureAsync(feature.Feature);
             NotifyFeaturesChanged(null, null, new[] { feature }, source);
         }
@@ -413,7 +412,7 @@ namespace MapBoard.Mapping.Model
         public async Task UpdateFeaturesAsync(IEnumerable<UpdatedFeature> features, FeaturesChangedSource source)
         {
             ThrowIfNotEditable(source);
-            features.ForEach(feature => AddModifiedTimeAttributeIfExistField(feature.Feature));
+            features.ForEach(feature => AddTimeAttributeIfExistField(feature.Feature, Parameters.ModifiedTimeFieldName, false));
             await table.UpdateFeaturesAsync(features.Select(p => p.Feature));
             NotifyFeaturesChanged(null, null, features, source);
         }
@@ -422,29 +421,24 @@ namespace MapBoard.Mapping.Model
         /// 增加创建时间字段，如果该字段存在
         /// </summary>
         /// <param name="feature"></param>
-        private void AddCreateTimeAttributeIfExistField(Feature feature)
+        private void AddTimeAttributeIfExistField(Feature feature, string fieldName, bool skipIfExisted)
         {
-            if (table.Fields.Any(p => p.Name == Parameters.CreateTimeFieldName)
-                && table.Fields.First(p => p.Name == Parameters.CreateTimeFieldName).FieldType == FieldType.Text)
+            var esriField = table.GetField(fieldName);
+            //若没有该字段，跳过
+            if (esriField == null)
             {
-                if (!feature.Attributes.ContainsKey(Parameters.CreateTimeFieldName)
-                        || feature.Attributes[Parameters.CreateTimeFieldName] == null)
-                {
-                    feature.SetAttributeValue(Parameters.CreateTimeFieldName, DateTime.Now.ToString(Parameters.TimeFormat));
-                }
+                return;
             }
-        }
-
-        /// <summary>
-        /// 增加修改时间字段，如果该字段存在
-        /// </summary>
-        /// <param name="feature"></param>
-        private void AddModifiedTimeAttributeIfExistField(Feature feature)
-        {
-            if (table.Fields.Any(p => p.Name == Parameters.ModifiedTimeFieldName)
-                && table.Fields.First(p => p.Name == Parameters.ModifiedTimeFieldName).FieldType == FieldType.Text)
+            //若已有值，跳过
+            if (skipIfExisted && feature.GetAttributeValue(esriField) != null)
             {
-                feature.SetAttributeValue(Parameters.ModifiedTimeFieldName, DateTime.Now.ToString(Parameters.TimeFormat));
+                return;
+            }
+            FieldInfo field = esriField.ToFieldInfo();
+            //若目标字段的类型不兼容，跳过
+            if (field.IsCompatibleType(DateTime.Now, out object value))
+            {
+                feature.SetAttributeValue(esriField, value);
             }
         }
 

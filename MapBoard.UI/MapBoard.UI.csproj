@@ -78,6 +78,7 @@
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="DesktopBridge.Helpers" />
     <PackageReference Include="Esri.ArcGISRuntime.WPF" />
+    <PackageReference Include="FluentFTP" />
     <PackageReference Include="Fody">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -8,25 +8,12 @@ using MapBoard.Mapping.Model;
 using Esri.ArcGISRuntime.Data;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace MapBoard.Util
 {
     public static class AttributeUtility
     {
-        /// <summary>
-        /// 将图层中所有要素的   一个字段的属性赋值给另一个字段
-        /// </summary>
-        /// <param name="layer"></param>
-        /// <param name="fieldSource"></param>
-        /// <param name="fieldTarget"></param>
-        /// <param name="dateFormat"></param>
-        /// <returns></returns>
-        //public static async Task<ItemsOperationErrorCollection> CopyAttributesAsync(IMapLayerInfo layer, FieldInfo fieldSource, FieldInfo fieldTarget, string dateFormat)
-        //{
-        //    var features = await layer.GetAllFeaturesAsync();
-        //    return await CopyAttributesAsync(layer, features, fieldSource, fieldTarget, dateFormat);
-        //}
-
         /// <summary>
         /// 将一个字段的属性赋值给另一个字段
         /// </summary>
@@ -37,7 +24,7 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static async Task<ItemsOperationErrorCollection> CopyAttributesAsync(IMapLayerInfo layer, IEnumerable<Feature> features, FieldInfo fieldSource, FieldInfo fieldTarget)
         {
-            if (fieldTarget.Name.Equals(FieldExtension.CreateTimeField.Name))
+            if (fieldTarget.Name.Equals(Parameters.CreateTimeFieldName))
             {
                 throw new ArgumentException("不可为“创建时间”字段赋值");
             }
@@ -65,7 +52,10 @@ namespace MapBoard.Util
                         object result = null;
                         try
                         {
-                            result = FeatureAttribute.ConvertToType(value, fieldTarget.Type);
+                            if (!FieldInfo.IsCompatibleType(fieldTarget.Type, value, out result))
+                            {
+                                throw new InvalidCastException($"无法将类型{value.GetType().Name}或值{value}转换为对应的类型{fieldTarget.Type}");
+                            }
                             feature.SetAttributeValue(fieldTarget.Name, result);
                         }
                         catch (Exception ex)
@@ -105,14 +95,10 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static async Task<ItemsOperationErrorCollection> SetAttributesAsync(IMapLayerInfo layer, IEnumerable<Feature> features, FieldInfo field, string text, bool includeField)
         {
-            if (field.Name.Equals(FieldExtension.CreateTimeField.Name))
+            if (field.Name.Equals(Parameters.CreateTimeFieldName))
             {
                 throw new ArgumentException("不可为“创建时间”字段赋值");
             }
-            //if (includeField && field.Type is not FieldInfoType.Text)
-            //{
-            //    throw new ArgumentException("仅可为文本类型进行自定义赋值");
-            //}
             Debug.Assert(features.All(p => p.FeatureTable.Layer == layer.Layer));
 
             ItemsOperationErrorCollection errors = new ItemsOperationErrorCollection();
@@ -140,7 +126,10 @@ namespace MapBoard.Util
                     object result = null;
                     try
                     {
-                        result = FeatureAttribute.ConvertToType(textValue, field.Type);
+                        if (!FieldInfo.IsCompatibleType(field.Type, textValue, out result))
+                        {
+                            throw new InvalidCastException($"无法将类型{textValue.GetType().Name}或值{textValue}转换为对应的类型{field.Type}");
+                        }
                         feature.SetAttributeValue(field.Name, result);
                     }
                     catch (Exception ex)

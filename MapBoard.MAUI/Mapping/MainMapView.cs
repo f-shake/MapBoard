@@ -359,7 +359,7 @@ namespace MapBoard.Mapping
                 (SelectedFeature.FeatureTable.Layer as FeatureLayer).UnselectFeature(SelectedFeature);
             }
             (feature.FeatureTable.Layer as FeatureLayer).SelectFeature(feature);
-            ShowCallout(point, feature, feature.FeatureTable.Layer.Name, BuildCalloutText(feature), false);
+            ShowCallout(point, feature, Layers.Find(feature.FeatureTable.Layer)?.Name ?? "未知图层", BuildCalloutText(feature), false);
             SelectedFeature = feature;
         }
 
@@ -404,7 +404,7 @@ namespace MapBoard.Mapping
         private async Task<bool> TapToSelectFeatureAsync(GeoViewInputEventArgs e)
         {
             IEnumerable<IdentifyLayerResult> results = await IdentifyLayersAsync(e.Position, 10, false, 1);
-            results = results.Where(p => Layers.FindLayer(p.LayerContent).Interaction.CanSelect);
+            results = results.Where(p => Layers.Find(p.LayerContent).Interaction.CanSelect);
             if (results.Any())
             {
                 if (results.Select(p => p.LayerContent)

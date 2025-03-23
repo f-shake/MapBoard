@@ -349,6 +349,10 @@
                                         Tag="2" />
                                     <MenuItem
                                         Click="ExportMenu_Click"
+                                        Header="地图包（FTP）"
+                                        Tag="3" />
+                                    <MenuItem
+                                        Click="ExportMenu_Click"
                                         Header="KML打包文件"
                                         Tag="5" />
                                     <MenuItem

@@ -315,7 +315,7 @@ namespace MapBoard.Mapping
                         .Where(p => p.LayerContent.IsVisible)//仅可见图层
                         .Select(p => new
                         {
-                            Layer = Layers.FindLayer(p.LayerContent),//图层
+                            Layer = Layers.Find(p.LayerContent),//图层
                             Elements = p.GeoElements,//要素
                             SubLayer = p.SublayerResults.Any() ? p.SublayerResults[0] : null//子图层（仅临时图层）
                         })

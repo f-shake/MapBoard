@@ -29,6 +29,9 @@ using FzLib;
 using MapBoard.UI.GpxToolbox;
 using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
+using Esri.ArcGISRuntime.Mapping;
+using MobileMapPackage = MapBoard.IO.MobileMapPackage;
+using FluentFTP;
 
 namespace MapBoard.Util
 {
@@ -535,6 +538,43 @@ namespace MapBoard.Util
                 App.Log.Error("打开失败", ex);
                 await CommonDialog.ShowErrorDialogAsync(ex, "打开失败");
             }
+        }
+
+        public static async Task SaveToFtpAsync(string ip, MapLayerCollection layers, Action<string> newMessage = null)
+        {
+            newMessage?.Invoke("正在准备文件");
+            string tempPath = $"{Path.GetTempFileName()}.mbmpkg";
+            await Package.ExportMapAsync(tempPath, layers, true);
+
+            ip = ip.Trim();
+            if (ip.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+            {
+                ip = ip["ftp://".Length..];
+            }
+            ip = ip.Trim('/').Trim('\\').Replace("：", ":");
+            int port = 21;
+            if (ip.Contains(':'))
+            {
+                var parts = ip.Split(':');
+                ip = parts[0];
+                if (int.TryParse(parts[1], out port))
+                {
+                    if (port is < 0 or > ushort.MaxValue)
+                    {
+                        throw new ArgumentException("端口号超出范围", nameof(ip));
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("无法识别端口号", nameof(ip));
+                }
+            }
+            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com" ,port);
+            newMessage?.Invoke("正在连接FTP");
+            await ftp.Connect();
+            newMessage?.Invoke("正在上传到FTP");
+            await ftp.UploadFile(tempPath, Path.GetFileName($"地图画板 - {DateTime.Now:yyyyMMdd-HHmmss}.mbmpkg"));
+            await ftp.Disconnect();
         }
 
         /// <summary>
