@@ -233,7 +233,15 @@ namespace MapBoard.UI
             {
                 await DoAsync(async () =>
                 {
-                    arcMap.Selection.Select(await arcMap.Layers.Selected.QueryFeaturesAsync(new QueryParameters()), true);
+                    var features = await arcMap.Layers.Selected.QueryFeaturesAsync(new QueryParameters());
+                    if (features.Any())
+                    {
+                        arcMap.Selection.Select(features, true);
+                    }
+                    else
+                    {
+                        SnakeBar.ShowError(this, "该图层为空");
+                    }
                 }, "正在全选");
             }
         }
