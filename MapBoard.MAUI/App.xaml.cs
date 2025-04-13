@@ -1,7 +1,9 @@
-﻿using CommunityToolkit.Maui.Alerts;
+﻿using Android.Runtime;
+using CommunityToolkit.Maui.Alerts;
 using Esri.ArcGISRuntime;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
+using GoogleGson;
 using MapBoard.IO;
 using MapBoard.Mapping;
 using MapBoard.Views;
@@ -36,7 +38,23 @@ namespace MapBoard
                     map.Layers.MapViewExtentJson = json;
                 }
             }
-            map.Layers.Save();
+            try
+            {
+                map.Layers.Save();
+            }
+            catch(Exception ex)
+            {
+   //             System.ArgumentNullException: ArgumentNull_Generic Arg_ParamName_Name, o
+   //at Newtonsoft.Json.Linq.JToken.FromObjectInternal(Object o, JsonSerializer jsonSerializer)
+   //at Newtonsoft.Json.Linq.JArray.FromObject(Object o, JsonSerializer jsonSerializer)
+   //at Newtonsoft.Json.Linq.JArray.FromObject(Object o)
+   //at MapBoard.Model.LayerCollection.Save(String path)
+   //at MapBoard.Mapping.Model.MapLayerCollection.Save()
+   //at MapBoard.App.SaveConfigsAndStatus()
+   //at MapBoard.MainActivity.OnPause()
+   //at Android.App.Activity.n_OnPause(IntPtr jnienv, IntPtr native__this)
+   //at Android.Runtime.JNINativeWrapper.Wrap_JniMarshal_PP_V(_JniMarshal_PP_V callback, IntPtr jnienv, IntPtr klazz)
+            }
         }
 
         protected override void OnStart()
