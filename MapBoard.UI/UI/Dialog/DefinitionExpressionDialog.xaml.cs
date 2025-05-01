@@ -12,6 +12,8 @@ using Esri.ArcGISRuntime.Data;
 using System.Diagnostics;
 using MapBoard.Mapping.Model;
 using ModernWpf.Controls;
+using Esri.ArcGISRuntime.Portal;
+using MapBoard.Query;
 
 namespace MapBoard.UI.Dialog
 {
@@ -85,7 +87,10 @@ namespace MapBoard.UI.Dialog
         private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
         {
             QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
-            await dialog.ShowAsync();
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                Expression = QuerySqlBuilder.Build(dialog.Items);
+            }
         }
     }
 }

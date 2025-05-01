@@ -7,8 +7,8 @@
     xmlns:local="clr-namespace:MapBoard.UI.Dialog"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:me="clr-namespace:FzLib.WPF.MarkupExtensions;assembly=FzCoreLib.Windows"
-    xmlns:q="clr-namespace:MapBoard.Query;assembly=MapBoard.Core"
     xmlns:model="clr-namespace:Mapster.Models;assembly=Mapster"
+    xmlns:q="clr-namespace:MapBoard.Query;assembly=MapBoard.Core"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="构建查询条件"
     CloseButtonText="取消"
@@ -22,12 +22,15 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="0" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="80" />
-                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="120" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="140" />
                                 <ColumnDefinition Width="8" />
@@ -35,8 +38,9 @@
                             </Grid.ColumnDefinitions>
 
                             <ComboBox
-                                Grid.Column="0"
-                                HorizontalAlignment="Stretch"
+                                Grid.Row="0"
+                                Grid.ColumnSpan="99"
+                                Margin="0,0,0,8"
                                 ItemsSource="{me:EnumValues q:SqlLogicalOperator}"
                                 SelectedItem="{Binding LogicalOperator}"
                                 Visibility="{Binding IsFirstItem, Converter={StaticResource Bool2VisibilityConverter}, ConverterParameter=i}">
@@ -49,7 +53,7 @@
 
                             <!--  字段选择  -->
                             <ComboBox
-                                Grid.Column="2"
+                                Grid.Row="2"
                                 HorizontalAlignment="Stretch"
                                 DisplayMemberPath="DisplayName"
                                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.Fields}"
@@ -57,7 +61,8 @@
 
                             <!--  操作符选择  -->
                             <ComboBox
-                                Grid.Column="4"
+                                Grid.Row="2"
+                                Grid.Column="2"
                                 HorizontalAlignment="Stretch"
                                 ItemsSource="{Binding ValueOperator, Converter={StaticResource SqlOperatorTypeToItemsConverter}}"
                                 SelectedItem="{Binding ValueOperator}">
@@ -70,7 +75,8 @@
 
                             <!--  动态值输入（使用内联DataTrigger实现）  -->
                             <ContentControl
-                                Grid.Column="6"
+                                Grid.Row="2"
+                                Grid.Column="4"
                                 HorizontalAlignment="Stretch"
                                 Content="{Binding}">
                                 <ContentControl.ContentTemplate>
@@ -84,9 +90,9 @@
                                                         TargetType="ui:NumberBox">
                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Field.Type}">
+                                                            <DataTrigger Binding="{Binding ValueType}">
                                                                 <DataTrigger.Value>
-                                                                    <model:FieldInfoType>Text</model:FieldInfoType>
+                                                                    <q:SqlWhereClauseItemValueType>Number</q:SqlWhereClauseItemValueType>
                                                                 </DataTrigger.Value>
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
@@ -105,9 +111,9 @@
                                                         TargetType="TextBox">
                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ValueOperator}">
+                                                            <DataTrigger Binding="{Binding ValueType}">
                                                                 <DataTrigger.Value>
-                                                                    <q:StringSqlOperator>EqualTo</q:StringSqlOperator>
+                                                                    <q:SqlWhereClauseItemValueType>String</q:SqlWhereClauseItemValueType>
                                                                 </DataTrigger.Value>
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
@@ -117,35 +123,38 @@
                                             </TextBox>
 
                                             <!--  日期类型  -->
-                                            <DatePicker
+                                            <TextBox
                                                 HorizontalAlignment="Stretch"
-                                                SelectedDate="{Binding Value}">
-                                                <DatePicker.Style>
+                                                ui:TextBoxHelper.IsDeleteButtonVisible="False"
+                                                Text="{Binding Value, StringFormat={StaticResource DateTimeFormat}}">
+                                                <TextBox.Style>
                                                     <Style
-                                                        BasedOn="{StaticResource DefaultDatePickerStyle}"
-                                                        TargetType="DatePicker">
+                                                        BasedOn="{StaticResource DefaultTextBoxStyle}"
+                                                        TargetType="TextBox">
                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ValueOperator}">
+                                                            <DataTrigger Binding="{Binding ValueType}">
                                                                 <DataTrigger.Value>
-                                                                    <q:DateTimeOperator>EqualTo</q:DateTimeOperator>
+                                                                    <q:SqlWhereClauseItemValueType>Datetime</q:SqlWhereClauseItemValueType>
                                                                 </DataTrigger.Value>
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </DatePicker.Style>
-                                            </DatePicker>
+                                                </TextBox.Style>
+                                            </TextBox>
                                         </Grid>
                                     </DataTemplate>
                                 </ContentControl.ContentTemplate>
                             </ContentControl>
 
                             <Button
-                                Grid.Column="8"
+                                Grid.Row="2"
+                                Grid.Column="6"
                                 Padding="2"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
+                                Click="RemoveItemButton_Click"
                                 Content="×"
                                 Visibility="{Binding IsFirstItem, Converter={StaticResource Bool2VisibilityConverter}, ConverterParameter=i}" />
                         </Grid>

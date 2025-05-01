@@ -15,7 +15,6 @@ namespace MapBoard.Query
             }
 
             var sb = new StringBuilder();
-            sb.Append("WHERE ");
 
             for (int i = 0; i < items.Count; i++)
             {
@@ -50,7 +49,7 @@ namespace MapBoard.Query
         private static string BuildNullCheck(SqlWhereClauseItem item)
         {
             var isNotNull = item.ValueOperator.ToString().EndsWith("NotNull");
-            return $"{item.Field} IS {(isNotNull ? "NOT " : "")}NULL";
+            return $"{item.Field.Name} IS {(isNotNull ? "NOT " : "")}NULL";
         }
 
         private static string BuildCondition(SqlWhereClauseItem item)
@@ -71,25 +70,25 @@ namespace MapBoard.Query
 
             return op switch
             {
-                StringSqlOperator.Include => $"{item.Field} LIKE '%{EscapeString(value)}%'",
-                StringSqlOperator.NotInclude => $"{item.Field} NOT LIKE '%{EscapeString(value)}%'",
-                StringSqlOperator.StartWith => $"{item.Field} LIKE '{EscapeString(value)}%'",
-                StringSqlOperator.NotStartWith => $"{item.Field} NOT LIKE '{EscapeString(value)}%'",
-                StringSqlOperator.EndWith => $"{item.Field} LIKE '%{EscapeString(value)}'",
-                StringSqlOperator.NotEndWith => $"{item.Field} NOT LIKE '%{EscapeString(value)}'",
-                _ => $"{item.Field} {GetComparisonOperator(op)} '{EscapeString(value)}'"
+                StringSqlOperator.Include => $"{item.Field.Name} LIKE '%{EscapeString(value)}%'",
+                StringSqlOperator.NotInclude => $"{item.Field.Name} NOT LIKE '%{EscapeString(value)}%'",
+                StringSqlOperator.StartWith => $"{item.Field.Name} LIKE '{EscapeString(value)}%'",
+                StringSqlOperator.NotStartWith => $"{item.Field.Name} NOT LIKE '{EscapeString(value)}%'",
+                StringSqlOperator.EndWith => $"{item.Field.Name} LIKE '%{EscapeString(value)}'",
+                StringSqlOperator.NotEndWith => $"{item.Field.Name} NOT LIKE '%{EscapeString(value)}'",
+                _ => $"{item.Field.Name} {GetComparisonOperator(op)} '{EscapeString(value)}'"
             };
         }
 
         private static string BuildDateTimeCondition(SqlWhereClauseItem item)
         {
             var op = (DateTimeOperator)item.ValueOperator;
-            return $"{item.Field} {GetDateTimeOperator(op)} {FormatDateTime(item.Value)}";
+            return $"{item.Field.Name} {GetDateTimeOperator(op)} {FormatDateTime(item.Value)}";
         }
 
         private static string BuildSimpleCondition(SqlWhereClauseItem item)
         {
-            return $"{item.Field} {GetComparisonOperator(item.ValueOperator)} {FormatValue(item.Value)}";
+            return $"{item.Field.Name} {GetComparisonOperator(item.ValueOperator)} {FormatValue(item.Value)}";
         }
 
         private static string GetComparisonOperator(Enum op)

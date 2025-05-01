@@ -41,6 +41,12 @@ namespace MapBoard.UI.Dialog
             });
         }
 
-  
+        private void RemoveItemButton_Click(object sender, RoutedEventArgs e)
+        {
+           if ((sender as Button).DataContext is SqlWhereClauseItem item)
+            {
+                Items.Remove(item);
+            }
+        }
     }
 }

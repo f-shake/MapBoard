@@ -7,14 +7,12 @@ using FieldInfo = MapBoard.Model.FieldInfo;
 
 namespace MapBoard.Query
 {
-    public enum 
     public class SqlWhereClauseItem : INotifyPropertyChanged
     {
-        private Enum valueOperator;
         private FieldInfo field;
         private SqlLogicalOperator logicalOperator = SqlLogicalOperator.And;
         private object value;
-
+        private Enum valueOperator;
         public SqlWhereClauseItem() { }
 
         public SqlWhereClauseItem(SqlLogicalOperator logicalOperator, FieldInfo field, Enum @operator, object value)
@@ -35,26 +33,13 @@ namespace MapBoard.Query
                 if (field == value) return;
                 field = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ValueType));
                 ValueOperator=GetDefaultOperatorForField(field);
             }
         }
 
-        public 
-
-        private Enum GetDefaultOperatorForField(FieldInfo field)
-        {
-            if (field == null) return StringSqlOperator.EqualTo;
-
-            return field.Type switch
-            {
-                FieldInfoType.Integer or FieldInfoType.Float => NumberSqlOperator.EqualTo,
-                FieldInfoType.Date or FieldInfoType.DateTime => DateTimeOperator.EqualTo,
-                FieldInfoType.Text => StringSqlOperator.EqualTo,
-                _ => throw new NotImplementedException(),
-            };
-        }
-
         public bool IsFirstItem { get; set; }
+
         public SqlLogicalOperator LogicalOperator
         {
             get => logicalOperator;
@@ -65,6 +50,22 @@ namespace MapBoard.Query
                 OnPropertyChanged();
             }
         }
+
+        public object Value
+        {
+            get => value;
+            set
+            {
+                if (Equals(this.value, value)) return;
+
+                ValidateValueType(valueOperator?.GetType(), value);
+                ValidateOperatorValuePair(valueOperator, value);
+
+                this.value = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Enum ValueOperator
         {
             get => valueOperator;
@@ -86,26 +87,29 @@ namespace MapBoard.Query
             }
         }
 
-        public object Value
+        public SqlWhereClauseItemValueType ValueType => Field?.Type switch
         {
-            get => value;
-            set
-            {
-                if (Equals(this.value, value)) return;
-
-                ValidateValueType(valueOperator?.GetType(), value);
-                ValidateOperatorValuePair(valueOperator, value);
-
-                this.value = value;
-                OnPropertyChanged();
-            }
-        }
+            FieldInfoType.Integer or FieldInfoType.Float => SqlWhereClauseItemValueType.Number,
+            FieldInfoType.Date or FieldInfoType.DateTime => SqlWhereClauseItemValueType.Datetime,
+            FieldInfoType.Text => SqlWhereClauseItemValueType.String,
+            _ => throw new NotImplementedException(),
+        };
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private Enum GetDefaultOperatorForField(FieldInfo field)
+        {
+            return ValueType switch
+            {
+                SqlWhereClauseItemValueType.Number => NumberSqlOperator.EqualTo,
+                SqlWhereClauseItemValueType.Datetime => DateTimeOperator.EqualTo,
+                SqlWhereClauseItemValueType.String => StringSqlOperator.EqualTo,
+                _ => throw new NotImplementedException(),
+            };
+        }
         private bool IsNullCheckOperator(Enum op)
         {
             return op is StringSqlOperator sOp && (sOp == StringSqlOperator.IsNull || sOp == StringSqlOperator.IsNotNull)
