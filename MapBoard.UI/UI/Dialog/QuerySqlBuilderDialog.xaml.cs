@@ -1,4 +1,5 @@
 ﻿using FzLib;
+using FzLib.WPF.Converters;
 using MapBoard.Model;
 using MapBoard.Query;
 using ModernWpf.FzExtension.CommonDialog;
@@ -19,35 +20,27 @@ namespace MapBoard.UI.Dialog
         {
             Fields = layer.Fields;
             InitializeComponent();
+            // 初始添加一个条件
+            Items.Add(new SqlWhereClauseItem
+            {
+                IsFirstItem = true,
+                Field = Fields.FirstOrDefault()
+            });
         }
 
         public IList<FieldInfo> Fields { get; }
+
         public ObservableCollection<SqlWhereClauseItem> Items { get; } = new ObservableCollection<SqlWhereClauseItem>();
 
         private void AddCondition_Click(object sender, RoutedEventArgs e)
         {
             Items.Add(new SqlWhereClauseItem
             {
-                // 默认设置为第一个字段
-                FieldName = Fields.FirstOrDefault()?.Name,
-                // 默认操作符根据字段类型决定
-                Operator = GetDefaultOperatorForField(Fields.FirstOrDefault())
+                LogicalOperator = SqlLogicalOperator.And,
+                Field = Fields.FirstOrDefault()
             });
         }
 
-        private Enum GetDefaultOperatorForField(FieldInfo field)
-        {
-            if (field == null) return StringSqlOperator.EqualTo;
-
-            switch (field.Type)
-            {
-                case FieldType.Number:
-                    return NumberSqlOperator.EqualTo;
-                case FieldType.DateTime:
-                    return DateTimeOperator.EqualTo;
-                default:
-                    return StringSqlOperator.EqualTo;
-            }
-        }
+  
     }
 }

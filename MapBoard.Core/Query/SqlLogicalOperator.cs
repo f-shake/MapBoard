@@ -1,8 +1,12 @@
-﻿namespace MapBoard.Query
+﻿using System.ComponentModel;
+
+namespace MapBoard.Query
 {
     public enum SqlLogicalOperator
     {
-        AND,
-        OR,
+        [Description("并且")]
+        And,
+        [Description("或者")]
+        Or,
     }
 }

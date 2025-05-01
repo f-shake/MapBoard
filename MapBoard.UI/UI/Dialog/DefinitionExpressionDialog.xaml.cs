@@ -1,10 +1,8 @@
 ﻿using MapBoard.Mapping;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using MapBoard.Util;
@@ -84,9 +82,10 @@ namespace MapBoard.UI.Dialog
             Close();
         }
 
-        private void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
         {
             QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
+            await dialog.ShowAsync();
         }
     }
 }

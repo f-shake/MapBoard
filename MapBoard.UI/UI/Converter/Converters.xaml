@@ -17,4 +17,5 @@
     <converter:TrackInfoConverter x:Key="TrackInfoConverter" />
     <converter:SqlOperatorTypeToItemsConverter x:Key="SqlOperatorTypeToItemsConverter" />
     <converter:DateOnlyConverter x:Key="DateOnlyConverter" />
+    <converter:DateOnlyConverter x:Key="IsTypeVisibilityConverter" />
 </ResourceDictionary>

@@ -1,80 +1,102 @@
-﻿using System;
+﻿using MapBoard.Model;
+using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using FieldInfo = MapBoard.Model.FieldInfo;
 
 namespace MapBoard.Query
 {
+    public enum 
     public class SqlWhereClauseItem : INotifyPropertyChanged
     {
-        private string _fieldName;
-        private SqlLogicalOperator _logicalOperator = SqlLogicalOperator.AND;
-        private Enum _operator;
-        private object _value;
+        private Enum valueOperator;
+        private FieldInfo field;
+        private SqlLogicalOperator logicalOperator = SqlLogicalOperator.And;
+        private object value;
 
         public SqlWhereClauseItem() { }
 
-        public SqlWhereClauseItem(SqlLogicalOperator logicalOperator, string fieldName, Enum @operator, object value)
+        public SqlWhereClauseItem(SqlLogicalOperator logicalOperator, FieldInfo field, Enum @operator, object value)
         {
             LogicalOperator = logicalOperator;
-            FieldName = fieldName;
-            Operator = @operator;
+            Field = field;
+            ValueOperator = @operator;
             Value = value;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public string FieldName
+
+        public FieldInfo Field
         {
-            get => _fieldName;
+            get => field;
             set
             {
-                if (_fieldName == value) return;
-                _fieldName = value;
+                if (field == value) return;
+                field = value;
                 OnPropertyChanged();
+                ValueOperator=GetDefaultOperatorForField(field);
             }
         }
 
+        public 
+
+        private Enum GetDefaultOperatorForField(FieldInfo field)
+        {
+            if (field == null) return StringSqlOperator.EqualTo;
+
+            return field.Type switch
+            {
+                FieldInfoType.Integer or FieldInfoType.Float => NumberSqlOperator.EqualTo,
+                FieldInfoType.Date or FieldInfoType.DateTime => DateTimeOperator.EqualTo,
+                FieldInfoType.Text => StringSqlOperator.EqualTo,
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        public bool IsFirstItem { get; set; }
         public SqlLogicalOperator LogicalOperator
         {
-            get => _logicalOperator;
+            get => logicalOperator;
             set
             {
-                if (_logicalOperator == value) return;
-                _logicalOperator = value;
+                if (logicalOperator == value) return;
+                logicalOperator = value;
                 OnPropertyChanged();
             }
         }
-        public Enum Operator
+        public Enum ValueOperator
         {
-            get => _operator;
+            get => valueOperator;
             set
             {
-                if (Equals(_operator, value)) return;
+                if (Equals(valueOperator, value)) return;
 
                 ValidateOperatorType(value?.GetType());
-                ValidateOperatorValuePair(value, _value);
+                ValidateOperatorValuePair(value, this.value);
 
-                _operator = value;
+                valueOperator = value;
                 OnPropertyChanged();
 
                 // 当操作符变更时，重新验证值
-                if (_value != null)
+                if (this.value != null)
                 {
-                    ValidateValueType(value?.GetType(), _value);
+                    ValidateValueType(value?.GetType(), this.value);
                 }
             }
         }
 
         public object Value
         {
-            get => _value;
+            get => value;
             set
             {
-                if (Equals(_value, value)) return;
+                if (Equals(this.value, value)) return;
 
-                ValidateValueType(_operator?.GetType(), value);
-                ValidateOperatorValuePair(_operator, value);
+                ValidateValueType(valueOperator?.GetType(), value);
+                ValidateOperatorValuePair(valueOperator, value);
 
-                _value = value;
+                this.value = value;
                 OnPropertyChanged();
             }
         }

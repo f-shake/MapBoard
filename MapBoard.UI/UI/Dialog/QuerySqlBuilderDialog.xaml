@@ -6,91 +6,148 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:MapBoard.UI.Dialog"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:me="clr-namespace:FzLib.WPF.MarkupExtensions;assembly=FzCoreLib.Windows"
+    xmlns:q="clr-namespace:MapBoard.Query;assembly=MapBoard.Core"
+    xmlns:model="clr-namespace:Mapster.Models;assembly=Mapster"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="构建查询条件"
     CloseButtonText="取消"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
     PrimaryButtonText="确定"
     mc:Ignorable="d">
-
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel
-            MinWidth="600"
-            Margin="8">
+        <StackPanel Margin="8">
             <!--  条件列表  -->
             <ItemsControl ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,4">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="80" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="80" />
                                 <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="20" />
                             </Grid.ColumnDefinitions>
 
-                            <!--  第一行的WHERE标签  -->
-                            <TextBlock
-                                Grid.Column="0"
-                                VerticalAlignment="Center"
-                                Text="WHERE"
-                                Visibility="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.Items.IndexOf(.), Converter={x:Static ui:Converters.EqualToVisibility}, ConverterParameter=0}" />
-
-                            <!--  非第一行的逻辑运算符  -->
                             <ComboBox
                                 Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                ItemsSource="{me:EnumValues q:SqlLogicalOperator}"
                                 SelectedItem="{Binding LogicalOperator}"
-                                Visibility="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.Items.IndexOf(.), Converter={x:Static ui:Converters.GreaterThanVisibility}, ConverterParameter=0}">
-                                <ComboBox.Items>
-                                    <x:Static Member="local:SqlLogicalOperator.AND" />
-                                    <x:Static Member="local:SqlLogicalOperator.OR" />
-                                </ComboBox.Items>
+                                Visibility="{Binding IsFirstItem, Converter={StaticResource Bool2VisibilityConverter}, ConverterParameter=i}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ., Converter={StaticResource DescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
                             </ComboBox>
 
                             <!--  字段选择  -->
                             <ComboBox
                                 Grid.Column="2"
+                                HorizontalAlignment="Stretch"
                                 DisplayMemberPath="DisplayName"
                                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.Fields}"
-                                SelectedValue="{Binding FieldName}"
-                                SelectedValuePath="Name" />
+                                SelectedItem="{Binding Field}" />
 
                             <!--  操作符选择  -->
                             <ComboBox
                                 Grid.Column="4"
-                                ItemsSource="{Binding Operator, Converter={StaticResource SqlOperatorTypeToItemsConverter}}"
-                                SelectedItem="{Binding Operator}" />
+                                HorizontalAlignment="Stretch"
+                                ItemsSource="{Binding ValueOperator, Converter={StaticResource SqlOperatorTypeToItemsConverter}}"
+                                SelectedItem="{Binding ValueOperator}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ., Converter={StaticResource DescriptionConverter}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
-                            <!--  值输入框  -->
+                            <!--  动态值输入（使用内联DataTrigger实现）  -->
                             <ContentControl
                                 Grid.Column="6"
+                                HorizontalAlignment="Stretch"
                                 Content="{Binding}">
-                                <ContentControl.Resources>
-                                    <!--  数字类型值  -->
-                                    <DataTemplate DataType="{x:Type local:SqlWhereClauseItem}">
-                                        <TextBox
-                                            Text="{Binding Value, StringFormat=N2}"
-                                            Visibility="{Binding Operator, Converter={x:Static ui:Converters.IsTypeVisibility}, ConverterParameter={x:Type local:NumberSqlOperator}}" />
-                                    </DataTemplate>
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <!--  数字类型  -->
+                                            <ui:NumberBox HorizontalAlignment="Stretch">
+                                                <ui:NumberBox.Style>
+                                                    <Style
+                                                        BasedOn="{StaticResource {x:Type ui:NumberBox}}"
+                                                        TargetType="ui:NumberBox">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Field.Type}">
+                                                                <DataTrigger.Value>
+                                                                    <model:FieldInfoType>Text</model:FieldInfoType>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ui:NumberBox.Style>
+                                            </ui:NumberBox>
 
-                                    <!--  字符串类型值  -->
-                                    <DataTemplate DataType="{x:Type local:SqlWhereClauseItem}">
-                                        <TextBox
-                                            Text="{Binding Value}"
-                                            Visibility="{Binding Operator, Converter={x:Static ui:Converters.IsTypeVisibility}, ConverterParameter={x:Type local:StringSqlOperator}}" />
-                                    </DataTemplate>
+                                            <!--  字符串类型  -->
+                                            <TextBox
+                                                HorizontalAlignment="Stretch"
+                                                Text="{Binding Value}">
+                                                <TextBox.Style>
+                                                    <Style
+                                                        BasedOn="{StaticResource DefaultTextBoxStyle}"
+                                                        TargetType="TextBox">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ValueOperator}">
+                                                                <DataTrigger.Value>
+                                                                    <q:StringSqlOperator>EqualTo</q:StringSqlOperator>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
 
-                                    <!--  日期类型值  -->
-                                    <DataTemplate DataType="{x:Type local:SqlWhereClauseItem}">
-                                        <DatePicker
-                                            SelectedDate="{Binding Value}"
-                                            Visibility="{Binding Operator, Converter={x:Static ui:Converters.IsTypeVisibility}, ConverterParameter={x:Type local:DateTimeOperator}}" />
+                                            <!--  日期类型  -->
+                                            <DatePicker
+                                                HorizontalAlignment="Stretch"
+                                                SelectedDate="{Binding Value}">
+                                                <DatePicker.Style>
+                                                    <Style
+                                                        BasedOn="{StaticResource DefaultDatePickerStyle}"
+                                                        TargetType="DatePicker">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ValueOperator}">
+                                                                <DataTrigger.Value>
+                                                                    <q:DateTimeOperator>EqualTo</q:DateTimeOperator>
+                                                                </DataTrigger.Value>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DatePicker.Style>
+                                            </DatePicker>
+                                        </Grid>
                                     </DataTemplate>
-                                </ContentControl.Resources>
+                                </ContentControl.ContentTemplate>
                             </ContentControl>
+
+                            <Button
+                                Grid.Column="8"
+                                Padding="2"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                Content="×"
+                                Visibility="{Binding IsFirstItem, Converter={StaticResource Bool2VisibilityConverter}, ConverterParameter=i}" />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
