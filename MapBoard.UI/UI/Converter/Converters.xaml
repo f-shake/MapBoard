@@ -15,5 +15,6 @@
     <converter:TileDownloaderTitleConverter x:Key="TileDownloaderTitleConverter" />
     <converter:Bool2GridLengthConverter x:Key="Bool2GridLengthConverter" />
     <converter:TrackInfoConverter x:Key="TrackInfoConverter" />
+    <converter:SqlOperatorTypeToItemsConverter x:Key="SqlOperatorTypeToItemsConverter" />
     <converter:DateOnlyConverter x:Key="DateOnlyConverter" />
 </ResourceDictionary>

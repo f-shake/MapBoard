@@ -74,20 +74,6 @@ namespace MapBoard.UI.Dialog
         }
 
         /// <summary>
-        /// 单击日期范围按钮
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void DateExtentButton_Click(object sender, RoutedEventArgs e)
-        {
-            DateRangeDialog dialog = new DateRangeDialog(Layer);
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            {
-                Expression = $"{dialog.Field.Name} >= date '{dialog.From:yyyy-MM-dd}' and {dialog.Field.Name} <= date '{dialog.To:yyyy-MM-dd}'";
-            }
-        }
-
-        /// <summary>
         /// 单击确定按钮
         /// </summary>
         /// <param name="sender"></param>
@@ -96,6 +82,11 @@ namespace MapBoard.UI.Dialog
         {
             Layer.DefinitionExpression = Expression;
             Close();
+        }
+
+        private void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        {
+            QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
         }
     }
 }

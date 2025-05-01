@@ -36,8 +36,8 @@
             Orientation="Horizontal"
             Spacing="8">
             <Button
-                Click="DateExtentButton_Click"
-                Content="设置时间范围" />
+                Click="BuildSqlButton_Click"
+                Content="构建表达式" />
             <Button
                 Click="ClearButton_Click"
                 Content="显示所有图形" />
