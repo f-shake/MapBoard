@@ -17,6 +17,8 @@ using System.Collections.ObjectModel;
 using Esri.ArcGISRuntime.Geometry;
 using static Esri.ArcGISRuntime.Data.SpatialRelationship;
 using MapBoard.Mapping.Model;
+using MapBoard.Query;
+using ModernWpf.Controls;
 
 namespace MapBoard.UI.Dialog
 {
@@ -86,15 +88,13 @@ namespace MapBoard.UI.Dialog
         public Dictionary<string, SpatialRelationship> Str2SpatialRelationships { get; } = new Dictionary<string, SpatialRelationship>()
         {
             ["相交（Intersects）"] = Intersects,
-            ["相关（Relate）"] = Relate,
             ["相等（Equals）"] = SpatialRelationship.Equals,
             ["相离（Disjoint）"] = Disjoint,
-            ["外部接触（Touches）"] = Touches,
-            ["相交且交集维度小于最大纬度（Corsses）"] = Crosses,
-            ["被包含（Within）"] = Within,
+            ["接触（Touches）"] = Touches,
+            ["横跨（Corsses）"] = Crosses,
+            ["内部（Within）"] = Within,
             ["包含（Contains）"] = Contains,
-            ["同纬度相交但不相同（Overlaps）"] = Overlaps,
-            ["包围盒相交（EnvelopeIntersects）"] = EnvelopeIntersects,
+            ["覆盖（Overlaps）"] = Overlaps,
         };
 
         /// <summary>
@@ -198,6 +198,15 @@ namespace MapBoard.UI.Dialog
             finally
             {
                 IsEnabled = true;
+            }
+        }
+
+        private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        {
+            QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                txtWhere.Text = Parameters.WhereClause = QuerySqlBuilder.Build(dialog.Items);
             }
         }
     }

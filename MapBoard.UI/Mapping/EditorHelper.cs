@@ -453,7 +453,7 @@ namespace MapBoard.Mapping
             GeometryEditor.SnapSettings.IsEnabled = true;
             GeometryEditor.SnapSettings.IsHapticFeedbackEnabled = true;
             GeometryEditor.SnapSettings.IsFeatureSnappingEnabled = true;
-            GeometryEditor.SnapSettings.IsGeometryGuidesEnabled = true;
+            //GeometryEditor.SnapSettings.IsGeometryGuidesEnabled = true;
             GeometryEditor.SnapSettings.SyncSourceSettings();
             foreach (var ss in GeometryEditor.SnapSettings.SourceSettings)
             {

@@ -9,7 +9,7 @@
     xmlns:u="clr-namespace:MapBoard.UI"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="查询"
-    Width="400"
+    Width="600"
     ui:WindowHelper.UseModernWindowStyle="True"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
     ResizeMode="NoResize"
@@ -118,15 +118,21 @@
             VerticalAlignment="Center"
             Text="属性查询语句 " />
 
-        <Button
+        <ui:SimpleStackPanel
             Grid.Row="8"
             Grid.Column="2"
             HorizontalAlignment="Right"
-            Content="插入字段名">
-            <ui:FlyoutService.Flyout>
-                <ui:MenuFlyout x:Name="menuFields" />
-            </ui:FlyoutService.Flyout>
-        </Button>
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                Click="BuildSqlButton_Click"
+                Content="构建表达式" />
+            <Button Content="插入字段名">
+                <ui:FlyoutService.Flyout>
+                    <ui:MenuFlyout x:Name="menuFields" />
+                </ui:FlyoutService.Flyout>
+            </Button>
+        </ui:SimpleStackPanel>
         <TextBox
             x:Name="txtWhere"
             Grid.Row="6"
