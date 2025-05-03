@@ -65,6 +65,17 @@
                     <Grid ColumnDefinitions="{StaticResource GridColumns}">
                         <Label
                             Style="{StaticResource KeyLabelStyle}"
+                            Text="透明度" />
+                        <Slider
+                            Grid.Column="2"
+                            Maximum="1"
+                            Minimum="0"
+                            Value="{Binding Display.Opacity}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="{StaticResource GridColumns}">
+                        <Label
+                            Style="{StaticResource KeyLabelStyle}"
                             Text="渲染类型" />
                         <Picker
                             Title="选择渲染类型"
