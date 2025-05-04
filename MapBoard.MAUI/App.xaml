@@ -17,6 +17,9 @@
             <c:NotNullConverter x:Key="NotNullConverter" />
             <c:DistanceConverter x:Key="DistanceConverter" />
             <c:EqualConverter x:Key="EqualConverter" />
+            <c:SqlValueTypeToVisibilityConverter x:Key="SqlValueTypeToVisibilityConverter" />
+            <c:SqlOperatorTypeToItemsConverter x:Key="SqlOperatorTypeToItemsConverter" />
+            <c:DescriptionConverter x:Key="DescriptionConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -3,6 +3,7 @@
     x:Class="MapBoard.Views.AttributeTablePopup"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:m="clr-namespace:MapBoard;assembly=MapBoard.Core"
     xmlns:mm="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
@@ -39,26 +40,7 @@
                                     LineBreakMode="TailTruncation"
                                     Text="{Binding DisplayName}"
                                     VerticalOptions="Center" />
-                                <!--<Entry Grid.Column="2">
-                                <Entry.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding Type}"
-                                        TargetType="{x:Type Entry}">
-                                        <DataTrigger.Value>
-                                            <mm:FieldInfoType>Date</mm:FieldInfoType>
-                                        </DataTrigger.Value>
-                                        <Setter Property="Entry.Text">
-                                            <Setter.Value>
-                                                <Binding Path="DateValue" />
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Entry.Triggers>
-                            </Entry>-->
                                 <ContentView Grid.Column="2">
-                                    <ContentView.Content>
-                                        <Label Text="5423" />
-                                    </ContentView.Content>
                                     <ContentView.Triggers>
                                         <DataTrigger
                                             Binding="{Binding Type}"
@@ -70,7 +52,7 @@
                                                 <Setter.Value>
                                                     <DatePicker
                                                         Date="{Binding DateValue}"
-                                                        Format="{StaticResource DateFormat}" />
+                                                        Format="{x:Static m:Parameters.DateFormat}" />
                                                 </Setter.Value>
                                             </Setter>
                                         </DataTrigger>
@@ -134,6 +116,7 @@
                 </ListView.ItemTemplate>
             </ListView>
             <Grid
+                x:Name="gEditButtons"
                 Grid.Row="2"
                 Margin="8"
                 ColumnDefinitions="*,8,*">
@@ -149,6 +132,16 @@
                     Clicked="ApplyButton_Clicked"
                     Text="应用" />
 
+            </Grid>
+            <Grid
+                x:Name="gViewButtons"
+                Grid.Row="2"
+                Margin="8"
+                ColumnDefinitions="*,8,*">
+                <Button
+                    Grid.Column="2"
+                    Clicked="CancelButton_Clicked"
+                    Text="关闭" />
             </Grid>
         </Grid>
     </Border>

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui.Views;
+using FzLib.Program;
 using MapBoard.Mapping.Model;
 using Microsoft.Maui.Controls.Shapes;
 using System;
@@ -26,6 +27,11 @@ namespace MapBoard.Views
         //https://github.com/CommunityToolkit/Maui/issues/1516
         public static async Task<int> PopupMenuAsync(this View view, IEnumerable<PopupMenuItem> items, string title = null)
         {
+            ArgumentNullException.ThrowIfNull(items);
+            if(!items.Any())
+            {
+                throw new ArgumentException("没有提供任何菜单项", nameof(items));
+            }
             Popup ppp = new Popup
             {
                 Color = Colors.Transparent,
@@ -50,13 +56,17 @@ namespace MapBoard.Views
                 ItemTemplate = template,
                 WidthRequest = 200,
                 VerticalOptions = LayoutOptions.Center,
-                VerticalScrollBarVisibility=ScrollBarVisibility.Never,
-                SeparatorVisibility=SeparatorVisibility.None
+                VerticalScrollBarVisibility = ScrollBarVisibility.Never,
+                SeparatorVisibility = SeparatorVisibility.None
             };
-            list.ItemTapped += (s, e) =>
+            list.ItemTapped += List_ItemTapped;
+
+            void List_ItemTapped(object sender, ItemTappedEventArgs e)
             {
+                list.ItemTapped -= List_ItemTapped;
                 ppp.Close(e.ItemIndex);
-            };
+            }
+
             VerticalStackLayout layout = new VerticalStackLayout()
             {
                 Margin = new Thickness(8),
@@ -88,12 +98,16 @@ namespace MapBoard.Views
             };
             bd.SetAppThemeColor(Border.BackgroundColorProperty, Colors.White, Colors.Black);
             ppp.Content = bd;
-            var result = await MainPage.Current.ShowPopupAsync(ppp);
-            if (result == null)
+            try
             {
+                var result = await MainPage.Current.ShowPopupAsync(ppp);
+                return result == null ? -1 : (int)result;
+            }
+            catch (ObjectDisposedException)
+            {
+                // 忽略或记录日志
                 return -1;
             }
-            return (int)result;
         }
 
         public class PopupMenuItem

@@ -1,7 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-maccatalyst</TargetFrameworks>
+    <BuildInParallel>true</BuildInParallel>
+    <MauiDisableTargetsValidation>true</MauiDisableTargetsValidation>
+    <AndroidUseIntermediateDesignerFile>true</AndroidUseIntermediateDesignerFile>
+    
+		<TargetFrameworks>net9.0-android</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 
@@ -35,7 +39,17 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <!-- 禁用AOT编译 -->
+    <RunAOTCompilation>false</RunAOTCompilation>
 
+    <!-- 使用快速部署模式 -->
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+    <AndroidEnableFastDeployment>true</AndroidEnableFastDeployment>
+  </PropertyGroup>
+  
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#1D8348" ForegroundScale="0.5" />
@@ -96,7 +110,11 @@
     <PackageReference Include="Microsoft.Maui.Controls" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
-	</ItemGroup>
+		<PackageReference Include="System.Formats.Nrbf" />
+    <!--可能是由于System.Drawing.Common 9的缘故，若不引用上面这个包，就会通不过AOT编译-->
+    <!--https://github.com/dotnet/maui/issues/27057-->
+    <!--https://github.com/dotnet/runtime/issues/111865-->
+  </ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\MapBoard.Core\MapBoard.Core.csproj" />
@@ -111,8 +129,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\SearchResultBar.xaml.cs">
+	    <DependentUpon>SearchResultBar.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\GeoShareConfigPopup.xaml.cs">
 	    <DependentUpon>GeoShareConfigPopup.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\LayerQueryPopup.xaml.cs">
+	    <DependentUpon>LayerQueryPopup.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Views\SettingPopup.xaml.cs">
 	    <DependentUpon>SettingPopup.xaml</DependentUpon>
@@ -162,7 +186,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\SearchResultBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\GeoShareConfigPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\LayerQueryPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SettingPopup.xaml">
@@ -217,39 +247,39 @@
     <UseHardenedRuntime>true</UseHardenedRuntime>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui.debug</ApplicationId>
     <ApplicationTitle>（调试）地图画板</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-maccatalyst|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows10.0.19041.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-maccatalyst|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-windows10.0.19041.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
   
@@ -261,7 +291,7 @@
 </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.22621.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.22621.0</TargetFrameworks>
   </PropertyGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionMapBoardMAUIHideInfoBar="True" /></VisualStudio></ProjectExtensions>

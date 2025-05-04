@@ -39,7 +39,7 @@ namespace MapBoard.Mapping
                 IsEnabled = true,
                 IsHapticFeedbackEnabled=true,
                 IsFeatureSnappingEnabled=true,
-                IsGeometryGuidesEnabled=true
+                //IsGeometryGuidesEnabled=true
             };
             Editor.SnapSettings.SyncSourceSettings();
             foreach (var ss in Editor.SnapSettings.SourceSettings)

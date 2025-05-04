@@ -1,10 +1,8 @@
 ﻿using MapBoard.Mapping;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using MapBoard.Util;
@@ -14,6 +12,8 @@ using Esri.ArcGISRuntime.Data;
 using System.Diagnostics;
 using MapBoard.Mapping.Model;
 using ModernWpf.Controls;
+using Esri.ArcGISRuntime.Portal;
+using MapBoard.Query;
 
 namespace MapBoard.UI.Dialog
 {
@@ -74,20 +74,6 @@ namespace MapBoard.UI.Dialog
         }
 
         /// <summary>
-        /// 单击日期范围按钮
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void DateExtentButton_Click(object sender, RoutedEventArgs e)
-        {
-            DateRangeDialog dialog = new DateRangeDialog(Layer);
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            {
-                Expression = $"{dialog.Field.Name} >= date '{dialog.From:yyyy-MM-dd}' and {dialog.Field.Name} <= date '{dialog.To:yyyy-MM-dd}'";
-            }
-        }
-
-        /// <summary>
         /// 单击确定按钮
         /// </summary>
         /// <param name="sender"></param>
@@ -96,6 +82,15 @@ namespace MapBoard.UI.Dialog
         {
             Layer.DefinitionExpression = Expression;
             Close();
+        }
+
+        private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        {
+            QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                Expression = QuerySqlBuilder.Build(dialog.Items);
+            }
         }
     }
 }

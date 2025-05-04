@@ -35,7 +35,7 @@ public partial class EditBar : ContentView, ISidePanel
 
     private void AttributeTableButton_Click(object sender, EventArgs e)
     {
-        AttributeTablePopup popup = new AttributeTablePopup(MainMapView.Current.Editor.EditingFeature, MainMapView.Current.Editor.Status == EditorStatus.Creating);
+        AttributeTablePopup popup = new AttributeTablePopup(MainMapView.Current.Editor.EditingFeature, MainMapView.Current.Editor.Status == EditorStatus.Creating ? AttributeTablePopup.AttributeTableType.Create : AttributeTablePopup.AttributeTableType.Edit);
         MainPage.Current.ShowPopup(popup);
     }
 
@@ -185,7 +185,7 @@ public partial class EditBar : ContentView, ISidePanel
     private void MapView_SelectedFeatureChanged(object sender, EventArgs e)
     {
         UpdateButtonsVisible();
-        if(MainMapView.Current.SelectedFeature!=null)
+        if (MainMapView.Current.SelectedFeature != null)
         {
             HandleMeasuring(MainMapView.Current.SelectedFeature.Geometry);
         }
@@ -253,7 +253,7 @@ public partial class EditBar : ContentView, ISidePanel
         {
             await MainMapView.Current.Editor.SaveAsync();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await MainPage.Current.DisplayAlert("无法保存", ex.Message, "确定");
         }
@@ -289,5 +289,11 @@ public partial class EditBar : ContentView, ISidePanel
             default:
                 break;
         }
+    }
+
+    private void ViewTableButton_Click(object sender, EventArgs e)
+    {
+        AttributeTablePopup popup = new AttributeTablePopup(MainMapView.Current.SelectedFeature, AttributeTablePopup.AttributeTableType.View);
+        MainPage.Current.ShowPopup(popup);
     }
 }

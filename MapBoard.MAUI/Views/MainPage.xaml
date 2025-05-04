@@ -77,6 +77,17 @@
             </Grid>
 
             <Grid
+                x:Name="cSearch"
+                Padding="{DynamicResource SidePanelPadding}"
+                HorizontalOptions="Fill"
+                IsVisible="False"
+                VerticalOptions="Start">
+                <v:SearchResultBar
+                    x:Name="sbar"
+                    BackgroundColor="Transparent" />
+            </Grid>
+
+            <Grid
                 x:Name="track"
                 Padding="{DynamicResource SidePanelPadding}"
                 BackgroundColor="{AppThemeBinding Light={DynamicResource Gray200},

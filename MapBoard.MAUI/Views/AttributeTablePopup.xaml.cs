@@ -9,28 +9,45 @@ namespace MapBoard.Views;
 
 public partial class AttributeTablePopup : Popup
 {
-    public AttributeTablePopup(Feature feature,bool creating)
+    public AttributeTablePopup(Feature feature, AttributeTableType type)
     {
         var layerInfo = MainMapView.Current.Layers.Find(feature.FeatureTable.Layer);
         if (layerInfo == null)
         {
             throw new Exception("找不到feature对应的MapLayerInfo");
         }
+
+        InitializeComponent();
+
         FeatureAttributeCollection attributes = null;
-        if (creating)
+        switch (type)
         {
-            attributes = FeatureAttributeCollection.Empty(layerInfo);
+            case AttributeTableType.Create:
+                attributes = FeatureAttributeCollection.Empty(layerInfo);
+                gViewButtons.IsVisible = false;
+                break;
+            case AttributeTableType.Edit:
+                attributes = FeatureAttributeCollection.FromFeature(layerInfo, feature);
+                gViewButtons.IsVisible = false;
+                break;
+            case AttributeTableType.View:
+                attributes = FeatureAttributeCollection.FromFeature(layerInfo, feature);
+                gEditButtons.IsVisible = false;
+                break;
         }
-        else
-        {
-            attributes = FeatureAttributeCollection.FromFeature(layerInfo, feature);
-        }
+
         BindingContext = new AttributeTablePopupViewModel()
         {
             Attributes = attributes
         };
-        InitializeComponent();
         Feature = feature;
+    }
+
+    public enum AttributeTableType
+    {
+        Create,
+        Edit,
+        View
     }
 
     public Feature Feature { get; }

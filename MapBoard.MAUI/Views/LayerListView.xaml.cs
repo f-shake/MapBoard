@@ -57,7 +57,8 @@ public partial class LayerListView : ContentView, ISidePanel
     private async void lvwLevel_ItemTapped(object sender, ItemTappedEventArgs e)
     {
         PopupMenu.PopupMenuItem[] items = [
-            new PopupMenu.PopupMenuItem("样式设置"),
+            new PopupMenu.PopupMenuItem("查询"),
+            new PopupMenu.PopupMenuItem("设置"),
             new PopupMenu.PopupMenuItem("删除")
             ];
         var result = await (sender as ListView).PopupMenuAsync(e, items, "图层选项");
@@ -67,10 +68,14 @@ public partial class LayerListView : ContentView, ISidePanel
             switch (result)
             {
                 case 0:
-                    LayerStylePopup p = new LayerStylePopup(layer);
-                    await MainPage.Current.ShowPopupAsync(p);
+                    LayerQueryPopup p1 = new LayerQueryPopup(layer);
+                    await MainPage.Current.ShowPopupAsync(p1);
                     break;
                 case 1:
+                    LayerStylePopup p2 = new LayerStylePopup(layer);
+                    await MainPage.Current.ShowPopupAsync(p2);
+                    break;
+                case 2:
                     if (await MainPage.Current.DisplayAlert("移除图层", "是否移除选择的图层？", "确定", "取消"))
                     {
                         await MainMapView.Current.Layers.RemoveAsync(layer);

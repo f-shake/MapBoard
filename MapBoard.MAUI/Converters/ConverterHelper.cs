@@ -1,7 +1,9 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace MapBoard.Converters;
-
 internal static class ConverterHelper
 {
     private static bool HasEndFlag(string p, char c)
