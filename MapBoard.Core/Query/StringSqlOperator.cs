@@ -4,6 +4,12 @@ namespace MapBoard.Query
 {
     public enum StringSqlOperator
     {
+        [Description("包含")]
+        Include,
+
+        [Description("不包含")]
+        NotInclude,
+
         [Description("等于")]
         EqualTo,
 
@@ -21,12 +27,6 @@ namespace MapBoard.Query
 
         [Description("不结束于")]
         NotEndWith,
-
-        [Description("包含")]
-        Include,
-
-        [Description("不包含")]
-        NotInclude,
 
         [Description("为空")]
         IsNull,

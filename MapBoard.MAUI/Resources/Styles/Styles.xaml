@@ -470,4 +470,39 @@
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark={DynamicResource Gray900}, Light={DynamicResource Gray100}}" />
     </Style>
+
+    <Style
+        x:Key="TopBarButtonStyle"
+        BasedOn="{StaticResource DefaultButtonStyle}"
+        TargetType="{x:Type Button}">
+        <Setter Property="BackgroundColor" Value="{DynamicResource Gray600}" />
+        <Setter Property="WidthRequest" Value="60" />
+        <Setter Property="HeightRequest" Value="72" />
+        <Setter Property="ContentLayout" Value="0,Top" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Button.Opacity" Value="0.4" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Button.Opacity" Value="0.6" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Button.Opacity" Value="0.8" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+
+    </Style>
+
 </ResourceDictionary>

@@ -11,7 +11,7 @@ namespace MapBoard.Query
     {
         private FieldInfo field;
         private SqlLogicalOperator logicalOperator = SqlLogicalOperator.And;
-        private object value;
+        private string value;
         private Enum valueOperator;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -24,7 +24,8 @@ namespace MapBoard.Query
                 field = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ValueType));
-                ValueOperator = GetDefaultOperatorForField(field);
+                ValueOperator = GetDefaultOperatorForField();
+                Value = GetDefaultValueForField();
             }
         }
 
@@ -40,15 +41,12 @@ namespace MapBoard.Query
             }
         }
 
-        public object Value
+        public string Value
         {
             get => value;
             set
             {
                 if (Equals(this.value, value)) return;
-
-                ValidateValueType(valueOperator?.GetType(), value);
-                ValidateOperatorValuePair(valueOperator, value);
 
                 this.value = value;
                 OnPropertyChanged();
@@ -63,16 +61,9 @@ namespace MapBoard.Query
                 if (Equals(valueOperator, value)) return;
 
                 ValidateOperatorType(value?.GetType());
-                ValidateOperatorValuePair(value, this.value);
 
                 valueOperator = value;
                 OnPropertyChanged();
-
-                // 当操作符变更时，重新验证值
-                if (this.value != null)
-                {
-                    ValidateValueType(value?.GetType(), this.value);
-                }
             }
         }
 
@@ -88,16 +79,28 @@ namespace MapBoard.Query
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private Enum GetDefaultOperatorForField(FieldInfo field)
+        private Enum GetDefaultOperatorForField()
         {
             return ValueType switch
             {
-                SqlWhereClauseItemValueType.Number => NumberSqlOperator.EqualTo,
-                SqlWhereClauseItemValueType.Datetime => DateTimeOperator.EqualTo,
-                SqlWhereClauseItemValueType.String => StringSqlOperator.EqualTo,
+                SqlWhereClauseItemValueType.Number => (NumberSqlOperator)0,
+                SqlWhereClauseItemValueType.Datetime => (DateTimeOperator)0,
+                SqlWhereClauseItemValueType.String => (StringSqlOperator)0,
                 _ => throw new NotImplementedException(),
             };
         }
+
+        private string   GetDefaultValueForField()
+        {
+            return ValueType switch
+            {
+                SqlWhereClauseItemValueType.Number => "0",
+                SqlWhereClauseItemValueType.Datetime => DateTime.Now.ToString(),
+                SqlWhereClauseItemValueType.String => "",
+                _ => throw new NotImplementedException(),
+            };
+        }
+
         private bool IsNullCheckOperator(Enum op)
         {
             return op is StringSqlOperator sOp && (sOp == StringSqlOperator.IsNull || sOp == StringSqlOperator.IsNotNull)
@@ -130,42 +133,5 @@ namespace MapBoard.Query
             }
         }
 
-        private void ValidateOperatorValuePair(Enum @operator, object value)
-        {
-            if (@operator == null || value == null) return;
-
-            if (IsNullCheckOperator(@operator))
-            {
-                throw new ArgumentException(
-                    $"IsNull/IsNotNull操作符不应设置Value，当前操作符: {@operator}");
-            }
-        }
-
-        private void ValidateValueType(Type operatorType, object value)
-        {
-            if (operatorType == null || value == null) return;
-
-            if (operatorType == typeof(NumberSqlOperator))
-            {
-                if (!IsNumeric(value))
-                {
-                    throw new ArgumentException("数值类型操作符需要int/double等数值类型的Value");
-                }
-            }
-            else if (operatorType == typeof(StringSqlOperator))
-            {
-                if (!(value is string))
-                {
-                    throw new ArgumentException("字符串操作符需要string类型的Value");
-                }
-            }
-            else if (operatorType == typeof(DateTimeOperator))
-            {
-                if (!(value is DateTime))
-                {
-                    throw new ArgumentException("时间操作符需要DateTime类型的Value");
-                }
-            }
-        }
     }
 }

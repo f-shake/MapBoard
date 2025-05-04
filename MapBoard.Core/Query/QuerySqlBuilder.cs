@@ -23,7 +23,7 @@ namespace MapBoard.Query
                 // 处理逻辑运算符前缀
                 if (i > 0)
                 {
-                    sb.Append($" {item.LogicalOperator} ");
+                    sb.Append($" {item.LogicalOperator.ToString().ToUpper()} ");
                 }
 
                 // 处理特殊NULL判断

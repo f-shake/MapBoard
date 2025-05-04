@@ -96,7 +96,7 @@ namespace MapBoard.Mapping
         public event EventHandler MapViewStatusChanged;
 
         public event EventHandler SelectedFeatureChanged;
-
+        
         public static MainMapView Current => instances[0];
 
         /// <summary>
@@ -150,6 +150,8 @@ namespace MapBoard.Mapping
         }
 
         public TrackOverlayHelper TrackOverlay { get; private set; }
+
+        public SearchOverlayHelper SearchOverlay { get; private set; }
 
         public void ClearSelection()
         {
@@ -221,7 +223,6 @@ namespace MapBoard.Mapping
             Map.OperationalLayers.Clear();
             await Layers.LoadAsync(Map.OperationalLayers);
             CurrentStatus = MapViewStatus.Ready;
-            MapLoaded?.Invoke(this, EventArgs.Empty);
 
             if (TrackOverlay == null)
             {
@@ -231,6 +232,13 @@ namespace MapBoard.Mapping
                 };
                 GraphicsOverlays.Add(overlay);
                 TrackOverlay = new TrackOverlayHelper(overlay);
+            }
+
+            if(SearchOverlay==null)
+            {
+                var overlay = new GraphicsOverlay();
+                GraphicsOverlays.Add(overlay);
+                SearchOverlay = new SearchOverlayHelper(overlay);
             }
 
             if (GeoShareService == null)
@@ -245,6 +253,7 @@ namespace MapBoard.Mapping
                 GeoShareService.GeoShareExceptionThrow += GeoShareService_GeoShareExceptionThrow;
                 GeoShareService.Start();
             }
+            MapLoaded?.Invoke(this, EventArgs.Empty);
         }
 
         public void MoveToLocation()

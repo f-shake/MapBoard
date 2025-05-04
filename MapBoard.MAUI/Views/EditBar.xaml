@@ -57,11 +57,11 @@
                 Spacing="8">
 
                 <Button
-                        x:Name="btnViewTable"
-                        Clicked="ViewTableButton_Click"
-                        ImageSource="btn_table.png"
-                        Text="属性"
-                        WidthRequest="60" />
+                    x:Name="btnViewTable"
+                    Clicked="ViewTableButton_Click"
+                    ImageSource="btn_table.png"
+                    Text="属性"
+                    WidthRequest="60" />
                 <Button
                     x:Name="btnEdit"
                     Padding="8"

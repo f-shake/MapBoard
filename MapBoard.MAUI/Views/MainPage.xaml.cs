@@ -306,6 +306,7 @@ namespace MapBoard.Views
             MainMapView.Current.GeoViewTapped += (s, e) => CloseAllPanel();
             MainMapView.Current.MapViewStatusChanged += MapView_BoardTaskChanged;
             MainMapView.Current.GeoShareExceptionThrow += GeoShareExceptionThrow;
+            MainMapView.Current.MapLoaded += Current_MapLoaded;
 
 #if ANDROID
             var navBarHeight = (Platform.CurrentActivity as MainActivity).GetNavBarHeight();
@@ -335,6 +336,12 @@ namespace MapBoard.Views
             await CheckCrashAsync();
 
             await MainMapView.Current.InitializeLocationDisplayAsync();
+        }
+
+        private void Current_MapLoaded(object sender, EventArgs e)
+        {
+            MainMapView.Current.SearchOverlay.SearchResultDisplayChanged -= SearchOverlay_SearchResultDisplayChanged;
+            MainMapView.Current.SearchOverlay.SearchResultDisplayChanged += SearchOverlay_SearchResultDisplayChanged;
         }
 
         private void FtpTapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
@@ -397,7 +404,8 @@ namespace MapBoard.Views
                 new SidePanelInfo(baseLayer, baseLayerView),
                 new SidePanelInfo(import, importView),
                 new SidePanelInfo(cTrack, tbar){Length=0},
-                new SidePanelInfo(cEdit, ebar){Length=0}
+                new SidePanelInfo(cEdit, ebar){Length=0},
+                new SidePanelInfo(cSearch, sbar){Length=0}
             ];
             type2SidePanels = sidePanels.ToDictionary(p => p.Type);
 
@@ -541,6 +549,17 @@ namespace MapBoard.Views
             }
         }
 
+        private void SearchOverlay_SearchResultDisplayChanged(object sender, SearchOverlayHelper.SearchResultDisplayChangedEventArgs e)
+        {
+            if (e.IsVisible)
+            {
+                OpenPanel<SearchResultBar>();
+            }
+            else
+            {
+                ClosePanel<SearchResultBar>();
+            }
+        }
         private void SetBaseLayersTapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
         {
             OpenPanel<BaseLayerView>();

@@ -72,9 +72,13 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-
+                            <TextBox
+                                Grid.Row="2"
+                                Grid.Column="4"
+                                HorizontalAlignment="Stretch"
+                                Text="{Binding Value}" />
                             <!--  动态值输入（使用内联DataTrigger实现）  -->
-                            <ContentControl
+                            <!--<ContentControl
                                 Grid.Row="2"
                                 Grid.Column="4"
                                 HorizontalAlignment="Stretch"
@@ -82,7 +86,9 @@
                                 <ContentControl.ContentTemplate>
                                     <DataTemplate>
                                         <Grid>
-                                            <!--  数字类型  -->
+                            -->
+                            <!--  数字类型  -->
+                            <!--
                                             <ui:NumberBox HorizontalAlignment="Stretch">
                                                 <ui:NumberBox.Style>
                                                     <Style
@@ -101,7 +107,9 @@
                                                 </ui:NumberBox.Style>
                                             </ui:NumberBox>
 
-                                            <!--  字符串类型  -->
+                            -->
+                            <!--  字符串类型  -->
+                            <!--
                                             <TextBox
                                                 HorizontalAlignment="Stretch"
                                                 Text="{Binding Value}">
@@ -122,7 +130,9 @@
                                                 </TextBox.Style>
                                             </TextBox>
 
-                                            <!--  日期类型  -->
+                            -->
+                            <!--  日期类型  -->
+                            <!--
                                             <TextBox
                                                 HorizontalAlignment="Stretch"
                                                 ui:TextBoxHelper.IsDeleteButtonVisible="False"
@@ -146,7 +156,7 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ContentControl.ContentTemplate>
-                            </ContentControl>
+                            </ContentControl>-->
 
                             <Button
                                 Grid.Row="2"

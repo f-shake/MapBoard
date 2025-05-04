@@ -41,10 +41,6 @@
 	</PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <!-- 禁用调试符号以加快部署 -->
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-
     <!-- 禁用AOT编译 -->
     <RunAOTCompilation>false</RunAOTCompilation>
 
@@ -133,6 +129,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\SearchResultBar.xaml.cs">
+	    <DependentUpon>SearchResultBar.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\GeoShareConfigPopup.xaml.cs">
 	    <DependentUpon>GeoShareConfigPopup.xaml</DependentUpon>
 	  </Compile>
@@ -187,6 +186,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\SearchResultBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\GeoShareConfigPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
