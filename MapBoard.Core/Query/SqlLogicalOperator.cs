@@ -4,9 +4,9 @@ namespace MapBoard.Query
 {
     public enum SqlLogicalOperator
     {
-        [Description("并且")]
+        [Description("且")]
         And,
-        [Description("或者")]
+        [Description("或")]
         Or,
     }
 }

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+    x:Class="MapBoard.Views.LayerQueryPopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lm="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
+    xmlns:q="clr-namespace:MapBoard.Query;assembly=MapBoard.Core"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:MapBoard.ViewModels"
+    x:DataType="{x:Type vm:LayerQueryViewModel}"
+    HorizontalOptions="Fill"
+    Size="300,500"
+    VerticalOptions="Fill"
+    Color="Transparent">
+    <Border Style="{StaticResource PopupBorderStyle}">
+        <Grid RowDefinitions="*,8,Auto">
+            <ScrollView>
+                <VerticalStackLayout
+                    Margin="8"
+                    Spacing="4">
+                    <!--  条件列表  -->
+                    <CollectionView ItemsSource="{Binding Items}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="q:SqlWhereClauseItem">
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.5*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="20" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--  逻辑运算符选择  -->
+                                    <Picker
+                                        IsVisible="{Binding IsFirstItem, Converter={StaticResource InverseBoolConverter}}"
+                                        ItemDisplayBinding="{Binding ., Converter={StaticResource DescriptionConverter}}"
+                                        ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.SqlLogicalOperators}"
+                                        SelectedItem="{Binding LogicalOperator, Mode=TwoWay}" />
+
+                                    <!--  字段选择  -->
+
+                                    <Picker
+                                        Grid.Column="2"
+                                        ItemDisplayBinding="{Binding DisplayName}"
+                                        ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.Fields}"
+                                        SelectedItem="{Binding Field, Mode=TwoWay}" />
+
+
+                                    <!--  操作符选择  -->
+
+                                    <Picker
+                                        Grid.Column="4"
+                                        ItemDisplayBinding="{Binding ., Converter={StaticResource DescriptionConverter}}"
+                                        ItemsSource="{Binding ValueOperator, Converter={StaticResource SqlOperatorTypeToItemsConverter}}"
+                                        SelectedItem="{Binding ValueOperator, Mode=TwoWay}" />
+
+
+                                    <!--  动态值输入  -->
+
+                                    <Entry
+                                        Grid.Column="6"
+                                        Text="{Binding Value}" />
+
+                                    <!--  删除按钮  -->
+                                    <Button
+                                        Grid.Column="8"
+                                        Padding="2"
+                                        Background="Transparent"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=BindingContext.RemoveItemCommand}"
+                                        CommandParameter="{Binding .}"
+                                        IsVisible="{Binding IsFirstItem, Converter={StaticResource InverseBoolConverter}}"
+                                        Text="×"
+                                        TextColor="{AppThemeBinding Light={StaticResource Black},
+                                                                    Dark={StaticResource White}}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!--  添加条件按钮  -->
+                    <Button
+                        Margin="0,12,0,0"
+                        Command="{Binding AddConditionCommand}"
+                        HorizontalOptions="Start"
+                        Text="添加条件" />
+                </VerticalStackLayout>
+            </ScrollView>
+            <Grid
+                Grid.Row="2"
+                Margin="8"
+                ColumnDefinitions="*,8,*">
+                <Button
+                    BackgroundColor="{AppThemeBinding Light={DynamicResource Gray400},
+                                                      Dark={DynamicResource Gray500}}"
+                    Clicked="CancelButton_Clicked"
+                    Text="取消"
+                    TextColor="{AppThemeBinding Dark={DynamicResource White},
+                                                Light={DynamicResource Black}}" />
+                <Button
+                    Grid.Column="2"
+                    Clicked="SearchButton_Clicked"
+                    Text="查询" />
+
+            </Grid>
+        </Grid>
+    </Border>
+</toolkit:Popup>

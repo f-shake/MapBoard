@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+    <BuildInParallel>true</BuildInParallel>
+    <MauiDisableTargetsValidation>true</MauiDisableTargetsValidation>
+    <AndroidUseIntermediateDesignerFile>true</AndroidUseIntermediateDesignerFile>
+    
 		<TargetFrameworks>net9.0-android</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
@@ -35,7 +39,21 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <!-- 禁用调试符号以加快部署 -->
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
 
+    <!-- 禁用AOT编译 -->
+    <RunAOTCompilation>false</RunAOTCompilation>
+
+    <!-- 使用快速部署模式 -->
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
+    <AndroidEnableFastDeployment>true</AndroidEnableFastDeployment>
+  </PropertyGroup>
+  
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#1D8348" ForegroundScale="0.5" />
@@ -118,6 +136,9 @@
 	  <Compile Update="Views\GeoShareConfigPopup.xaml.cs">
 	    <DependentUpon>GeoShareConfigPopup.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\LayerQueryPopup.xaml.cs">
+	    <DependentUpon>LayerQueryPopup.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\SettingPopup.xaml.cs">
 	    <DependentUpon>SettingPopup.xaml</DependentUpon>
 	  </Compile>
@@ -167,6 +188,9 @@
 
 	<ItemGroup>
 	  <MauiXaml Update="Views\GeoShareConfigPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\LayerQueryPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SettingPopup.xaml">

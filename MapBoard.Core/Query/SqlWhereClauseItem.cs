@@ -13,15 +13,6 @@ namespace MapBoard.Query
         private SqlLogicalOperator logicalOperator = SqlLogicalOperator.And;
         private object value;
         private Enum valueOperator;
-        public SqlWhereClauseItem() { }
-
-        public SqlWhereClauseItem(SqlLogicalOperator logicalOperator, FieldInfo field, Enum @operator, object value)
-        {
-            LogicalOperator = logicalOperator;
-            Field = field;
-            ValueOperator = @operator;
-            Value = value;
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -30,11 +21,10 @@ namespace MapBoard.Query
             get => field;
             set
             {
-                if (field == value) return;
                 field = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ValueType));
-                ValueOperator=GetDefaultOperatorForField(field);
+                ValueOperator = GetDefaultOperatorForField(field);
             }
         }
 
@@ -45,7 +35,6 @@ namespace MapBoard.Query
             get => logicalOperator;
             set
             {
-                if (logicalOperator == value) return;
                 logicalOperator = value;
                 OnPropertyChanged();
             }
@@ -91,8 +80,7 @@ namespace MapBoard.Query
         {
             FieldInfoType.Integer or FieldInfoType.Float => SqlWhereClauseItemValueType.Number,
             FieldInfoType.Date or FieldInfoType.DateTime => SqlWhereClauseItemValueType.Datetime,
-            FieldInfoType.Text => SqlWhereClauseItemValueType.String,
-            _ => throw new NotImplementedException(),
+            _ => SqlWhereClauseItemValueType.String,
         };
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
