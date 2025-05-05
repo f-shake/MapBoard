@@ -9,7 +9,6 @@
     x:DataType="{x:Type vm:GeoShareViewModel}"
     CanBeDismissedByTappingOutsideOfPopup="False"
     HorizontalOptions="Fill"
-    Size="300,500"
     VerticalOptions="Fill"
     Color="Transparent">
     <toolkit:Popup.Resources>
@@ -24,11 +23,7 @@
             </Style.Triggers>
         </Style>
     </toolkit:Popup.Resources>
-    <Border
-        Padding="8"
-        HeightRequest="500"
-        Style="{StaticResource PopupBorderStyle}"
-        WidthRequest="300">
+    <ContentView ControlTemplate="{StaticResource StandardPopupTemplate}">
 
         <Grid RowDefinitions="*,8,Auto,8,Auto">
             <Border StrokeThickness="0">
@@ -100,5 +95,5 @@
             </StackLayout>
         </Grid>
 
-    </Border>
+    </ContentView>
 </toolkit:Popup>

@@ -9,9 +9,8 @@
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
     x:DataType="vm:AttributeTablePopupViewModel"
     HorizontalOptions="Fill"
-    Size="336,500"
     Color="Transparent">
-    <Border Style="{StaticResource PopupBorderStyle}">
+    <ContentView ControlTemplate="{StaticResource StandardPopupTemplate}">
         <Grid
             Margin="8"
             RowDefinitions="*,8,Auto">
@@ -144,5 +143,5 @@
                     Text="关闭" />
             </Grid>
         </Grid>
-    </Border>
+    </ContentView>
 </toolkit:Popup>

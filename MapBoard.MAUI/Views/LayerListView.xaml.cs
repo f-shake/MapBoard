@@ -68,10 +68,12 @@ public partial class LayerListView : ContentView, ISidePanel
             switch (result)
             {
                 case 0:
+                    MainPage.Current.CloseAllPanel();
                     LayerQueryPopup p1 = new LayerQueryPopup(layer);
                     await MainPage.Current.ShowPopupAsync(p1);
                     break;
                 case 1:
+                    MainPage.Current.CloseAllPanel();
                     LayerStylePopup p2 = new LayerStylePopup(layer);
                     await MainPage.Current.ShowPopupAsync(p2);
                     break;

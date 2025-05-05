@@ -27,6 +27,10 @@ namespace MapBoard.ViewModels
             try
             {
                 Groups.Clear();
+                if(Layers.Count==0)
+                {
+                    return;
+                }
                 if (Layers.Any(p => string.IsNullOrEmpty(p.Group)))
                 {
                     Groups.Add(new LayerGroupList("（无）",

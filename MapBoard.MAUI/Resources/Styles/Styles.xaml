@@ -502,7 +502,19 @@
                 </VisualStateGroup>
             </VisualStateGroupList>
         </Setter>
-
     </Style>
+
+    <ControlTemplate x:Key="StandardPopupTemplate">
+        <Border
+            Padding="16"
+            Background="Transparent"
+            StrokeThickness="0">
+            <Border
+                Padding="16"
+                Style="{StaticResource PopupBorderStyle}">
+                <ContentPresenter />
+            </Border>
+        </Border>
+    </ControlTemplate>
 
 </ResourceDictionary>
