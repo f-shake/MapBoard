@@ -84,7 +84,7 @@ namespace MapBoard.Query
             return ValueType switch
             {
                 SqlWhereClauseItemValueType.Number => (NumberSqlOperator)0,
-                SqlWhereClauseItemValueType.Datetime => (DateTimeOperator)0,
+                SqlWhereClauseItemValueType.Datetime => (DateTimeSqlOperator)0,
                 SqlWhereClauseItemValueType.String => (StringSqlOperator)0,
                 _ => throw new NotImplementedException(),
             };
@@ -104,7 +104,7 @@ namespace MapBoard.Query
         private bool IsNullCheckOperator(Enum op)
         {
             return op is StringSqlOperator sOp && (sOp == StringSqlOperator.IsNull || sOp == StringSqlOperator.IsNotNull)
-                || op is DateTimeOperator dOp && (dOp == DateTimeOperator.IsNull || dOp == DateTimeOperator.IsNotNull);
+                || op is DateTimeSqlOperator dOp && (dOp == DateTimeSqlOperator.IsNull || dOp == DateTimeSqlOperator.IsNotNull);
         }
 
         private bool IsNumeric(object value)
@@ -124,7 +124,7 @@ namespace MapBoard.Query
             {
                 typeof(NumberSqlOperator),
                 typeof(StringSqlOperator),
-                typeof(DateTimeOperator)
+                typeof(DateTimeSqlOperator)
             };
 
             if (Array.IndexOf(validTypes, operatorType) < 0)
