@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using System.Diagnostics;
 using System.Net;
+using UraniumUI;
 
 namespace MapBoard
 {
@@ -18,6 +19,8 @@ namespace MapBoard
             var builder = MauiApp.CreateBuilder()
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseUraniumUI()
+                .UseUraniumUIMaterial()
                 .ConfigureLifecycleEvents(events =>
                 {
 #if ANDROID
@@ -47,7 +50,7 @@ namespace MapBoard
                 .UseArcGISRuntime()
                 .UseArcGISToolkit();
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
             return builder.Build();
         }

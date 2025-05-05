@@ -42,6 +42,9 @@ public partial class SearchResultBar : ContentView, ISidePanel
 
     private async void ViewTableButton_Click(object sender, EventArgs e)
     {
-        await MainPage.Current.DisplayAlert("查看属性表", "功能尚未完成", "确定");
+        var layer = MainMapView.Current.SearchOverlay.CurrentLayer;
+        var features = MainMapView.Current.SearchOverlay.CurrentFeatures;
+        AttributeTablePopup p = new AttributeTablePopup(layer, features);
+        await MainPage.Current.ShowPopupAsync(p);
     }
 }

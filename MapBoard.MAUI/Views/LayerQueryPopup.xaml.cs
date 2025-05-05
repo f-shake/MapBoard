@@ -53,7 +53,7 @@ public partial class LayerQueryPopup : Popup
                 if (await MainPage.Current.DisplayAlert("查询", $"查询到{result.Count}个要素", "查看结果", "修改条件"))
                 {
                     Close();
-                    MainMapView.Current.SearchOverlay.ShowSearchResult(result);
+                    MainMapView.Current.SearchOverlay.ShowSearchResult(layer, result);
                 }
                 else
                 {

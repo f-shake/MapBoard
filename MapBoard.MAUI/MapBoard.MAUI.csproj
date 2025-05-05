@@ -111,6 +111,8 @@
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
 		<PackageReference Include="System.Formats.Nrbf" />
+		<PackageReference Include="UraniumUI" />
+		<PackageReference Include="UraniumUI.Material" />
     <!--可能是由于System.Drawing.Common 9的缘故，若不引用上面这个包，就会通不过AOT编译-->
     <!--https://github.com/dotnet/maui/issues/27057-->
     <!--https://github.com/dotnet/runtime/issues/111865-->
@@ -129,6 +131,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\AttributeListPopup.xaml.cs">
+	    <DependentUpon>AttributeListPopup.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\SearchResultBar.xaml.cs">
 	    <DependentUpon>SearchResultBar.xaml</DependentUpon>
 	  </Compile>
@@ -153,8 +158,8 @@
 	  <Compile Update="Views\MapPage.xaml.cs">
 	    <DependentUpon>MapPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\AttributeTablePopup.xaml.cs">
-	    <DependentUpon>AttributeTablePopup.xaml</DependentUpon>
+	  <Compile Update="Views\AttributeListPopup.xaml.cs">
+	    <DependentUpon>AttributeListPopup.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Views\ProgressPopup.xaml.cs">
 	    <DependentUpon>ProgressPopup.xaml</DependentUpon>
@@ -186,6 +191,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\AttributeListPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\SearchResultBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -210,7 +218,7 @@
 	  <MauiXaml Update="Views\MapPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\AttributeTablePopup.xaml">
+	  <MauiXaml Update="Views\AttributeListPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\ProgressPopup.xaml">

@@ -35,7 +35,7 @@ public partial class EditBar : ContentView, ISidePanel
 
     private void AttributeTableButton_Click(object sender, EventArgs e)
     {
-        AttributeTablePopup popup = new AttributeTablePopup(MainMapView.Current.Editor.EditingFeature, MainMapView.Current.Editor.Status == EditorStatus.Creating ? AttributeTablePopup.AttributeTableType.Create : AttributeTablePopup.AttributeTableType.Edit);
+        AttributeListPopup popup = new AttributeListPopup(MainMapView.Current.Editor.EditingFeature, MainMapView.Current.Editor.Status == EditorStatus.Creating ? AttributeListPopup.AttributeTableType.Create : AttributeListPopup.AttributeTableType.Edit);
         MainPage.Current.ShowPopup(popup);
     }
 
@@ -293,7 +293,7 @@ public partial class EditBar : ContentView, ISidePanel
 
     private void ViewTableButton_Click(object sender, EventArgs e)
     {
-        AttributeTablePopup popup = new AttributeTablePopup(MainMapView.Current.SelectedFeature, AttributeTablePopup.AttributeTableType.View);
+        AttributeListPopup popup = new AttributeListPopup(MainMapView.Current.SelectedFeature, AttributeListPopup.AttributeTableType.View);
         MainPage.Current.ShowPopup(popup);
     }
 }

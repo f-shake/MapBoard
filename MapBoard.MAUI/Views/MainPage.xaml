@@ -66,17 +66,6 @@
             </Grid>
 
             <Grid
-                x:Name="cEdit"
-                Padding="{DynamicResource SidePanelPadding}"
-                HorizontalOptions="Fill"
-                IsVisible="False"
-                VerticalOptions="Start">
-                <v:EditBar
-                    x:Name="ebar"
-                    BackgroundColor="Transparent" />
-            </Grid>
-
-            <Grid
                 x:Name="cSearch"
                 Padding="{DynamicResource SidePanelPadding}"
                 HorizontalOptions="Fill"
@@ -84,6 +73,17 @@
                 VerticalOptions="Start">
                 <v:SearchResultBar
                     x:Name="sbar"
+                    BackgroundColor="Transparent" />
+            </Grid>
+
+            <Grid
+                x:Name="cEdit"
+                Padding="{DynamicResource SidePanelPadding}"
+                HorizontalOptions="Fill"
+                IsVisible="False"
+                VerticalOptions="Start">
+                <v:EditBar
+                    x:Name="ebar"
                     BackgroundColor="Transparent" />
             </Grid>
 
