@@ -9,6 +9,7 @@ using MapBoard.ViewModels;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Collections.ObjectModel;
 using System.Dynamic;
+using System.Windows.Input;
 
 namespace MapBoard.Views;
 
@@ -19,15 +20,26 @@ public partial class AttributeTablePopup : Popup
     {
         InitializeComponent();
 
-        BindingContext = new AttributeTableViewModel();
+        var viewModel = new AttributeTableViewModel();
+        BindingContext = viewModel;
 
-        //dg.Loaded += Dg_Loaded;
         Layer = layer;
         Features = features;
+
+        viewModel.SelectFeatureCommand = new Command<Feature>(feature =>
+        {
+            MainMapView.Current.SelectFeature(feature);
+            Close();
+        });
+
+        //同步滚动
+        tableScrollView.Scrolled += (s, e) =>
+        {
+            headerScrollView.ScrollToAsync(e.ScrollX, 0, false);
+        };
     }
 
     public IList<Feature> Features { get; }
-
     public IMapLayerInfo Layer { get; }
 
     private void CancelButton_Clicked(object sender, EventArgs e)
@@ -35,125 +47,46 @@ public partial class AttributeTablePopup : Popup
         Close();
     }
 
-    //private async void Dg_Loaded(object sender, EventArgs e)
-    //{
-    //    //dg.Opacity = 0;
-    //    try
-    //    {
-    //        await LoadAsync();
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        await MainPage.Current.DisplayAlert("加载属性失败", ex.Message, "关闭");
-    //        Close();
-    //    }
-    //    //dg.Opacity = 1;
-    //}
-
     private async Task LoadAsync()
-    {
-        var features = Features;
-        await Task.Run(async () =>
-        {
-            features ??= (await Layer.QueryFeaturesAsync(new QueryParameters())).ToList();
-            //var list = new ObservableCollection<dynamic>();
-            //foreach (var feature in features)
-            //{
-            //    var obj = new ExpandoObject();
-            //    var dic = obj as  IDictionary<string, object>;
-            //    foreach (var field in feature.Attributes.Keys)
-            //    {
-            //        dic.Add(field, feature.Attributes[field]);
-            //    }
-            //    list.Add(dic);
-            //}
-            //new ExpandoObject();
-            //(BindingContext as AttributeTableViewModel).Attributes = list;
-            (BindingContext as AttributeTableViewModel).Attributes = [.. features.Select(p => FeatureAttributeCollection.FromFeature(Layer, p))];
-
-        });
-
-
-        gHeader.RowDefinitions.Add(new RowDefinition(50));
-        gHeader.ColumnDefinitions.Add(new ColumnDefinition(50));
-        gTable.ColumnDefinitions.Add(new ColumnDefinition(50));
-
-        for (int i = 0; i < Layer.Fields.Length; i++)
-        {
-            FieldInfo field = Layer.Fields[i];
-            //dg.Columns.Add(new UraniumUI.Material.Controls.DataGridColumn
-            //{
-            //    Title = field.DisplayName,
-            //    ValueBinding = new Binding($"{nameof(FeatureAttributeCollection.Attributes)}[{index}].{nameof(FeatureAttribute.Value)}")
-            //});
-            gHeader.ColumnDefinitions.Add(new ColumnDefinition(CellWidth));
-            gTable.ColumnDefinitions.Add(new ColumnDefinition(CellWidth));
-            Label label = new Label()
-            {
-                Text = field.DisplayName,
-                Margin = new Thickness(2),
-                FontAttributes = FontAttributes.Bold,
-                HorizontalOptions = LayoutOptions.Center,
-            };
-            Grid.SetColumn(label, i + 1);
-            gHeader.Children.Add(label);
-        }
-
-        for (int i = 0; i < features.Count; i++)
-        {
-            var feature = features[i];
-            gTable.RowDefinitions.Add(new RowDefinition(1));
-            gTable.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-            BoxView b = new BoxView
-            {
-                Color = Colors.Gray,
-            };
-            Grid.SetRow(b, i * 2);
-            Grid.SetColumnSpan(b, Layer.Fields.Length + 1);
-            gTable.Children.Add(b);
-
-            Label lSelect = new Label
-            {
-                Text = "选择",
-                TextDecorations = TextDecorations.Underline,
-                VerticalOptions = LayoutOptions.Center
-            };
-            lSelect.GestureRecognizers.Add(new TapGestureRecognizer()
-            {
-                Command = new Command<Feature>(feature =>
-                {
-                    MainMapView.Current.SelectFeature(feature);
-                    Close();
-                }),
-                CommandParameter=feature
-            });
-
-            Grid.SetRow(lSelect, 2 * i + 1);
-            gTable.Children.Add(lSelect);
-
-            for (int j = 0; j < Layer.Fields.Length; j++)
-            {
-                FieldInfo field = Layer.Fields[j];
-                Label label = new Label()
-                {
-                    Text = feature.GetAttributeValue(field.Name)?.ToString() ?? "",
-                    Margin = new Thickness(2),
-                    VerticalOptions = LayoutOptions.Center,
-                    HorizontalOptions = LayoutOptions.Center,
-                };
-                Grid.SetColumn(label, j + 1);
-                Grid.SetRow(label, i * 2 + 1);
-                gTable.Children.Add(label);
-            }
-        }
-    }
-
-    private async void ContentView_Loaded(object sender, EventArgs e)
     {
         var p = ProgressPopup.Show("正在加载属性表");
         try
         {
-            await LoadAsync();
+            var features = Features;
+
+            // 设置表头
+            headerCollectionView.ItemsSource = Layer.Fields;
+
+            // 创建动态数据模板
+            tableCollectionView.ItemTemplate = CreateDataTemplate();
+
+            var vm = BindingContext as AttributeTableViewModel;
+            vm.Attributes = new ObservableCollection<FeatureAttributeCollection>();
+
+            // 先加载所有数据到内存（后台线程）
+            await Task.Run(async () =>
+            {
+                features ??= [.. (await Layer.QueryFeaturesAsync(new QueryParameters()))];
+            });
+
+            p.Close();
+            p = null;
+            loadingCancellationTokenSource = new CancellationTokenSource();
+
+            // 改为在主线程上分批添加，确保UI能响应
+            foreach (var f in features.Select(p => FeatureAttributeCollection.FromFeature(Layer, p)))
+            {
+                if (loadingCancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                // 在主线程添加单个项
+                vm.Attributes.Add(f);
+
+                // 让UI有机会渲染（在主线程上等待）
+                await Task.Delay(16); // ~60fps (1000ms/60 ≈ 16ms)
+            }
         }
         catch (Exception ex)
         {
@@ -162,12 +95,72 @@ public partial class AttributeTablePopup : Popup
         }
         finally
         {
-            p.Close();
+            p?.Close();
+            btnCancelLoading.IsVisible = false;
         }
     }
 
-    private void scrTable_Scrolled(object sender, ScrolledEventArgs e)
+    private DataTemplate CreateDataTemplate()
     {
-        scrHeader.ScrollToAsync(scrTable.ScrollX, 0, false);
+        return new DataTemplate(() =>
+        {
+            var innerGrid = new Grid { Padding = new Thickness(0, 5, 0, 5) };
+
+            // 添加选择列
+            innerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 50 });
+
+            var selectLabel = new Label
+            {
+                Text = "选择",
+                TextDecorations = TextDecorations.Underline,
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Center
+            };
+
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.SetBinding(TapGestureRecognizer.CommandProperty,
+                new Binding(source: new RelativeBindingSource(
+                    RelativeBindingSourceMode.FindAncestor,
+                    typeof(AttributeTablePopup),
+                    1),
+                    path: "BindingContext.SelectFeatureCommand"));
+            tapGesture.SetBinding(TapGestureRecognizer.CommandParameterProperty,
+                new Binding("Feature"));
+
+            selectLabel.GestureRecognizers.Add(tapGesture);
+            innerGrid.Add(selectLabel);
+
+            // 添加动态字段列
+            for (int i = 0; i < Layer.Fields.Length; i++)
+            {
+                innerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = CellWidth });
+
+                var label = new Label
+                {
+                    Margin = new Thickness(2),
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+
+                label.SetBinding(Label.TextProperty,
+                    new Binding($"Attributes[{i}].Value", stringFormat: "{0}"));
+
+                Grid.SetColumn(label, i + 1);
+                innerGrid.Add(label);
+            }
+
+            return innerGrid;
+        });
+    }
+
+    private async void ContentView_Loaded(object sender, EventArgs e)
+    {
+        await LoadAsync();
+    }
+
+    private CancellationTokenSource loadingCancellationTokenSource;
+    private void CancelLoadingButton_Clicked(object sender, EventArgs e)
+    {
+        loadingCancellationTokenSource?.Cancel();
     }
 }

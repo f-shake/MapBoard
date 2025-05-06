@@ -3,9 +3,9 @@
     x:Class="MapBoard.Views.AttributeTablePopup"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:m="clr-namespace:MapBoard;assembly=MapBoard.Core"
+    xmlns:m="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
     xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
-    xmlns:mm="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
+    xmlns:mm="clr-namespace:MapBoard.Mapping.Model;assembly=MapBoard.Core"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
     x:DataType="vm:AttributeTableViewModel"
@@ -30,29 +30,60 @@
     <ContentView
         ControlTemplate="{StaticResource StandardPopupTemplate}"
         Loaded="ContentView_Loaded">
-        <Grid RowDefinitions="Auto,8,*,8,Auto">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!--  Header ScrollView with CollectionView  -->
             <ScrollView
-                x:Name="scrHeader"
-                HorizontalOptions="Center"
+                x:Name="headerScrollView"
                 HorizontalScrollBarVisibility="Never"
-                InputTransparent="True"
                 Orientation="Horizontal">
-                <Grid x:Name="gHeader" />
+                <CollectionView
+                    x:Name="headerCollectionView"
+                    HeightRequest="50"
+                    HorizontalOptions="Start"
+                    ItemsLayout="HorizontalList">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="m:FieldInfo">
+                            <Label
+                                Margin="2"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="Center"
+                                Text="{Binding DisplayName}"
+                                VerticalTextAlignment="Center"
+                                WidthRequest="120" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </ScrollView>
-            <ScrollView
-                x:Name="scrTable"
-                Grid.Row="2"
-                HorizontalOptions="Center"
-                Orientation="Both"
-                Scrolled="scrTable_Scrolled">
-                <Grid x:Name="gTable" />
 
+            <!--  Main Table ScrollView with CollectionView  -->
+            <ScrollView
+                x:Name="tableScrollView"
+                Grid.Row="1"
+                HorizontalScrollBarVisibility="Default"
+                Orientation="Horizontal"
+                VerticalScrollBarVisibility="Never">
+                <CollectionView
+                    x:Name="tableCollectionView"
+                    ItemsSource="{Binding Attributes}"
+                    SelectionMode="Single">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" />
+                    </CollectionView.ItemsLayout>
+                </CollectionView>
             </ScrollView>
+
+            <!--  Footer Buttons  -->
             <Grid
                 x:Name="gViewButtons"
-                Grid.Row="4"
+                Grid.Row="2"
                 Margin="8"
                 ColumnDefinitions="*,8,*">
+                <Button
+                    x:Name="btnCancelLoading"
+                    BackgroundColor="{AppThemeBinding Light={DynamicResource Gray400},
+                                                      Dark={DynamicResource Gray500}}"
+                    Clicked="CancelLoadingButton_Clicked"
+                    Text="取消加载" />
                 <Button
                     Grid.Column="2"
                     Clicked="CancelButton_Clicked"
