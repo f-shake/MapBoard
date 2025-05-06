@@ -30,26 +30,30 @@
     <ContentView
         ControlTemplate="{StaticResource StandardPopupTemplate}"
         Loaded="ContentView_Loaded">
-        <Grid RowDefinitions="Auto,*,Auto">
-            <!--  Header ScrollView with CollectionView  -->
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
             <ScrollView
                 x:Name="headerScrollView"
                 HorizontalScrollBarVisibility="Never"
                 Orientation="Horizontal">
                 <CollectionView
                     x:Name="headerCollectionView"
-                    HeightRequest="50"
                     HorizontalOptions="Start"
-                    ItemsLayout="HorizontalList">
+                    ItemsSource="{Binding Fields}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" />
+                    </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="m:FieldInfo">
-                            <Label
-                                Margin="2"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="Center"
-                                Text="{Binding DisplayName}"
-                                VerticalTextAlignment="Center"
-                                WidthRequest="120" />
+                            <Grid
+                                HeightRequest="40"
+                                WidthRequest="120">
+                                <Label
+                                    Margin="2"
+                                    FontAttributes="Bold"
+                                    HorizontalTextAlignment="Start"
+                                    Text="{Binding DisplayName}"
+                                    VerticalTextAlignment="Center" />
+                            </Grid>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
@@ -64,7 +68,7 @@
                 VerticalScrollBarVisibility="Never">
                 <CollectionView
                     x:Name="tableCollectionView"
-                    ItemsSource="{Binding Attributes}"
+                    ItemsSource="{Binding CurrentPageItems}"
                     SelectionMode="Single">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" />
@@ -72,18 +76,118 @@
                 </CollectionView>
             </ScrollView>
 
+            <!--  Pagination Controls  -->
+            <!--  替换原有的分页控制行  -->
+            <Grid
+                Grid.Row="2"
+                Padding="10"
+                ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto"
+                VerticalOptions="Center">
+                <!--  上一页链接  -->
+                <Label
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="上一页"
+                                TextDecorations="Underline">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding PreviousPageCommand}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding HasPreviousPage}"
+                            TargetType="Label"
+                            Value="False">
+                            <Setter Property="TextColor" Value="Gray" />
+                            <Setter Property="TextDecorations" Value="None" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  当前页码  -->
+                <Label
+                    Grid.Column="1"
+                    HorizontalOptions="Center"
+                    Text="{Binding CurrentPageDisplay}"
+                    TextDecorations="Underline"
+                    VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToPageCommand}" />
+                    </Label.GestureRecognizers>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding TotalPages}"
+                            TargetType="Label"
+                            Value="1">
+                            <Setter Property="IsEnabled" Value="False" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  下一页链接  -->
+                <Label
+                    Grid.Column="2"
+                    Margin="8,0,0,0"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Center">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="下一页 "
+                                TextDecorations="Underline">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NextPageCommand}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding HasNextPage}"
+                            TargetType="Label"
+                            Value="False">
+                            <Setter Property="TextColor" Value="Gray" />
+                            <Setter Property="TextDecorations" Value="None" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  每页条数标签  -->
+                <Label
+                    Grid.Column="4"
+                    HorizontalOptions="End"
+                    Text="每页条数:"
+                    VerticalOptions="Center" />
+
+                <!--  每页条数选择器  -->
+                <Picker
+                    Grid.Column="5"
+                    HorizontalOptions="Start"
+                    HorizontalTextAlignment="Center"
+                    ItemsSource="{Binding PageSizeOptions}"
+                    SelectedItem="{Binding ItemsPerPage}"
+                    VerticalOptions="Center"
+                    WidthRequest="60" />
+            </Grid>
             <!--  Footer Buttons  -->
             <Grid
                 x:Name="gViewButtons"
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="8"
                 ColumnDefinitions="*,8,*">
-                <Button
+                <!--<Button
                     x:Name="btnCancelLoading"
                     BackgroundColor="{AppThemeBinding Light={DynamicResource Gray400},
                                                       Dark={DynamicResource Gray500}}"
                     Clicked="CancelLoadingButton_Clicked"
-                    Text="取消加载" />
+                    Text="取消加载" />-->
                 <Button
                     Grid.Column="2"
                     Clicked="CancelButton_Clicked"
