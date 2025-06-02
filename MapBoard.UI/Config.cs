@@ -348,11 +348,6 @@ namespace MapBoard
         public DownloadInfo Tile_LastDownload { get; set; } = null;
 
         /// <summary>
-        /// 瓦片地图下载拼接器中，自建服务器的访问链接模板
-        /// </summary>
-        public string Tile_ServerFilePathFormat { get; set; } = @"{Download}/{z}/{x}-{y}.{ext}";
-
-        /// <summary>
         /// 瓦片地图下载拼接器中，自建服务器的端口号
         /// </summary>
         public int Tile_ServerPort { get; set; } = 8080;

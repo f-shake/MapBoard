@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="akgul.Maui.DataGrid" Version="4.0.6" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="EmbedIO" Version="3.5.2" />
     <PackageVersion Include="FluentFTP" Version="52.1.0" />
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authorization" Version="9.0.3" />

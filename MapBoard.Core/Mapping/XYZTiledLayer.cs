@@ -194,61 +194,75 @@ namespace MapBoard.Mapping
             TileCacheEntity cache = null;
             //TileCacheDbContext dbContext = null;
             byte[] data = null;
-            try
+            int tryCount = 0;
+            while (data == null && tryCount < 3)
             {
-                if (EnableCache)
+                try
                 {
-                    using var dbContext = new TileCacheDbContext();
-                    cache = await dbContext.Tiles
-                         .Where(p => p.TemplateUrl == TemplateUrl && p.X == column && p.Y == row && p.Z == level)
-                         .FirstOrDefaultAsync(cancellationToken);
-                }
-                if (cache != null)
-                {
-                    data = cache.Data;
-                }
-                else
-                {
-                    string url = TemplateUrl.Replace("{x}", column.ToString()).Replace("{y}", row.ToString()).Replace("{z}", level.ToString());
-                    using var response = await httpClient.GetAsync(url, cancellationToken);
-                    using var content = response.EnsureSuccessStatusCode().Content;
-                    data = await content.ReadAsByteArrayAsync(cancellationToken);
+                    tryCount++;
                     if (EnableCache)
                     {
-                        TileCacheEntity tileCache = null;
-                        if (cacheDic.TryGetValue(url, out tileCache))
+                        using var dbContext = new TileCacheDbContext();
+                        cache = await dbContext.Tiles
+                             .Where(p => p.TemplateUrl == TemplateUrl && p.X == column && p.Y == row && p.Z == level)
+                             .FirstOrDefaultAsync(cancellationToken);
+                    }
+                    if (cache != null)
+                    {
+                        data = cache.Data;
+                    }
+                    else
+                    {
+                        string url = TemplateUrl.Replace("{x}", column.ToString()).Replace("{y}", row.ToString()).Replace("{z}", level.ToString());
+                        using var response = await httpClient.GetAsync(url, cancellationToken);
+                        using var content = response.EnsureSuccessStatusCode().Content;
+                        data = await content.ReadAsByteArrayAsync(cancellationToken);
+                        if (EnableCache)
                         {
-                            data = tileCache.Data;
-                        }
-                        else
-                        {
-                            tileCache = new TileCacheEntity()
+                            TileCacheEntity tileCache = null;
+                            if (cacheDic.TryGetValue(url, out tileCache))
                             {
-                                X = column,
-                                Y = row,
-                                Z = level,
-                                TemplateUrl = TemplateUrl,
-                                TileUrl = url,
-                                Data = data
-                            };
-                            cacheQueue.Enqueue(tileCache);
-                            cacheDic.TryAdd(url, tileCache);
-                            //dbContext.Tiles.Add(tileCache);
-                            //await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+                                data = tileCache.Data;
+                            }
+                            else
+                            {
+                                tileCache = new TileCacheEntity()
+                                {
+                                    X = column,
+                                    Y = row,
+                                    Z = level,
+                                    TemplateUrl = TemplateUrl,
+                                    TileUrl = url,
+                                    Data = data
+                                };
+                                cacheQueue.Enqueue(tileCache);
+                                cacheDic.TryAdd(url, tileCache);
+                                //dbContext.Tiles.Add(tileCache);
+                                //await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+                            }
                         }
                     }
                 }
+                catch (OperationCanceledException ex)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    if (tryCount >= 3)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                if (data == null)
+                {
+                    await Task.Delay(500);
+                }
             }
-            catch (OperationCanceledException ex)
-            {
-                throw;
-            }
-#if DEBUG
-            catch (Exception ex)
-            {
-                throw;
-            }
-#endif
             return new ImageTileData(level, row, column, data, "");
         }
 

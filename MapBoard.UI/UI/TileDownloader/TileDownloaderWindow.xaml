@@ -498,18 +498,6 @@
                 </Grid.RowDefinitions>
                 <GroupBox Header="HTTP服务">
                     <StackPanel Grid.Row="2">
-                        <TextBlock Text="瓦片文件路径格式：" />
-                        <FrameworkElement Height="2" />
-                        <TextBlock
-                            Foreground="Gray"
-                            Text="使用{z}{x}{y}表示层级和坐标" />
-                        <FrameworkElement Height="2" />
-                        <TextBlock
-                            Foreground="Gray"
-                            Text="使用{ext}表示扩展名（不含.）" />
-                        <FrameworkElement Height="4" />
-                        <TextBox Text="{Binding Config.Tile_ServerFilePathFormat}" />
-                        <FrameworkElement Height="8" />
                         <TextBlock Text="服务端口：" />
                         <FrameworkElement Height="4" />
                         <TextBox
@@ -519,9 +507,10 @@
                         <TextBlock Text="调用网址：" />
                         <FrameworkElement Height="4" />
                         <TextBlock>
-                            <Run>http://(IP):</Run>
+                            <Run>http://127.0.0.1:</Run>
                             <Run Text="{Binding ElementName=txtPort, Path=Text}" />
-                            <Run>/{x}-{y}-{z}</Run>
+                            <Run>/{z}/{x}-{y}.</Run>
+                            <Run Text="{Binding Config.Tile_FormatExtension}" />
                         </TextBlock>
                     </StackPanel>
                 </GroupBox>

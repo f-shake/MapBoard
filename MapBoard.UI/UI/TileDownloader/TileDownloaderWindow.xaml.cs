@@ -288,7 +288,8 @@ namespace MapBoard.UI.TileDownloader
                             }
                             await CommonDialog.ShowOkDialogAsync("删除空文件", "删除成功");
                         }
-                    };
+                    }
+                    ;
                 }
                 catch (Exception ex)
                 {
@@ -488,7 +489,7 @@ namespace MapBoard.UI.TileDownloader
                 ServerOn = true;
                 try
                 {
-                    NetUtility.StartServer(Config.Tile_ServerPort, Config.Tile_ServerFilePathFormat.Replace("{Download}", FolderPaths.TileDownloadPath), Config.Tile_FormatExtension);
+                    NetUtility.StartServer(Config.Tile_ServerPort, FolderPaths.TileDownloadPath, Config.Tile_FormatExtension);
                 }
                 catch (SocketException sex)
                 {

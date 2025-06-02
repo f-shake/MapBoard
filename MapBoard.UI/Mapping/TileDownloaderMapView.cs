@@ -109,7 +109,7 @@ namespace MapBoard.Mapping
             {
                 if (IsLocal)
                 {
-                    baseLayer = XYZTiledLayer.Create($"http://127.0.0.1:" + Config.Instance.Tile_ServerPort + "/{x}-{y}-{z}", null);
+                    baseLayer = XYZTiledLayer.Create($"http://127.0.0.1:" + Config.Instance.Tile_ServerPort + "/{z}/{x}-{y}."+Config.Instance.Tile_FormatExtension, null);
                 }
                 else
                 {

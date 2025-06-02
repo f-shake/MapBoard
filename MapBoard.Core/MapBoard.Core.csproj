@@ -30,6 +30,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="PropertyChanged.Fody" />
+    <PackageReference Include="EmbedIO" />
   </ItemGroup>
 
   <ItemGroup>
