@@ -24,13 +24,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="PropertyChanged.Fody" />
     <PackageReference Include="EmbedIO" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
   <ItemGroup>

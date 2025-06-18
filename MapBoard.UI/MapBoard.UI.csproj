@@ -87,7 +87,7 @@
     <PackageReference Include="JKang.IpcServiceFramework.Client.Tcp" />
     <PackageReference Include="JKang.IpcServiceFramework.Hosting.Tcp" />
     <PackageReference Include="log4net" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="ModernWpfUI" />
