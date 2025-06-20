@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MapBoard.IO
 {
@@ -26,12 +25,6 @@ namespace MapBoard.IO
             return result;
         }
 
-        /// <summary>
-        /// 将要素集合异步导出到GeoJSON
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="features"></param>
-        /// <returns></returns>
         public async static Task<string> ExportAsync(string path, IEnumerable<Feature> features)
         {
             string result = null;
@@ -40,16 +33,9 @@ namespace MapBoard.IO
                 result = Convert(features).ToString();
                 File.WriteAllText(path, result, new UTF8Encoding(true));
             });
-
             return result;
         }
 
-        /// <summary>
-        /// 将要素集合异步导出到GeoJSON
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="features"></param>
-        /// <returns></returns>
         public async static Task<string> ExportWithStyleAsync(string path, IEnumerable<Feature> features, ILayerInfo layer)
         {
             string result = null;
@@ -66,35 +52,18 @@ namespace MapBoard.IO
             return result;
         }
 
-        /// <summary>
-        /// 将图层异步导出到GeoJSON
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="layer"></param>
-        /// <returns></returns>
         public async static Task ExportAsync(string path, IMapLayerInfo layer)
         {
             var features = await layer.GetAllFeaturesAsync();
             await ExportAsync(path, features);
         }
 
-        /// <summary>
-        /// 将图层异步导出到GeoJSON
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="layer"></param>
-        /// <returns></returns>
         public async static Task ExportWithStyleAsync(string path, IMapLayerInfo layer)
         {
             var features = await layer.GetAllFeaturesAsync();
             await ExportWithStyleAsync(path, features, layer);
         }
 
-        /// <summary>
-        /// 将一组Feature对象转换为表示GeoJSON FeatureCollection的JObject
-        /// </summary>
-        /// <param name="features"></param>
-        /// <returns></returns>
         private static JObject Convert(IEnumerable<Feature> features)
         {
             JObject jRoot = new JObject
@@ -107,25 +76,21 @@ namespace MapBoard.IO
             foreach (var f in features)
             {
                 JObject jF = new JObject();
-                jFeatures.Add(jF);
                 jF.Add("type", "Feature");
+
                 var g = GetGeometryJson(f);
                 if (g == null)
                 {
                     continue;
                 }
+
                 jF.Add("geometry", g);
                 jF.Add("properties", GetPropertiesJson(f));
+                jFeatures.Add(jF);
             }
             return jRoot;
         }
 
-        /// <summary>
-        /// 将要素中的图形转为Json
-        /// </summary>
-        /// <param name="f"></param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
         private static JObject GetGeometryJson(Feature f)
         {
             JObject jGeo = new JObject();
@@ -134,133 +99,152 @@ namespace MapBoard.IO
             {
                 return null;
             }
-            if (f.Geometry.SpatialReference != null && f.Geometry.SpatialReference.Wkid != 4326)
+            if (g.SpatialReference != null && g.SpatialReference.Wkid != 4326)
             {
                 g = GeometryEngine.Project(g, SpatialReferences.Wgs84);
             }
-            switch (g.GeometryType)
+
+            switch (g)
             {
-                case GeometryType.Polygon:
-                    jGeo.Add("type", "Polygon");
-                    jGeo.Add("coordinates", GetPolygonOrMultiLineStringJson(g as Polygon));
+                case Polygon polygon:
+                    if (polygon.Parts.Count == 1)
+                    {
+                        jGeo.Add("type", "Polygon");
+                        jGeo.Add("coordinates", GetPolygonJson(polygon));
+                    }
+                    else
+                    {
+                        jGeo.Add("type", "MultiPolygon");
+                        jGeo.Add("coordinates", GetMultiPolygonJson(polygon));
+                    }
                     break;
 
-                case GeometryType.Polyline when (f.Geometry as Polyline).Parts.Count == 1:
+                case Polyline polyline when polyline.Parts.Count == 1:
                     jGeo.Add("type", "LineString");
-                    jGeo.Add("coordinates", GetLineStringJson(g as Polyline));
+                    jGeo.Add("coordinates", GetLineStringJson(polyline));
                     break;
 
-                case GeometryType.Polyline when (f.Geometry as Polyline).Parts.Count > 1:
+                case Polyline polyline when polyline.Parts.Count > 1:
                     jGeo.Add("type", "MultiLineString");
-                    jGeo.Add("coordinates", GetPolygonOrMultiLineStringJson(g as Polyline));
+                    jGeo.Add("coordinates", GetMultiLineStringJson(polyline));
                     break;
 
-                case GeometryType.Polyline when (f.Geometry as Polyline).Parts.Count == 0:
-                    return null;
-
-                case GeometryType.Point:
+                case MapPoint point:
                     jGeo.Add("type", "Point");
-                    jGeo.Add("coordinates", GetPointJson(g as MapPoint));
+                    jGeo.Add("coordinates", GetPointJson(point));
                     break;
 
-                case GeometryType.Multipoint:
+                case Multipoint multipoint:
                     jGeo.Add("type", "MultiPoint");
-                    jGeo.Add("coordinates", GetMultiPointJson(g as Multipoint));
+                    jGeo.Add("coordinates", GetMultiPointJson(multipoint));
                     break;
 
                 default:
                     throw new NotSupportedException("不支持的图形类型");
             }
+
             return jGeo;
         }
 
-        /// <summary>
-        /// 获取<see cref="Polyline"/>的GeoJson
-        /// </summary>
-        /// <param name="g"></param>
-        /// <returns></returns>
-        private static JArray GetLineStringJson(Polyline g)
+        private static JArray GetMultiPolygonJson(Polygon polygon)
         {
-            Debug.Assert(g.Parts.Count == 1);
-            JArray jLine = new JArray();
-            foreach (var point in g.Parts[0].Points)
+            JArray jMultiPolygon = new JArray();
+
+            foreach (var part in polygon.Parts)
             {
-                var jPoint = new JArray();
-                jPoint.Add(point.X);
-                jPoint.Add(point.Y);
-                jLine.Add(jPoint);
+                JArray jRing = new JArray();
+
+                foreach (var point in part.Points)
+                {
+                    jRing.Add(new JArray { point.X, point.Y });
+                }
+
+                // 闭合 ring（GeoJSON 要求）
+                if (part.Points.Count > 0)
+                {
+                    var first = part.StartPoint;
+                    var last = part.Points.Last();
+                    if (!first.Equals(last))
+                    {
+                        jRing.Add(new JArray { first.X, first.Y });
+                    }
+                }
+
+                // MultiPolygon 格式要求三层嵌套
+                jMultiPolygon.Add(new JArray { jRing });
             }
-            return jLine;
+
+            return jMultiPolygon;
         }
 
-        /// <summary>
-        /// 获取<see cref="Multipoint"/>的GeoJson
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        private static JArray GetMultiPointJson(Multipoint point)
+        private static JArray GetPointJson(MapPoint point)
+        {
+            return new JArray { point.X, point.Y };
+        }
+
+        private static JArray GetMultiPointJson(Multipoint multipoint)
         {
             JArray jPoints = new JArray();
-            foreach (var p in point.Points)
+            foreach (var p in multipoint.Points)
             {
-                JArray jPoint = new JArray();
-                jPoint.Add(p.X);
-                jPoint.Add(p.Y);
-                jPoints.Add(jPoint);
+                jPoints.Add(new JArray { p.X, p.Y });
             }
             return jPoints;
         }
 
-        /// <summary>
-        /// 获取<see cref="MapPoint"/>的GeoJson
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        private static JArray GetPointJson(MapPoint point)
+        private static JArray GetLineStringJson(Polyline polyline)
         {
-            JArray jPoint = new JArray();
-            jPoint.Add(point.X);
-            jPoint.Add(point.Y);
-            return jPoint;
+            Debug.Assert(polyline.Parts.Count == 1);
+            JArray jLine = new JArray();
+            foreach (var point in polyline.Parts[0].Points)
+            {
+                jLine.Add(new JArray { point.X, point.Y });
+            }
+            return jLine;
         }
 
-        /// <summary>
-        /// 获取<see cref="Multipart"/>的GeoJson
-        /// </summary>
-        /// <param name="g"></param>
-        /// <returns></returns>
-        private static JArray GetPolygonOrMultiLineStringJson(Multipart g)
+        private static JArray GetMultiLineStringJson(Polyline polyline)
         {
-            JArray jPolygon = new JArray();
-
-            foreach (var part in g.Parts)
+            JArray jMultiLine = new JArray();
+            foreach (var part in polyline.Parts)
             {
-                JArray jPart = new JArray();
-                jPolygon.Add(jPart);
-                JArray jPoint;
+                JArray jLine = new JArray();
                 foreach (var point in part.Points)
                 {
-                    jPoint = new JArray();
-                    jPart.Add(jPoint);
-                    jPoint.Add(point.X);
-                    jPoint.Add(point.Y);
+                    jLine.Add(new JArray { point.X, point.Y });
                 }
-                if (g is Polygon)
+                jMultiLine.Add(jLine);
+            }
+            return jMultiLine;
+        }
+
+        private static JArray GetPolygonJson(Polygon polygon)
+        {
+            JArray jPolygon = new JArray();
+            foreach (var ring in polygon.Parts)
+            {
+                JArray jRing = new JArray();
+                foreach (var point in ring.Points)
                 {
-                    jPoint = new JArray();
-                    jPart.Add(jPoint);
-                    jPoint.Add(part.StartPoint.X);
-                    jPoint.Add(part.StartPoint.Y);
+                    jRing.Add(new JArray { point.X, point.Y });
                 }
+
+                // GeoJSON 要求 ring 首尾闭合
+                if (ring.Points.Count > 0)
+                {
+                    var first = ring.StartPoint;
+                    var last = ring.Points.Last();
+                    if (!first.Equals(last))
+                    {
+                        jRing.Add(new JArray { first.X, first.Y });
+                    }
+                }
+
+                jPolygon.Add(jRing);
             }
             return jPolygon;
         }
 
-        /// <summary>
-        /// 将要素中的属性转为Json
-        /// </summary>
-        /// <param name="feature"></param>
-        /// <returns></returns>
         private static JObject GetPropertiesJson(Feature feature)
         {
             JObject jProps = new JObject();
@@ -271,36 +255,30 @@ namespace MapBoard.IO
                     jProps.Add(prop.Key, null);
                     continue;
                 }
+
                 switch (prop.Value)
                 {
                     case string s:
                         jProps.Add(prop.Key, s);
                         break;
-
                     case int i32:
                         jProps.Add(prop.Key, i32);
                         break;
-
                     case long i64:
                         jProps.Add(prop.Key, i64);
                         break;
-
                     case float f:
                         jProps.Add(prop.Key, f);
                         break;
-
                     case double d:
                         jProps.Add(prop.Key, d);
                         break;
-
                     case DateTime dt:
                         jProps.Add(prop.Key, dt.ToString(Parameters.DateFormat));
                         break;
-
                     case DateTimeOffset dto:
                         jProps.Add(prop.Key, dto.UtcDateTime.ToString(Parameters.DateFormat));
                         break;
-
                     default:
                         jProps.Add(prop.Key, prop.Value.ToString());
                         break;
@@ -313,12 +291,7 @@ namespace MapBoard.IO
         {
             public override bool CanConvert(Type objectType)
             {
-                Debug.WriteLine(objectType.FullName);
-                if (objectType == typeof(System.Drawing.Color))
-                {
-                    return true;
-                }
-                return false;
+                return objectType == typeof(System.Drawing.Color);
             }
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
