@@ -1,5 +1,9 @@
-﻿using Esri.ArcGISRuntime.UI;
+﻿using CommunityToolkit.Maui.Alerts;
+using Esri.ArcGISRuntime.UI;
 using MapBoard.Mapping;
+#if ANDROID
+using MapBoard.Platforms.Android;
+#endif
 
 namespace MapBoard.Views
 {
@@ -61,8 +65,22 @@ namespace MapBoard.Views
         private void LocationButton_Click(object sender, EventArgs e)
         {
             map.LocationDisplay.AutoPanMode = LocationDisplayAutoPanMode.Recenter;
+#if ANDROID
+            if (map.LocationDisplay.DataSource is LocationDataSourceAndroidImpl l)
+            {
+                string message = l.LastLocationProvider switch
+                {
+                    LocationDataSourceAndroidImpl.LocationProvider.None => "还未完成定位",
+                    LocationDataSourceAndroidImpl.LocationProvider.Gps => "已通过GPS完成定位",
+                    LocationDataSourceAndroidImpl.LocationProvider.Network => "已通过网络完成定位",
+                    LocationDataSourceAndroidImpl.LocationProvider.Fused => "已通过融合方式完成定位",
+                    LocationDataSourceAndroidImpl.LocationProvider.Others => "已通过未知方式完成定位",
+                    _ => throw new NotImplementedException(),
+                };
+                Toast.Make(message).Show();
+            }
+#endif
         }
-
 
         private async void ZoomInButton_Click(object sender, EventArgs e)
         {
