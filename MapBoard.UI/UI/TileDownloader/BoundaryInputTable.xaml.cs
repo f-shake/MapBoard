@@ -61,10 +61,10 @@ namespace MapBoard.UI.TileDownloader
         /// <param name="bottom"></param>
         public void SetDoubleValue(double left, double top, double right, double bottom)
         {
-            txtLeft.Text = left.ToString();
-            txtTop.Text = top.ToString();
-            txtRight.Text = right.ToString();
-            txtBottom.Text = bottom.ToString();
+            txtLeft.Text = Math.Round(left,6).ToString();
+            txtTop.Text = Math.Round(top, 6).ToString();
+            txtRight.Text = Math.Round(right, 6).ToString();
+            txtBottom.Text = Math.Round(bottom, 6).ToString();
         }
 
         /// <summary>

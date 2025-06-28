@@ -167,6 +167,14 @@
                 <TextBox
                     ui:ControlHelper.Header="代理服务器地址（瓦片下载）"
                     Text="{Binding Config.HttpProxy}" />
+                <ui:NumberBox
+                    ui:ControlHelper.Header="下载并发量（瓦片下载）"
+                    LargeChange="1"
+                    Maximum="10"
+                    Minimum="1"
+                    SmallChange="1"
+                    SpinButtonPlacementMode="Compact"
+                    Text="{Binding Config.Tile_SemaphoreSlim}" />
                 <CheckBox
                     Content="下载时若文件已存在则覆盖"
                     IsChecked="{Binding Config.Tile_CoverFile}" />

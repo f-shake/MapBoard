@@ -60,13 +60,7 @@
                         x:Name="arcMap"
                         PreviewMouseMove="ArcMap_PreviewMouseMove"
                         SelectBoundaryComplete="ArcMap_SelectBoundaryComplete" />
-                    <Button
-                        Margin="8"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
-                        Click="SelectAreaButton_Click">
-                        <ui:SymbolIcon Symbol="SelectAll" />
-                    </Button>
+
                     <TextBlock
                         Grid.Column="2"
                         Margin="8"
@@ -135,7 +129,7 @@
         </TabControl>
         <Grid Margin="8,8,0,8">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
                 <RowDefinition Height="8" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="8" />
@@ -143,177 +137,193 @@
                 <RowDefinition Height="16" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <ScrollViewer
-                Grid.Row="2"
-                HorizontalScrollBarVisibility="Disabled"
-                VerticalScrollBarVisibility="Auto">
-                <ui:SimpleStackPanel
-                    x:Name="grdDownload"
-                    Margin="0,0,20,0"
-                    IsEnabled="{Binding ControlsEnable}">
-                    <GroupBox Header="图层">
-                        <ui:SimpleStackPanel
-                            Orientation="Vertical"
-                            Spacing="8">
+            <GroupBox Header="图层">
+                <ScrollViewer
+                    Padding="0,0,16,0"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <ui:SimpleStackPanel
+                        Orientation="Vertical"
+                        Spacing="8">
 
-                            <ListView
-                                x:Name="dgrdUrls"
-                                Grid.ColumnSpan="3"
-                                MinHeight="108"
-                                MaxHeight="196"
-                                BorderThickness="0"
-                                IsEnabled="{Binding ControlsEnable}"
-                                ItemsSource="{Binding Config.Tile_Urls.Sources}"
-                                ScrollViewer.CanContentScroll="False"
-                                SelectedIndex="{Binding Config.Tile_Urls.SelectedIndex}"
-                                SelectionMode="Single">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" />
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="4" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Button
-                                    HorizontalAlignment="Stretch"
-                                    Click="NewTileSourceButton_Click">
-                                    新增
-                                </Button>
-                                <Button
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Stretch"
-                                    Click="DeleteTileSourceButton_Click"
-                                    IsEnabled="{Binding ElementName=dgrdUrls, Path=SelectedItem, Converter={StaticResource NotNullConverter}}">
-                                    删除
-                                </Button>
-                            </Grid>
-
-                            <TextBox
-                                Grid.Row="4"
-                                ui:ControlHelper.Header="名称"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Name}"
-                                TextWrapping="Wrap" />
-
-                            <TextBox
-                                ui:ControlHelper.Header="链接"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Path}"
-                                TextWrapping="Wrap" />
-
-                            <TextBox
-                                ui:ControlHelper.Header="User-Agent"
-                                ui:ControlHelper.PlaceholderText="若为空，则使用全局用户代理"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.UserAgent}"
-                                TextWrapping="Wrap" />
-
-                            <TextBox
-                                ui:ControlHelper.Header="Host"
-                                ui:ControlHelper.PlaceholderText="请求服务器的地址和端口号"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Host}"
-                                TextWrapping="Wrap" />
-
-                            <TextBox
-                                ui:ControlHelper.Header="Referer"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Referer}"
-                                TextWrapping="Wrap" />
-
-                            <TextBox
-                                ui:ControlHelper.Header="Origin"
-                                Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Origin}"
-                                TextWrapping="Wrap" />
-
-                        </ui:SimpleStackPanel>
-                    </GroupBox>
-
-                    <GroupBox
-                        Grid.Row="4"
-                        Header="选项"
-                        IsEnabled="{Binding ControlsEnable}">
-                        <Grid x:Name="grdDownloadInfo">
+                        <ListView
+                            x:Name="dgrdUrls"
+                            Grid.ColumnSpan="3"
+                            MinHeight="108"
+                            MaxHeight="196"
+                            BorderThickness="0"
+                            IsEnabled="{Binding ControlsEnable}"
+                            ItemsSource="{Binding Config.Tile_Urls.Sources}"
+                            ScrollViewer.CanContentScroll="False"
+                            SelectedIndex="{Binding Config.Tile_Urls.SelectedIndex}"
+                            SelectionMode="Single">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="4" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="8" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <local:BoundaryInputTable
-                                x:Name="downloadBoundary"
-                                Grid.Row="2"
-                                Grid.RowSpan="3"
-                                Grid.ColumnSpan="3" />
-                            <TextBlock
-                                Grid.Row="6"
-                                Text="{Binding ElementName=sldTileMin, Path=Value, StringFormat={}最小缩放值：{0}}" />
-                            <Slider
-                                x:Name="sldTileMin"
-                                Grid.Row="6"
-                                Grid.Column="2"
-                                AutoToolTipPlacement="TopLeft"
-                                IsSnapToTickEnabled="True"
-                                Maximum="20"
-                                Minimum="0"
-                                TickFrequency="1"
-                                TickPlacement="TopLeft"
-                                Value="{Binding CurrentDownload.TileMinLevel}" />
-                            <TextBlock
-                                Grid.Row="8"
-                                Text="{Binding ElementName=sldTileMax, Path=Value, StringFormat={}最大缩放值：{0}}" />
-                            <Slider
-                                x:Name="sldTileMax"
-                                Grid.Row="8"
-                                Grid.Column="2"
-                                AutoToolTipPlacement="TopLeft"
-                                IsSnapToTickEnabled="True"
-                                Maximum="20"
-                                Minimum="0"
-                                TickFrequency="1"
-                                TickPlacement="TopLeft"
-                                Value="{Binding CurrentDownload.TileMaxLevel}" />
-                            <TextBlock
-                                Grid.Row="10"
-                                Text="下载路径：" />
-                            <TextBox
-                                Grid.Row="10"
-                                Grid.Column="2"
-                                MaxLines="3"
-                                Text="{Binding Config.Tile_DownloadFolder}"
-                                TextWrapping="Wrap" />
-
-                            <TextBlock
-                                Grid.Row="12"
-                                VerticalAlignment="Center"
-                                Text="图片格式：" />
-
-                            <ComboBox
-                                Grid.Row="12"
+                            <Button
+                                HorizontalAlignment="Stretch"
+                                Click="NewTileSourceButton_Click">
+                                新增
+                            </Button>
+                            <Button
                                 Grid.Column="2"
                                 HorizontalAlignment="Stretch"
-                                ItemsSource="{Binding Formats}"
-                                SelectedItem="{Binding Config.Tile_FormatExtension}" />
+                                Click="DeleteTileSourceButton_Click"
+                                IsEnabled="{Binding ElementName=dgrdUrls, Path=SelectedItem, Converter={StaticResource NotNullConverter}}">
+                                删除
+                            </Button>
                         </Grid>
-                    </GroupBox>
-                </ui:SimpleStackPanel>
-            </ScrollViewer>
+
+                        <TextBox
+                            Grid.Row="4"
+                            ui:ControlHelper.Header="名称"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Name}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            ui:ControlHelper.Header="链接"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Path}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            ui:ControlHelper.Header="User-Agent"
+                            ui:ControlHelper.PlaceholderText="若为空，则使用全局用户代理"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.UserAgent}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            ui:ControlHelper.Header="Host"
+                            ui:ControlHelper.PlaceholderText="请求服务器的地址和端口号"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Host}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            ui:ControlHelper.Header="Referer"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Referer}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            ui:ControlHelper.Header="Origin"
+                            Text="{Binding ElementName=dgrdUrls, Path=SelectedItem.Origin}"
+                            TextWrapping="Wrap" />
+
+                    </ui:SimpleStackPanel>
+                </ScrollViewer>
+
+            </GroupBox>
+            <GroupBox
+                Grid.Row="2"
+                Header="选项"
+                IsEnabled="{Binding ControlsEnable}">
+                <ScrollViewer
+                    Grid.Row="2"
+                    Padding="0,0,16,0"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+
+
+
+                    <Grid x:Name="grdDownloadInfo">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <local:BoundaryInputTable
+                            x:Name="downloadBoundary"
+                            Grid.Row="2"
+                            Grid.RowSpan="3"
+                            Grid.ColumnSpan="3" />
+                        <Button
+                            x:Name="btnSelect"
+                            Grid.Row="2"
+                            Grid.RowSpan="3"
+                            Grid.ColumnSpan="3"
+                            Margin="8"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            Click="SelectAreaButton_Click"
+                            Content="框选" />
+                        <TextBlock
+                            Grid.Row="6"
+                            Text="{Binding ElementName=sldTileMin, Path=Value, StringFormat={}最小缩放值：{0}}" />
+                        <Slider
+                            x:Name="sldTileMin"
+                            Grid.Row="6"
+                            Grid.Column="2"
+                            AutoToolTipPlacement="TopLeft"
+                            IsSnapToTickEnabled="True"
+                            Maximum="20"
+                            Minimum="0"
+                            TickFrequency="1"
+                            TickPlacement="TopLeft"
+                            Value="{Binding CurrentDownload.TileMinLevel}" />
+                        <TextBlock
+                            Grid.Row="8"
+                            Text="{Binding ElementName=sldTileMax, Path=Value, StringFormat={}最大缩放值：{0}}" />
+                        <Slider
+                            x:Name="sldTileMax"
+                            Grid.Row="8"
+                            Grid.Column="2"
+                            AutoToolTipPlacement="TopLeft"
+                            IsSnapToTickEnabled="True"
+                            Maximum="20"
+                            Minimum="0"
+                            TickFrequency="1"
+                            TickPlacement="TopLeft"
+                            Value="{Binding CurrentDownload.TileMaxLevel}" />
+                        <TextBlock
+                            Grid.Row="10"
+                            Text="下载路径：" />
+                        <TextBox
+                            Grid.Row="10"
+                            Grid.Column="2"
+                            MaxLines="3"
+                            Text="{Binding Config.Tile_DownloadFolder}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="12"
+                            VerticalAlignment="Center"
+                            Text="图片格式：" />
+
+                        <ComboBox
+                            Grid.Row="12"
+                            Grid.Column="2"
+                            HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding Formats}"
+                            SelectedItem="{Binding Config.Tile_FormatExtension}" />
+                    </Grid>
+                </ScrollViewer>
+            </GroupBox>
+
             <GroupBox
                 Grid.Row="4"
                 Header="下载文件">
