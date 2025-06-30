@@ -2,6 +2,7 @@
   "profiles": {
     "MapBoard": {
       "commandName": "Project",
+      "commandLineArgs": "tile",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

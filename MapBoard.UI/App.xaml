@@ -13,20 +13,12 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemeResources />
                 <ui:XamlControlsResources />
+                <ResourceDictionary Source="UI/Styles.xaml" />
                 <ResourceDictionary Source="UI/PathIcons.xaml" />
                 <ResourceDictionary Source="UI/Converter/Converters.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <system:String x:Key="DateTimeFormat" />
             <system:String x:Key="DateFormat" />
-            <Style
-                BasedOn="{StaticResource DefaultTextBoxStyle}"
-                TargetType="{x:Type TextBox}">
-                <Setter Property="Padding" Value="8,2,6,1" />
-            </Style>
-            <Style TargetType="{x:Type ui:ToggleSwitch}">
-                <Setter Property="OnContent" Value="" />
-                <Setter Property="OffContent" Value="" />
-            </Style>
-        </ResourceDictionary>
+               </ResourceDictionary>
     </Application.Resources>
 </Application>

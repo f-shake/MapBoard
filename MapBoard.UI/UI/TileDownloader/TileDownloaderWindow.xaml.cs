@@ -23,6 +23,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
@@ -839,6 +840,20 @@ namespace MapBoard.UI.TileDownloader
             else
             {
                 CurrentDownload = new DownloadInfo();
+            }
+        }
+
+        private void Expander_Expanded(object sender, RoutedEventArgs e)
+        {
+            //手动实现手风琴效果
+            Expander expander = sender as Expander;
+            foreach (var ex in grdExpanders.Children.OfType<Expander>().Where(p => p != sender))
+            {
+                ex.IsExpanded = false;
+            }
+            for (int i = 0; i < grdExpanders.Children.Count; i++)
+            {
+                grdExpanders.RowDefinitions[i].Height = Grid.GetRow(expander) == i ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
             }
         }
     }
