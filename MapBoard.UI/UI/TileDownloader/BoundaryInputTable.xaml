@@ -15,7 +15,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="8" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="0.6*" />
             <ColumnDefinition Width="8" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -29,8 +29,10 @@
         <TextBox
             x:Name="txtTop"
             Grid.Column="2"
+            Margin="-20,0"
             VerticalAlignment="Center"
             MaxLines="2"
+            TextAlignment="Center"
             TextWrapping="Wrap" />
         <TextBox
             x:Name="txtRight"
@@ -38,19 +40,23 @@
             Grid.Column="4"
             VerticalAlignment="Center"
             MaxLines="2"
+            TextAlignment="Center"
             TextWrapping="Wrap" />
         <TextBox
             x:Name="txtLeft"
             Grid.Row="2"
             VerticalAlignment="Center"
             MaxLines="2"
+            TextAlignment="Center"
             TextWrapping="Wrap" />
         <TextBox
             x:Name="txtBottom"
             Grid.Row="4"
             Grid.Column="2"
+            Margin="-20,0"
             VerticalAlignment="Center"
             MaxLines="2"
+            TextAlignment="Center"
             TextWrapping="Wrap" />
 
         <Rectangle

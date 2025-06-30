@@ -138,7 +138,9 @@
             Grid.Row="6"
             Grid.Column="2"
             MinHeight="96"
-            Text="{Binding Parameters.WhereClause}" />
+            ui:ControlHelper.PlaceholderText="Name = 'aaa' AND Text LIKE '%bbb%' OR AND Count &gt; 3 AND Time &gt;&lt; date '2000-01-01 00:00:00'"
+            Text="{Binding Parameters.WhereClause}"
+            TextWrapping="Wrap" />
         <TextBlock
             Grid.Row="10"
             VerticalAlignment="Center"

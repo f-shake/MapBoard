@@ -9,12 +9,19 @@
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
     x:DataType="{x:Type vm:LayerQueryViewModel}"
     HorizontalOptions="Fill"
-    Size="300,500"
     VerticalOptions="Fill"
     Color="Transparent">
-    <Border Style="{StaticResource PopupBorderStyle}">
-        <Grid RowDefinitions="*,8,Auto">
-            <ScrollView>
+    <ContentView ControlTemplate="{StaticResource StandardPopupTemplate}">
+        <Grid RowDefinitions="Auto,8,*,8,Auto">
+            <Grid ColumnDefinitions="*,8,Auto">
+                <Label Text="自定义查询SQL" />
+                <Switch
+                    Grid.Column="2"
+                    IsToggled="{Binding UseSql}" />
+            </Grid>
+            <ScrollView
+                Grid.Row="2"
+                IsVisible="{Binding UseSql, Converter={StaticResource InverseBoolConverter}}">
                 <VerticalStackLayout
                     Margin="8"
                     Spacing="4">
@@ -90,8 +97,17 @@
                         Text="添加条件" />
                 </VerticalStackLayout>
             </ScrollView>
-            <Grid
+
+            <Border
                 Grid.Row="2"
+                IsVisible="{Binding UseSql}">
+                <Editor
+                    Placeholder="Name = 'aaa' AND Text LIKE '%bbb%' OR AND Count &gt; 3 AND Time &gt;&lt; date '2000-01-01 00:00:00'"
+                    Text="{Binding Sql}" />
+            </Border>
+
+            <Grid
+                Grid.Row="4"
                 Margin="8"
                 ColumnDefinitions="*,8,*">
                 <Button
@@ -108,5 +124,5 @@
 
             </Grid>
         </Grid>
-    </Border>
+    </ContentView>
 </toolkit:Popup>

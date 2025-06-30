@@ -1,29 +1,30 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.UI.Editing;
+using FzLib;
+using FzLib.WPF.Dialog;
+using MapBoard.IO;
+using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using MapBoard.UI.Model;
+using MapBoard.Util;
+using Microsoft.Win32;
+using ModernWpf.FzExtension.CommonDialog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using ModernWpf.FzExtension.CommonDialog;
-using FzLib;
-using FzLib.WPF.Dialog;
-using MapBoard.Util;
-using MapBoard.Model;
-using MapBoard.Mapping;
-using MapBoard.Mapping.Model;
-using MapBoard.IO;
-using System.Drawing.Imaging;
-using MapBoard.UI.Model;
-using Esri.ArcGISRuntime.UI.Editing;
-using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 
 namespace MapBoard.UI.TileDownloader
@@ -33,6 +34,7 @@ namespace MapBoard.UI.TileDownloader
     /// </summary>
     public partial class TileDownloaderWindow : MainWindowBase
     {
+        private CancellationTokenSource downloadCancellationTokenSource;
         private bool closing = false;
 
         private DownloadStatus currentDownloadStatus = DownloadStatus.Stop;
@@ -272,8 +274,7 @@ namespace MapBoard.UI.TileDownloader
                 try
                 {
                     string[] files = null;
-                    await Task.Run(() => files = Directory.EnumerateFiles(Config.Instance.Tile_DownloadFolder, "*", SearchOption.AllDirectories)
-                    .Where(p => new FileInfo(p).Length == 0).ToArray());
+                    await Task.Run(() => files = [.. Directory.EnumerateFiles(Config.Instance.Tile_DownloadFolder, "*", SearchOption.AllDirectories).Where(p => new FileInfo(p).Length == 0)]);
                     if (files.Length == 0)
                     {
                         await CommonDialog.ShowErrorDialogAsync("没有空文件");
@@ -288,7 +289,8 @@ namespace MapBoard.UI.TileDownloader
                             }
                             await CommonDialog.ShowOkDialogAsync("删除空文件", "删除成功");
                         }
-                    };
+                    }
+                    ;
                 }
                 catch (Exception ex)
                 {
@@ -334,6 +336,21 @@ namespace MapBoard.UI.TileDownloader
             {
                 StopDownloading();
             }
+        }
+
+        private void EnableOrDisableGeometryEditor(bool enable)
+        {
+            var config = (arcMap.GeometryEditor.Tool as ShapeTool).Configuration;
+            config.AllowDeletingSelectedElement = enable;
+            config.AllowGeometrySelection = enable;
+            config.AllowMidVertexSelection = enable;
+            config.AllowMovingSelectedElement = enable;
+            config.AllowMovingSelectedElement = enable;
+            config.AllowPartCreation = enable;
+            config.AllowPartSelection = enable;
+            config.AllowScalingSelectedElement = enable;
+            config.AllowVertexCreation = enable;
+            config.AllowVertexSelection = enable;
         }
 
         /// <summary>
@@ -488,7 +505,7 @@ namespace MapBoard.UI.TileDownloader
                 ServerOn = true;
                 try
                 {
-                    NetUtility.StartServer(Config.Tile_ServerPort, Config.Tile_ServerFilePathFormat.Replace("{Download}", FolderPaths.TileDownloadPath), Config.Tile_FormatExtension);
+                    NetUtility.StartServer(Config.Tile_ServerPort, FolderPaths.TileDownloadPath, Config.Tile_FormatExtension);
                 }
                 catch (SocketException sex)
                 {
@@ -517,22 +534,6 @@ namespace MapBoard.UI.TileDownloader
             // 关闭服务器
             // tcpListener.Stop();
         }
-
-        private void EnableOrDisableGeometryEditor(bool enable)
-        {
-            var config = (arcMap.GeometryEditor.Tool as ShapeTool).Configuration;
-            config.AllowDeletingSelectedElement = enable;
-            config.AllowGeometrySelection = enable;
-            config.AllowMidVertexSelection = enable;
-            config.AllowMovingSelectedElement = enable;
-            config.AllowMovingSelectedElement = enable;
-            config.AllowPartCreation = enable;
-            config.AllowPartSelection = enable;
-            config.AllowScalingSelectedElement = enable;
-            config.AllowVertexCreation = enable;
-            config.AllowVertexSelection = enable;
-        }
-
         /// <summary>
         /// 开始或继续下载
         /// </summary>
@@ -540,90 +541,122 @@ namespace MapBoard.UI.TileDownloader
         private async Task StartOrContinueDowloadingAsync()
         {
             CurrentDownloadStatus = DownloadStatus.Downloading;
-            //pgb.Maximum = CurrentDownload.TileCount;
             DownloadErrors.Clear();
             int ok = 0;
             int failed = 0;
             int skip = lastTile == null ? 0 : lastIndex;
             string baseUrl = Config.Tile_Urls.SelectedUrl.Path;
             EnableOrDisableGeometryEditor(false);
-            await Task.Run(async () =>
+
+            // 使用 CancellationToken 控制停止
+            downloadCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = downloadCancellationTokenSource.Token;
+
+            var semaphore = new SemaphoreSlim(Config.Tile_SemaphoreSlim);
+            var downloadTasks = new List<Task>();
+
+            try
             {
-                IEnumerator<TileInfo> enumerator = CurrentDownload.GetEnumerator(lastTile);
-                while (enumerator.MoveNext())
+                await Task.Run(async () =>
                 {
-                    TileInfo tile = enumerator.Current;
-
-                    string path = Path.Combine(Config.Tile_DownloadFolder, tile.Level.ToString(), $"{tile.X}-{tile.Y}.{Config.Instance.Tile_FormatExtension}");
-
-                    try
+                    IEnumerator<TileInfo> enumerator = CurrentDownload.GetEnumerator(lastTile);
+                    while (enumerator.MoveNext())
                     {
-                        LastDownloadingTile = $"Z={tile.Level}  X={tile.X}  Y={tile.Y}";
-                        if (!File.Exists(path) || Config.Tile_CoverFile)
+                        // 检查是否已停止
+                        if (cancellationToken.IsCancellationRequested)
+                            break;
+
+                        TileInfo tile = enumerator.Current;
+                        string path = Path.Combine(Config.Tile_DownloadFolder, tile.Level.ToString(),
+                            $"{tile.X}-{tile.Y}.{Config.Instance.Tile_FormatExtension}");
+
+                        // 如果文件已存在且不覆盖，直接跳过
+                        if (!Config.Tile_CoverFile && File.Exists(path))
                         {
-                            string url = baseUrl.Replace("{x}", tile.X.ToString()).Replace("{y}", tile.Y.ToString()).Replace("{z}", tile.Level.ToString());
-                            arcMap.ShowPosition(this, tile);
-                            await NetUtility.HttpDownloadAsync(url, path, Config.Tile_Urls.SelectedUrl, TimeSpan.FromMilliseconds(Config.HttpTimeOut), Config.Tile_DownloadUserAgent, Config.Tile_HttpProxy);
-                            //Dispatcher.Invoke(() => tile.Status = "完成");
-                            LastDownloadingStatus = "下载成功";
+                            Interlocked.Increment(ref skip);
+                            UpdateProgress();
+                            continue;
+                        }
 
-                            ok++;
-                        }
-                        else
+                        // 等待获取信号量许可（控制并发数）
+                        await semaphore.WaitAsync(cancellationToken);
+
+                        downloadTasks.Add(Task.Run(async () =>
                         {
-                            LastDownloadingStatus = "跳过：文件已存在";
-                            skip++;
-                        }
+                            try
+                            {
+                                LastDownloadingTile = $"Z={tile.Level}  X={tile.X}  Y={tile.Y}";
+                                string url = baseUrl.Replace("{x}", tile.X.ToString())
+                                                 .Replace("{y}", tile.Y.ToString())
+                                                 .Replace("{z}", tile.Level.ToString());
+
+                                arcMap.ShowPosition(this, tile);
+
+                                // 仍然调用原有的 HttpDownloadAsync
+                                await NetUtility.HttpDownloadAsync(
+                                    url, path, Config.Tile_Urls.SelectedUrl,
+                                    TimeSpan.FromMilliseconds(Config.HttpTimeOut),
+                                    Config.Tile_DownloadUserAgent,
+                                    Config.Tile_HttpProxy);
+
+                                Interlocked.Increment(ref ok);
+                                LastDownloadingStatus = "下载成功";
+                            }
+                            catch (Exception ex)
+                            {
+                                Interlocked.Increment(ref failed);
+                                App.Log.Error("下载瓦片失败", ex);
+                                LastDownloadingStatus = "失败：" + ex.Message;
+                                lock (DownloadErrors)
+                                {
+                                    DownloadErrors.Add(new
+                                    {
+                                        Tile = LastDownloadingTile,
+                                        Error = ex.Message,
+                                        StackTrace = ex.StackTrace?.Replace(Environment.NewLine, "    ")
+                                    });
+                                }
+                            }
+                            finally
+                            {
+                                semaphore.Release();
+                                UpdateProgress();
+                            }
+                        }));
                     }
-                    catch (Exception ex)
-                    {
-                        App.Log.Error("下载瓦片失败", ex);
-                        LastDownloadingStatus = "失败：" + ex.Message;
-                        DownloadErrors.Add(new { Tile = LastDownloadingTile, Error = ex.Message, StackTrace = ex.StackTrace.Replace(Environment.NewLine, "    ") });
-                        failed++;
-                    }
-                    //DownloadingProgressValue = ok + failed + skip;
-                    DownloadingProgressPercent = 1.0 * (ok + failed + skip) / CurrentDownload.TileCount;
-                    DownloadingProgressStatus = $"成功{ok} 失败{failed} 跳过{skip} 共{CurrentDownload.TileCount}";
-                    //taskBar.ProgressValue = (ok + failed + skip) * 1d / CurrentDownload.TileCount;
-                    //处理点击停止按钮后的逻辑
-                    if (CurrentDownloadStatus == DownloadStatus.Pausing)
-                    {
-                        lastTile = tile;
-                        lastIndex = ok + skip + failed;
-                        return;
-                    }
-                }
-                lastTile = null;
-            });
-            LastDownloadingStatus = "下载结束";
-            CurrentDownloadStatus = lastTile == null ? DownloadStatus.Stop : DownloadStatus.Paused;
+
+                    await Task.WhenAll(downloadTasks);
+                }, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                App.Log.Info("下载任务已取消");
+            }
+            finally
+            {
+                downloadCancellationTokenSource.Dispose();
+            }
+
+            // 更新状态
+            if (cancellationToken.IsCancellationRequested)
+            {
+                CurrentDownloadStatus = DownloadStatus.Paused;
+                LastDownloadingStatus = "下载已暂停";
+            }
+            else
+            {
+                CurrentDownloadStatus = DownloadStatus.Stop;
+                LastDownloadingStatus = "下载完成";
+            }
+
             arcMap.ShowPosition(this, null);
             EnableOrDisableGeometryEditor(true);
 
-            if (await CommonDialog.ShowYesNoDialogAsync("下载完成，是否删除临时文件夹？") == true)
+            // 局部函数：更新进度
+            void UpdateProgress()
             {
-                DoAsync(() => Task.Run(() =>
-                     {
-                         try
-                         {
-                             foreach (var directory in Directory.EnumerateDirectories(Config.Tile_DownloadFolder, "temp", SearchOption.AllDirectories).ToArray())
-                             {
-                                 Directory.Delete(directory, true);
-                             }
-                         }
-                         catch (Exception ex)
-                         {
-                             App.Log.Error("无法删除临时文件夹", ex);
-                             Dispatcher.Invoke(async () => await CommonDialog.ShowErrorDialogAsync(ex, "无法删除临时文件夹"));
-                         }
-                     })
-                , "正在删除临时文件夹");
-            }
-
-            if (closing)
-            {
-                Close();
+                DownloadingProgressPercent = 1.0 * (ok + failed + skip) / CurrentDownload.TileCount;
+                DownloadingProgressStatus = $"成功{ok} 失败{failed} 跳过{skip} 共{CurrentDownload.TileCount}";
             }
         }
 
@@ -744,6 +777,7 @@ namespace MapBoard.UI.TileDownloader
         private void StopDownloading()
         {
             CurrentDownloadStatus = DownloadStatus.Pausing;
+            downloadCancellationTokenSource?.Cancel();
         }
 
         /// <summary>

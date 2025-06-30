@@ -20,6 +20,15 @@ namespace MapBoard.Platforms.Android
 {
     public class LocationDataSourceAndroidImpl : LocationDataSource
     {
+        public enum LocationProvider
+        {
+            None,
+            Gps,
+            Network,
+            Fused,
+            Others
+        }
+
         private LocationDisplayLocationListener locationListener;
         private LocationDisplaySensorListener sensorListener;
         private LocationDisplayGnssListener gnssListener;
@@ -27,7 +36,7 @@ namespace MapBoard.Platforms.Android
         private LocationManager locationManager;
         private SensorManager sensorManager;
 
-
+        public LocationProvider LastLocationProvider { get; private set; } = LocationProvider.None;
         private global::Android.Locations.Location lastNotFixedGpxLocation = null;
         private DateTime lastGpsTime = DateTime.MinValue;
 
@@ -47,12 +56,12 @@ namespace MapBoard.Platforms.Android
             //当卫星锁定时，有时候GNSS的回调会比位置监听的通知来得晚
             //因此就需要在GNSS收到回调时去判断一下是不是最近GPS已经报告过位置
             DateTime now = DateTime.Now;
-            if (e.IsFixed 
-                && (now - lastGpsTime).TotalSeconds<3 //如果GPS位置在一秒内已经更新
-                && lastNotFixedGpxLocation!=null)
+            if (e.IsFixed
+                && (now - lastGpsTime).TotalSeconds < 3 //如果GPS位置在一秒内已经更新
+                && lastNotFixedGpxLocation != null)
             {
                 UpdateLocation(lastNotFixedGpxLocation);
-                lastNotFixedGpxLocation=null;
+                lastNotFixedGpxLocation = null;
             }
         }
 
@@ -75,8 +84,10 @@ namespace MapBoard.Platforms.Android
                     lastNotFixedGpxLocation = location;
                     lastGpsTime = DateTime.Now;
                     break;
-                case LocationManager.FusedProvider when !gnssListener.IsFixed:
-                    //来自融合并且GPS没有定位，更新位置
+                case LocationManager.FusedProvider
+                or LocationManager.NetworkProvider
+                when !gnssListener.IsFixed:
+                    //来自融合或网络并且GPS没有定位，更新位置
                     UpdateLocation(location);
                     break;
                 default:
@@ -96,6 +107,13 @@ namespace MapBoard.Platforms.Android
                 location.HasBearing ? location.Bearing : double.NaN,
                 false
                 ));
+            LastLocationProvider = location.Provider switch
+            {
+                LocationManager.FusedProvider => LocationProvider.Fused,
+                LocationManager.GpsProvider => LocationProvider.Gps,
+                LocationManager.NetworkProvider => LocationProvider.Network,
+                _ => LocationProvider.Others,
+            };
         }
 
         protected override async Task OnStartAsync()
@@ -137,7 +155,7 @@ namespace MapBoard.Platforms.Android
                         sensorManager.GetDefaultSensor(SensorType.MagneticField),
                         SensorDelay.Ui);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Toast.Make("无法获取位置信息，请授予权限后重启程序").Show();
                 }

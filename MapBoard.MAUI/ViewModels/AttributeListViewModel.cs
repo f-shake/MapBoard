@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace MapBoard.ViewModels
 {
-    public class AttributeTablePopupViewModel : INotifyPropertyChanged
+    public class AttributeListViewModel : INotifyPropertyChanged
     {
 
         public event PropertyChangedEventHandler PropertyChanged;

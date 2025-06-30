@@ -3,146 +3,196 @@
     x:Class="MapBoard.Views.AttributeTablePopup"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:m="clr-namespace:MapBoard;assembly=MapBoard.Core"
-    xmlns:mm="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
+    xmlns:m="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
+    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    xmlns:mm="clr-namespace:MapBoard.Mapping.Model;assembly=MapBoard.Core"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
-    x:DataType="vm:AttributeTablePopupViewModel"
+    x:DataType="vm:AttributeTableViewModel"
     HorizontalOptions="Fill"
-    Size="336,500"
     Color="Transparent">
-    <Border Style="{StaticResource PopupBorderStyle}">
-        <Grid
-            Margin="8"
-            RowDefinitions="*,8,Auto">
-            <Grid.Resources>
-                <Style
-                    x:Key="KeyLabelStyle"
-                    BasedOn="{StaticResource DefaultLabelStyle}"
-                    TargetType="{x:Type Label}">
-                    <Setter Property="Margin" Value="14,0,0,0" />
-                    <Setter Property="VerticalOptions" Value="Center" />
-                    <Setter Property="TextColor" Value="{AppThemeBinding Dark={DynamicResource Gray200}, Light={DynamicResource Gray500}}" />
-                </Style>
-            </Grid.Resources>
-            <ListView
-                x:Name="list"
-                Margin="8"
-                ItemsSource="{Binding Attributes.Attributes}"
-                SelectionMode="None"
-                VerticalScrollBarVisibility="Never"
-                WidthRequest="300">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="{x:Type mm:FeatureAttribute}">
-                        <ViewCell>
-                            <Grid ColumnDefinitions="80,8,200">
+    <toolkit:Popup.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    x:Name="appColors"
+                    Source="../Resources/Styles/Colors.xaml" />
+                <ResourceDictionary
+                    x:Name="appStyles"
+                    Source="../Resources/Styles/Styles.xaml" />
+
+                <material:StyleResource
+                    BasedOn="{x:Reference appStyles}"
+                    ColorsOverride="{x:Reference appColors}" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </toolkit:Popup.Resources>
+    <ContentView
+        ControlTemplate="{StaticResource StandardPopupTemplate}"
+        Loaded="ContentView_Loaded">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
+            <ScrollView
+                x:Name="headerScrollView"
+                HorizontalScrollBarVisibility="Never"
+                Orientation="Horizontal">
+                <CollectionView
+                    x:Name="headerCollectionView"
+                    HorizontalOptions="Start"
+                    ItemsSource="{Binding Fields}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="m:FieldInfo">
+                            <Grid
+                                HeightRequest="40"
+                                WidthRequest="120">
                                 <Label
-                                    LineBreakMode="TailTruncation"
+                                    Margin="2"
+                                    FontAttributes="Bold"
+                                    HorizontalTextAlignment="Start"
                                     Text="{Binding DisplayName}"
-                                    VerticalOptions="Center" />
-                                <ContentView Grid.Column="2">
-                                    <ContentView.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding Type}"
-                                            TargetType="{x:Type ContentView}">
-                                            <DataTrigger.Value>
-                                                <mm:FieldInfoType>Date</mm:FieldInfoType>
-                                            </DataTrigger.Value>
-                                            <Setter Property="ContentView.Content">
-                                                <Setter.Value>
-                                                    <DatePicker
-                                                        Date="{Binding DateValue}"
-                                                        Format="{x:Static m:Parameters.DateFormat}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding Type}"
-                                            TargetType="{x:Type ContentView}">
-                                            <DataTrigger.Value>
-                                                <mm:FieldInfoType>Integer</mm:FieldInfoType>
-                                            </DataTrigger.Value>
-                                            <Setter Property="ContentView.Content">
-                                                <Setter.Value>
-                                                    <Entry Text="{Binding IntValue}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding Type}"
-                                            TargetType="{x:Type ContentView}">
-                                            <DataTrigger.Value>
-                                                <mm:FieldInfoType>Float</mm:FieldInfoType>
-                                            </DataTrigger.Value>
-                                            <Setter Property="ContentView.Content">
-                                                <Setter.Value>
-                                                    <Entry Text="{Binding FloatValue}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding Type}"
-                                            TargetType="{x:Type ContentView}">
-                                            <DataTrigger.Value>
-                                                <mm:FieldInfoType>Text</mm:FieldInfoType>
-                                            </DataTrigger.Value>
-                                            <Setter Property="ContentView.Content">
-                                                <Setter.Value>
-                                                    <Entry Text="{Binding TextValue}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-
-                                        <DataTrigger
-                                            Binding="{Binding Type}"
-                                            TargetType="{x:Type ContentView}">
-                                            <DataTrigger.Value>
-                                                <mm:FieldInfoType>DateTime</mm:FieldInfoType>
-                                            </DataTrigger.Value>
-                                            <Setter Property="ContentView.Content">
-                                                <Setter.Value>
-                                                    <Entry Text="{Binding DateTimeValue}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-                                    </ContentView.Triggers>
-                                </ContentView>
+                                    VerticalTextAlignment="Center" />
                             </Grid>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <Grid
-                x:Name="gEditButtons"
-                Grid.Row="2"
-                Margin="8"
-                ColumnDefinitions="*,8,*">
-                <Button
-                    BackgroundColor="{AppThemeBinding Light={DynamicResource Gray400},
-                                                      Dark={DynamicResource Gray500}}"
-                    Clicked="CancelButton_Clicked"
-                    Text="取消"
-                    TextColor="{AppThemeBinding Dark={DynamicResource White},
-                                                Light={DynamicResource Black}}" />
-                <Button
-                    Grid.Column="2"
-                    Clicked="ApplyButton_Clicked"
-                    Text="应用" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
 
+            <!--  Main Table ScrollView with CollectionView  -->
+            <ScrollView
+                x:Name="tableScrollView"
+                Grid.Row="1"
+                HorizontalScrollBarVisibility="Default"
+                Orientation="Horizontal"
+                VerticalScrollBarVisibility="Never">
+                <CollectionView
+                    x:Name="tableCollectionView"
+                    ItemsSource="{Binding CurrentPageItems}"
+                    SelectionMode="Single">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" />
+                    </CollectionView.ItemsLayout>
+                </CollectionView>
+            </ScrollView>
+
+            <!--  Pagination Controls  -->
+            <!--  替换原有的分页控制行  -->
+            <Grid
+                Grid.Row="2"
+                Padding="10"
+                ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto"
+                VerticalOptions="Center">
+                <!--  上一页链接  -->
+                <Label
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="上一页"
+                                TextDecorations="Underline">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding PreviousPageCommand}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding HasPreviousPage}"
+                            TargetType="Label"
+                            Value="False">
+                            <Setter Property="TextColor" Value="Gray" />
+                            <Setter Property="TextDecorations" Value="None" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  当前页码  -->
+                <Label
+                    Grid.Column="1"
+                    HorizontalOptions="Center"
+                    Text="{Binding CurrentPageDisplay}"
+                    TextDecorations="Underline"
+                    VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToPageCommand}" />
+                    </Label.GestureRecognizers>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding TotalPages}"
+                            TargetType="Label"
+                            Value="1">
+                            <Setter Property="IsEnabled" Value="False" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  下一页链接  -->
+                <Label
+                    Grid.Column="2"
+                    Margin="8,0,0,0"
+                    HorizontalOptions="Start"
+                    VerticalOptions="Center">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="下一页 "
+                                TextDecorations="Underline">
+                                <Span.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NextPageCommand}" />
+                                </Span.GestureRecognizers>
+                            </Span>
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.Triggers>
+                        <DataTrigger
+                            Binding="{Binding HasNextPage}"
+                            TargetType="Label"
+                            Value="False">
+                            <Setter Property="TextColor" Value="Gray" />
+                            <Setter Property="TextDecorations" Value="None" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+
+                <!--  每页条数标签  -->
+                <Label
+                    Grid.Column="4"
+                    HorizontalOptions="End"
+                    Text="每页条数:"
+                    VerticalOptions="Center" />
+
+                <!--  每页条数选择器  -->
+                <Picker
+                    Grid.Column="5"
+                    HorizontalOptions="Start"
+                    HorizontalTextAlignment="Center"
+                    ItemsSource="{Binding PageSizeOptions}"
+                    SelectedItem="{Binding ItemsPerPage}"
+                    VerticalOptions="Center"
+                    WidthRequest="60" />
             </Grid>
+            <!--  Footer Buttons  -->
             <Grid
                 x:Name="gViewButtons"
-                Grid.Row="2"
+                Grid.Row="3"
                 Margin="8"
                 ColumnDefinitions="*,8,*">
+                <!--<Button
+                    x:Name="btnCancelLoading"
+                    BackgroundColor="{AppThemeBinding Light={DynamicResource Gray400},
+                                                      Dark={DynamicResource Gray500}}"
+                    Clicked="CancelLoadingButton_Clicked"
+                    Text="取消加载" />-->
                 <Button
                     Grid.Column="2"
                     Clicked="CancelButton_Clicked"
                     Text="关闭" />
             </Grid>
         </Grid>
-    </Border>
+    </ContentView>
 </toolkit:Popup>

@@ -328,6 +328,11 @@ namespace MapBoard
         public string Tile_DownloadFolder { get; set; } = FolderPaths.TileDownloadPath;
 
         /// <summary>
+        /// 瓦片地图下载拼接器中，并发下载数量
+        /// </summary>
+        public int Tile_SemaphoreSlim { get; set; } = 4;
+
+        /// <summary>
         /// 瓦片地图下载拼接器中，使用的请求头的User-Agent
         /// </summary>
         public string Tile_DownloadUserAgent { get; set; } = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; QQWubi 133; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; CIBA; InfoPath.2)";
@@ -346,11 +351,6 @@ namespace MapBoard
         /// 瓦片地图下载拼接器中，记忆上一次的下载信息
         /// </summary>
         public DownloadInfo Tile_LastDownload { get; set; } = null;
-
-        /// <summary>
-        /// 瓦片地图下载拼接器中，自建服务器的访问链接模板
-        /// </summary>
-        public string Tile_ServerFilePathFormat { get; set; } = @"{Download}/{z}/{x}-{y}.{ext}";
 
         /// <summary>
         /// 瓦片地图下载拼接器中，自建服务器的端口号

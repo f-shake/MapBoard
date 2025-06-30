@@ -148,9 +148,11 @@ namespace MapBoard.Views
             }
 
 #if ANDROID
+            var a = await CheckStatusAsync<AndroidNotificationPermission>();
             if ((await CheckStatusAsync<AndroidNotificationPermission>()) != PermissionStatus.Granted)
             {
-                await RequestAsync<AndroidNotificationPermission>();
+                await DisplayAlert("需要权限", "该应用需要通知权限，否则定位无法持续工作", "确定");
+                _ = RequestAsync<AndroidNotificationPermission>();
             }
 #endif
         }

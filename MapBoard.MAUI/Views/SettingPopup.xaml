@@ -10,11 +10,7 @@
     x:DataType="{x:Type mb:Config}"
     HorizontalOptions="Fill"
     Color="Transparent">
-    <Border
-        Padding="8"
-        HeightRequest="500"
-        Style="{StaticResource PopupBorderStyle}"
-        WidthRequest="300">
+    <ContentView ControlTemplate="{StaticResource StandardPopupTemplate}">
 
         <Grid RowDefinitions="*,8,Auto">
             <TableView Intent="Settings">
@@ -76,5 +72,5 @@
                 TextColor="{AppThemeBinding Dark={DynamicResource White},
                                             Light={DynamicResource Black}}" />
         </Grid>
-    </Border>
+    </ContentView>
 </toolkit:Popup>

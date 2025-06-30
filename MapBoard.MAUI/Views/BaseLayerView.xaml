@@ -69,12 +69,12 @@
             MaximumWidthRequest="200"
             Text="新增" />
         <Label
-        x:Name="lblSaveGpx"
-        Grid.Row="4"
-        Margin="8,0"
-        HorizontalOptions="Center"
-        Style="{StaticResource LinkedLabelStyle}"
-        Text="清除缓存">
+            x:Name="lblSaveGpx"
+            Grid.Row="4"
+            Margin="8,0"
+            HorizontalOptions="Center"
+            Style="{StaticResource LinkedLabelStyle}"
+            Text="清除缓存">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Tapped="ClearCache_Tapped" />
             </Label.GestureRecognizers>

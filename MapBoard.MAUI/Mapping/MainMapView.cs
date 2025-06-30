@@ -96,7 +96,7 @@ namespace MapBoard.Mapping
         public event EventHandler MapViewStatusChanged;
 
         public event EventHandler SelectedFeatureChanged;
-        
+
         public static MainMapView Current => instances[0];
 
         /// <summary>
@@ -136,6 +136,8 @@ namespace MapBoard.Mapping
         /// </summary>
         public MapLayerCollection Layers { get; }
 
+        public SearchOverlayHelper SearchOverlay { get; private set; }
+
         public Feature SelectedFeature
         {
             get => selectedFeature;
@@ -150,9 +152,6 @@ namespace MapBoard.Mapping
         }
 
         public TrackOverlayHelper TrackOverlay { get; private set; }
-
-        public SearchOverlayHelper SearchOverlay { get; private set; }
-
         public void ClearSelection()
         {
             DismissCallout();
@@ -234,7 +233,7 @@ namespace MapBoard.Mapping
                 TrackOverlay = new TrackOverlayHelper(overlay);
             }
 
-            if(SearchOverlay==null)
+            if (SearchOverlay == null)
             {
                 var overlay = new GraphicsOverlay();
                 GraphicsOverlays.Add(overlay);
@@ -266,6 +265,26 @@ namespace MapBoard.Mapping
                     SetViewpointCenterAsync(point);
                 }
             }
+        }
+
+        public async void SelectFeature(Feature feature, Point? point = null)
+        {
+            if (SelectedFeature != null)
+            {
+                (SelectedFeature.FeatureTable.Layer as FeatureLayer).UnselectFeature(SelectedFeature);
+            }
+            (feature.FeatureTable.Layer as FeatureLayer).SelectFeature(feature);
+            if (point.HasValue)
+            {
+                ShowCallout(point.Value, feature, Layers.Find(feature.FeatureTable.Layer)?.Name ?? "未知图层", BuildCalloutText(feature), false);
+            }
+            SelectedFeature = feature;
+            var layer = Layers.Find(feature.FeatureTable.Layer);
+            if(layer!=null)
+            {
+                layer.LayerVisible = true;
+            }
+            await this.ZoomToGeometryAsync(feature.Geometry);
         }
 
         private string BuildCalloutText(Feature feature)
@@ -360,18 +379,6 @@ namespace MapBoard.Mapping
                 isZoomingToLastExtent = false;
             }
         }
-
-        private void SelectFeature(Feature feature, Point point)
-        {
-            if (SelectedFeature != null)
-            {
-                (SelectedFeature.FeatureTable.Layer as FeatureLayer).UnselectFeature(SelectedFeature);
-            }
-            (feature.FeatureTable.Layer as FeatureLayer).SelectFeature(feature);
-            ShowCallout(point, feature, Layers.Find(feature.FeatureTable.Layer)?.Name ?? "未知图层", BuildCalloutText(feature), false);
-            SelectedFeature = feature;
-        }
-
         private void ShowCallout(Point point, GeoElement graphic, string text, string detail, bool cancelButton)
         {
             CalloutDefinition cd = new CalloutDefinition(graphic)

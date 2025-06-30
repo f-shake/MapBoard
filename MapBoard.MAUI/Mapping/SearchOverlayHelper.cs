@@ -1,8 +1,10 @@
-﻿using Android.Media.TV;
-using Esri.ArcGISRuntime.Data;
+﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using System.Threading.Tasks;
 
 namespace MapBoard.Mapping
 {
@@ -29,15 +31,23 @@ namespace MapBoard.Mapping
 
         public event EventHandler<SearchResultDisplayChangedEventArgs> SearchResultDisplayChanged;
 
+        public IList<Feature> CurrentFeatures { get; private set; }
+        public IMapLayerInfo CurrentLayer { get; private set; }
         public GraphicsOverlay Overlay { get; }
+
         public void Hide()
         {
+            CurrentFeatures = null;
+            CurrentLayer = null;
             Overlay.Graphics.Clear();
             SearchResultDisplayChanged?.Invoke(this, new SearchResultDisplayChangedEventArgs(false));
         }
 
-        public void ShowSearchResult(IList<Feature> features)
+        public async void ShowSearchResult(IMapLayerInfo layer, IList<Feature> features)
         {
+            CurrentLayer = layer;
+            CurrentFeatures = features;
+
             Overlay.Graphics.Clear();
             if (features.Count == 0)
             {
@@ -59,6 +69,7 @@ namespace MapBoard.Mapping
                 Overlay.Graphics.Add(graphic);
             }
             SearchResultDisplayChanged?.Invoke(this, new SearchResultDisplayChangedEventArgs(true));
+            await MainMapView.Current.ZoomToGeometryAsync(GeometryEngine.CombineExtents(features.Select(p => p.Geometry)));
         }
 
         public class SearchResultDisplayChangedEventArgs : EventArgs

@@ -20,6 +20,12 @@ namespace MapBoard.Query
         GreaterThanOrEqual,
 
         [Description("小于等于")]
-        LessThanOrEqual
+        LessThanOrEqual,
+
+        [Description("为空")]
+        IsNull,
+
+        [Description("不为空")]
+        IsNotNull
     }
 }

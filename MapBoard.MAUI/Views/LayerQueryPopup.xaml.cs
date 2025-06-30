@@ -33,7 +33,8 @@ public partial class LayerQueryPopup : Popup
         try
         {
             var layer = (Layer as IMapLayerInfo) ?? throw new Exception("找不到图层");
-            var sql = QuerySqlBuilder.Build((BindingContext as LayerQueryViewModel).Items);
+            var vm = BindingContext as LayerQueryViewModel;
+            var sql = vm.UseSql ? vm.Sql : QuerySqlBuilder.Build(vm.Items);
             Debug.WriteLine("图层查询SQL：" + sql);
             var result = (await layer.QueryFeaturesAsync(new Esri.ArcGISRuntime.Data.QueryParameters()
             {
@@ -52,15 +53,12 @@ public partial class LayerQueryPopup : Popup
                 if (await MainPage.Current.DisplayAlert("查询", $"查询到{result.Count}个要素", "查看结果", "修改条件"))
                 {
                     Close();
-                    MainPage.Current.CloseAllPanel();
-                    MainMapView.Current.SearchOverlay.ShowSearchResult(result);
+                    MainMapView.Current.SearchOverlay.ShowSearchResult(layer, result);
                 }
                 else
                 {
                 }
             }
-
-
         }
         catch (Exception ex)
         {

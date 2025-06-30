@@ -2,7 +2,7 @@
 
 namespace MapBoard.Query
 {
-    public enum DateTimeOperator
+    public enum DateTimeSqlOperator
     {
         [Description("等于")]
         EqualTo,

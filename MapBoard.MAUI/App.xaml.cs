@@ -1,9 +1,7 @@
-﻿using Android.Runtime;
-using CommunityToolkit.Maui.Alerts;
+﻿using CommunityToolkit.Maui.Alerts;
 using Esri.ArcGISRuntime;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
-using GoogleGson;
 using MapBoard.IO;
 using MapBoard.Mapping;
 using MapBoard.Views;

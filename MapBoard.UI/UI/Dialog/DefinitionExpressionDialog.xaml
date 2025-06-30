@@ -26,7 +26,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBox
-            ui:ControlHelper.Header="表达式"
+            ui:ControlHelper.Description="仅显示能够匹配该WHERE子句的图形"
+            ui:ControlHelper.Header="SQL WHERE子句表达式"
+            ui:ControlHelper.PlaceholderText="Name = 'aaa' AND Text LIKE '%bbb%' OR AND Count &gt; 3 AND Time &gt;&lt; date '2000-01-01 00:00:00'"
             AcceptsReturn="True"
             Text="{Binding Expression}"
             TextWrapping="Wrap" />
@@ -40,7 +42,7 @@
                 Content="构建表达式" />
             <Button
                 Click="ClearButton_Click"
-                Content="显示所有图形" />
+                Content="清空" />
             <Button
                 Click="ApplyButton_Click"
                 Content="应用" />

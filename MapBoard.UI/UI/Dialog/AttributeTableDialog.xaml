@@ -26,7 +26,6 @@
         </Grid.RowDefinitions>
         <DataGrid
             x:Name="dg"
-            fzc:SmoothScrollViewerHelper.SmoothScroll="{Binding Source={x:Static m:Config.Instance}, Path=SmoothScroll}"
             AutoGenerateColumns="False"
             CanUserAddRows="False"
             CanUserDeleteRows="False"

@@ -70,7 +70,6 @@ namespace MapBoard.UI.Dialog
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             Layer.DefinitionExpression = "";
-            Close();
         }
 
         /// <summary>
@@ -86,6 +85,11 @@ namespace MapBoard.UI.Dialog
 
         private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Layer.Fields.Length == 0)
+            {
+                await CommonDialog.ShowErrorDialogAsync("该图层不含任何字段");
+                return;
+            }
             QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
             {

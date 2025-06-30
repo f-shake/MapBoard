@@ -16,6 +16,8 @@ namespace MapBoard.ViewModels
 {
     public class LayerQueryViewModel : INotifyPropertyChanged
     {
+        private bool useSql;
+
         public LayerQueryViewModel(ILayerInfo layer)
         {
             Fields = new ObservableCollection<FieldInfo>(layer.Fields);
@@ -30,6 +32,38 @@ namespace MapBoard.ViewModels
 
             AddConditionCommand = new Command(AddCondition);
             RemoveItemCommand = new Command<SqlWhereClauseItem>(RemoveItem);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public ICommand AddConditionCommand { get; }
+
+        public IList<FieldInfo> Fields { get; }
+
+        public ObservableCollection<SqlWhereClauseItem> Items { get; }
+
+        public ICommand RemoveItemCommand { get; }
+
+        public string Sql { get; set; }
+        public IList<SqlLogicalOperator> SqlLogicalOperators { get; }
+
+        public bool UseSql
+        {
+            get => useSql;
+            set => this.SetValueAndNotify(ref useSql, value);
+        }
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void AddCondition()
+        {
+            Items.Add(new SqlWhereClauseItem
+            {
+                LogicalOperator = SqlLogicalOperator.And,
+                Field = Fields.FirstOrDefault()
+            });
         }
 
         private void Items_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -48,29 +82,6 @@ namespace MapBoard.ViewModels
                 });
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public ICommand AddConditionCommand { get; }
-        public IList<FieldInfo> Fields { get; }
-        public ObservableCollection<SqlWhereClauseItem> Items { get; }
-        public ICommand RemoveItemCommand { get; }
-        public IList<SqlLogicalOperator> SqlLogicalOperators { get; }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        private void AddCondition()
-        {
-            Items.Add(new SqlWhereClauseItem
-            {
-                LogicalOperator = SqlLogicalOperator.And,
-                Field = Fields.FirstOrDefault()
-            });
-        }
-
         private void RemoveItem(SqlWhereClauseItem item)
         {
             if (item != null)
