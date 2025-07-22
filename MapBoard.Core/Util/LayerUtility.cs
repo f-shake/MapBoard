@@ -11,12 +11,99 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
 
 namespace MapBoard.Util
 {
     public static class LayerUtility
     {
+        public static async Task OverlayAnalysisAsync(this IMapLayerInfo mainLayer, MapLayerCollection layers, Feature[] features,
+          IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)
+        {
+            var fields = mainLayer.Fields
+                .Where(p => p.Name != Parameters.CreateTimeFieldName)
+                .Where(p => p.Name != Parameters.ModifiedTimeFieldName)
+                .Where(p => !p.IsIdField())
+                .Select(p => p.Clone() as FieldInfo)
+                .ToList();
+            foreach (var field in fields)
+            {
+                field.Name = "L1_" + field.Name;
+                field.DisplayName = $"{mainLayer.Name} - {field.DisplayName}";
+            }
+            if (operation is OverlayAnalysisOperation.Intersect or OverlayAnalysisOperation.Union)
+            {
+                foreach (var field in anotherLayer.Fields
+                .Where(p => p.Name != Parameters.CreateTimeFieldName)
+                .Where(p => p.Name != Parameters.ModifiedTimeFieldName)
+                .Select(p => p.Clone() as FieldInfo))
+                {
+                    field.Name = "L2_" + field.Name;
+                    field.DisplayName = $"{anotherLayer.Name} - {field.DisplayName}";
+                    fields.Add(field);
+                }
+            }
+
+            var layer = await CreateLayerAsync(GeometryType.Polygon, layers, mainLayer.Name + "-叠加分析", fields);
+
+            var anotherLayerFeatures = await anotherLayer.GetAllFeaturesAsync();
+            List<Feature> targetFeatures = new List<Feature>();
+            var twoFeatures = new Feature[2];
+
+            switch (operation)
+            {
+                case OverlayAnalysisOperation.Intersect:
+                    foreach (var f1 in features)
+                    {
+                        foreach (var f2 in anotherLayerFeatures)
+                        {
+                            if (!f1.Geometry.Intersects(f2.Geometry))
+                            {
+                                continue;
+                            }
+
+                            var intersections = f1.Geometry.Intersections(f2.Geometry);
+                            if (intersections == null || intersections.Count == 0)
+                            {
+                                continue;
+                            }
+                            Dictionary<string, object> attributes = new Dictionary<string, object>();
+                            twoFeatures[0] = f1;
+                            twoFeatures[1] = f2;
+                            for (int i = 0; i < 2; i++)
+                            {
+                                foreach (var field in twoFeatures[i].Attributes
+                                    .Where(p => !FieldExtension.IsIdField(p.Key))
+                                    .Where(p => p.Key != Parameters.CreateTimeFieldName)
+                                    .Where(p => p.Key != Parameters.ModifiedTimeFieldName))
+                                {
+                                    attributes.Add($"L{i + 1}_{field.Key}", field.Value);
+                                }
+                            }
+                            foreach (var geom in intersections)
+                            {
+                                if(geom.IsEmpty || geom.GeometryType != GeometryType.Polygon)//暂时写死
+                                {
+                                    continue;
+                                }
+                                Feature feature = layer.CreateFeature(attributes,geom);
+                                targetFeatures.Add(feature);
+                            }
+                        }
+                    }
+                    break;
+                case OverlayAnalysisOperation.Clip:
+                    break;
+                case OverlayAnalysisOperation.Union:
+                    break;
+                case OverlayAnalysisOperation.Erase:
+                    break;
+            }
+
+            await layer.AddFeaturesAsync(targetFeatures, FeaturesChangedSource.FeatureOperation);
+        }
+
         /// <summary>
         /// 建立缓冲区
         /// </summary>
@@ -213,7 +300,7 @@ namespace MapBoard.Util
             {
                 throw new Exception("存在重复的字段名");
             }
-            if(layers.Any(p=>p.Name==name))
+            if (layers.Any(p => p.Name == name))
             {
                 throw new Exception("存在重复的图层名");
             }

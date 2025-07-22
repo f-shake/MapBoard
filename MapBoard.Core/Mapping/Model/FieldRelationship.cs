@@ -78,7 +78,7 @@ namespace MapBoard.Mapping.Model
 
             //对不符合要求的字段名进行转换
             if (string.IsNullOrEmpty(name)
-                || name.Length > 10
+                //|| name.Length > 10
               || !Regex.IsMatch(name[0].ToString(), "[a-zA-Z]")
                   || !Regex.IsMatch(name, "^[a-zA-Z0-9_]+$"))
             {

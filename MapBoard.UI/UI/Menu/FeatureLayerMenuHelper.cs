@@ -111,6 +111,20 @@ namespace MapBoard.UI.Menu
         }
 
         /// <summary>
+        /// 坐标转换
+        /// </summary>
+        /// <returns></returns>
+        private async Task LayerTopoAsync()
+        {
+            OverlayAnalysisDialog dialog = new OverlayAnalysisDialog(mapView.Layers, layer);
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
+            {
+                await LayerUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
+            }
+        }
+
+        /// <summary>
         /// 复制属性
         /// </summary>
         /// <returns></returns>
@@ -221,6 +235,7 @@ namespace MapBoard.UI.Menu
                 ("字段赋值","批量为选中的图形赋予新的属性",CopyAttributeAsync, true),
                 ("缓冲区","为选中的图形建立缓冲区",BufferAsync, true),
                 ("坐标转换","转换图形的坐标系",CoordinateTransformateAsync, true),
+                ("叠加分析","两个图层之间进行合并、相交、裁切等操作",LayerTopoAsync, true),
              };
         }
 
@@ -445,7 +460,7 @@ namespace MapBoard.UI.Menu
         /// <returns></returns>
         private Task ToGeoJsonWithStyleAsync()
         {
-            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportWithStyleAsync(path, mapView.Selection.SelectedFeatures,mapView.Layers.Selected));
+            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportWithStyleAsync(path, mapView.Selection.SelectedFeatures, mapView.Layers.Selected));
         }
 
         /// <summary>

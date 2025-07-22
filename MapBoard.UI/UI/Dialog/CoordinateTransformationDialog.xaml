@@ -6,17 +6,30 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.modernwpf.com/2019"
-    Title="坐标转换" CloseButtonText="取消"
+    Title="坐标转换"
+    CloseButtonText="取消"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
-    PrimaryButtonText="确定" mc:Ignorable="d">
+    PrimaryButtonText="确定"
+    mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="到" Margin="8" Grid.Column="1"  VerticalAlignment="Center" />
-        <ListView SelectionChanged="ListView_SelectionChanged" ItemsSource="{Binding CoordinateSystems}" SelectedItem="{Binding Source}" />
-        <ListView  SelectionChanged="ListView_SelectionChanged" Grid.Column="2" ItemsSource="{Binding CoordinateSystems}" SelectedItem="{Binding Target}" />
+        <TextBlock
+            Grid.Column="1"
+            Margin="8"
+            VerticalAlignment="Center"
+            Text="到" />
+        <ListView
+            ItemsSource="{Binding CoordinateSystems}"
+            SelectedItem="{Binding Source}"
+            SelectionChanged="ListView_SelectionChanged" />
+        <ListView
+            Grid.Column="2"
+            ItemsSource="{Binding CoordinateSystems}"
+            SelectedItem="{Binding Target}"
+            SelectionChanged="ListView_SelectionChanged" />
     </Grid>
 </commondialog:CommonDialog>

@@ -19,6 +19,6 @@
             </ResourceDictionary.MergedDictionaries>
             <system:String x:Key="DateTimeFormat" />
             <system:String x:Key="DateFormat" />
-               </ResourceDictionary>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -46,7 +46,6 @@ namespace MapBoard.Model
                     name = "";
                 }
                 else if (value != null
-                     && value.Length <= 10
                      && value.Length > 0
                      && Regex.IsMatch(value[0].ToString(), "[a-zA-Z]")
                      && Regex.IsMatch(value, "^[a-zA-Z0-9_]+$"))
