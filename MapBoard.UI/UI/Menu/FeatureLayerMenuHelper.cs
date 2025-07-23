@@ -120,7 +120,7 @@ namespace MapBoard.UI.Menu
 
             if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
             {
-                await LayerUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
+                await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
             }
         }
 

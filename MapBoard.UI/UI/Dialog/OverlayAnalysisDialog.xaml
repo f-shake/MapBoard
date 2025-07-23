@@ -12,9 +12,8 @@
     Title="请选择目标"
     CloseButtonText="取消"
     DataContext="{Binding RelativeSource={RelativeSource Self}}"
-    IsPrimaryButtonEnabled="True"
+    IsPrimaryButtonEnabled="False"
     Loaded="Window_Loaded"
-    PrimaryButtonClick="CommonDialog_PrimaryButtonClick"
     PrimaryButtonText="确定"
     mc:Ignorable="d">
     <ui:SimpleStackPanel
@@ -24,24 +23,34 @@
             x:Name="stkOperations"
             Orientation="Vertical"
             Spacing="8">
-            <RadioButton Content="合并">
-                <RadioButton.Tag>
-                    <md:OverlayAnalysisOperation>Union</md:OverlayAnalysisOperation>
-                </RadioButton.Tag>
-            </RadioButton>
             <RadioButton
+                Checked="RadioButton_Checked"
                 Content="相交"
                 IsChecked="True">
                 <RadioButton.Tag>
                     <md:OverlayAnalysisOperation>Intersect</md:OverlayAnalysisOperation>
                 </RadioButton.Tag>
             </RadioButton>
-            <RadioButton Content="裁剪">
+
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="合并">
+                <RadioButton.Tag>
+                    <md:OverlayAnalysisOperation>Union</md:OverlayAnalysisOperation>
+                </RadioButton.Tag>
+            </RadioButton>
+
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="裁剪">
                 <RadioButton.Tag>
                     <md:OverlayAnalysisOperation>Clip</md:OverlayAnalysisOperation>
                 </RadioButton.Tag>
             </RadioButton>
-            <RadioButton Content="擦除">
+
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="擦除">
                 <RadioButton.Tag>
                     <md:OverlayAnalysisOperation>Erase</md:OverlayAnalysisOperation>
                 </RadioButton.Tag>
@@ -53,10 +62,10 @@
 
         <GroupBox Header="叠加图层">
             <ListView
-                x:Name="lbx"
                 MinWidth="240"
                 MaxHeight="240"
                 fzc:SmoothScrollViewerHelper.SmoothScroll="{Binding Source={x:Static m:Config.Instance}, Path=SmoothScroll}"
+                ItemsSource="{Binding Layers}"
                 SelectedItem="{Binding SelectedLayer}">
                 <ListView.ItemTemplate>
                     <DataTemplate>

@@ -8,6 +8,8 @@ using Esri.ArcGISRuntime.Geometry;
 using MapBoard.Mapping.Model;
 using ABI.System;
 using System;
+using System.Collections.ObjectModel;
+using MapBoard.Util;
 
 namespace MapBoard.UI.Dialog
 {
@@ -16,60 +18,62 @@ namespace MapBoard.UI.Dialog
     /// </summary>
     public partial class OverlayAnalysisDialog : CommonDialog
     {
-        /// <summary>
-        /// 是否能够选择
-        /// </summary>
-        private bool canSelect = false;
 
-        public OverlayAnalysisDialog(MapLayerCollection layers, ILayerInfo mainLayer)
+        public OverlayAnalysisDialog(MapLayerCollection layers, IMapLayerInfo mainLayer)
         {
             InitializeComponent();
+            AllLayers = layers;
             MainLayer = mainLayer;
-            var list = layers.Cast<MapLayerInfo>()
-                .Where(p => p != layers.Selected);
-            if (list.Any())
-            {
-                lbx.ItemsSource = list.ToList();
-                lbx.SelectedIndex = 0;
-                canSelect = true;
-            }
-            else
-            {
-                IsPrimaryButtonEnabled = false;
-            }
+
+            UdpateSelectableLayers();
         }
+
+        public MapLayerCollection AllLayers { get; }
+
+        public ObservableCollection<IMapLayerInfo> Layers { get; set; }
+
+        public IMapLayerInfo MainLayer { get; set; }
 
         /// <summary>
         /// 拓扑操作
         /// </summary>
-        public OverlayAnalysisOperation Operation { get; set; }
-
-        public ILayerInfo MainLayer { get; set; }
+        public OverlayAnalysisOperation Operation { get; set; } = OverlayAnalysisOperation.Intersect;
 
         /// <summary>
         /// 选择的图层
         /// </summary>
         public MapLayerInfo SelectedLayer { get; set; }
 
+        private void CommonDialog_PrimaryButtonClick(ModernWpf.Controls.ContentDialog sender, ModernWpf.Controls.ContentDialogButtonClickEventArgs args)
+        {
+        }
+
+        private void UdpateSelectableLayers()
+        {
+            var list = AllLayers.Cast<MapLayerInfo>()
+                .Where(p => p != AllLayers.Selected)
+                .Where(p => OverlayAnalysisUtility.GetValidAnotherLayerGeometryType(Operation, MainLayer.GeometryType).Contains(p.GeometryType));
+            Layers = [.. list];
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (canSelect == false)
+            PropertyChanged += (s, e) =>
             {
-                Content = new TextBlock()
+                if (e.PropertyName == nameof(SelectedLayer))
                 {
-                    Text = "没有可选择的图层",
-                    VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-            }
+                    IsPrimaryButtonEnabled = SelectedLayer != null;
+                }
+            };
         }
 
-        private void CommonDialog_PrimaryButtonClick(ModernWpf.Controls.ContentDialog sender, ModernWpf.Controls.ContentDialogButtonClickEventArgs args)
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            Operation = (OverlayAnalysisOperation)
-                (stkOperations.Children.OfType<RadioButton>()
-                .Where(p => p.IsChecked == true).First().Tag);
+            if ((sender as RadioButton).Tag is OverlayAnalysisOperation o)
+            {
+                Operation = o;
+                UdpateSelectableLayers();
+            }
         }
     }
 }
