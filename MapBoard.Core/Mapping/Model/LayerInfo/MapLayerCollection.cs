@@ -11,7 +11,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;   
+using System.Threading.Tasks;
 using MLayerCollection = MapBoard.Model.LayerCollection;
 using ELayerCollection = Esri.ArcGISRuntime.Mapping.LayerCollection;
 using MapBoard.IO;
@@ -357,6 +357,7 @@ namespace MapBoard.Mapping.Model
 
                 //添加ArcGIS图层到ArcGIS图层列表
                 Layer fl = layer.GetLayerForLayerList();
+
                 Debug.Assert(fl != null);
                 if (index == -1)
                 {
@@ -366,6 +367,24 @@ namespace MapBoard.Mapping.Model
                 {
                     EsriLayers.Insert(index, fl);
                 }
+            }
+            catch (InvalidOperationException ex)
+            {
+                //切换到Geodatabase后，偶发InvalidOperationException异常，报错信息：Invalid call: Can't change using advanced symbology on a loaded table.
+                //不知道原因，但不影响图形显示，只是丢样式。为了防止丢掉整个图层，所以只能是忽略这个异常。
+                //性能低的设备出现频率较高。
+                /*
+                 *    在 Esri.ArcGISRuntime.ArcGISException.HandleCoreError(CoreError error, Boolean throwException)
+                在 RuntimeCoreNet.GeneratedWrappers.Interop.CheckError(IntPtr errorHandle, Boolean throwOnFailure, GCHandle wrapperHandle)
+                在 RuntimeCoreNet.GeneratedWrappers.CoreVector.Insert(Int64 position, CoreElement value)
+                在 Esri.ArcGISRuntime.RuntimeCollection`1.InsertItem(Int32 index, T item)
+                在 Esri.ArcGISRuntime.RuntimeObservableCollection`1.InsertItem(Int32 index, T item)
+                在 Esri.ArcGISRuntime.RuntimeCollection`1.Insert(Int32 index, T item)
+                在 MapBoard.Mapping.Model.MapLayerCollection.<AddAndLoadLayerAsync>d__32.MoveNext() 在 C:\Users\autod\Documents\GitHub\MapBoard\MapBoard.Core\Mapping\Model\LayerInfo\MapLayerCollection.cs 中: 第 367 行
+                在 MapBoard.Mapping.Model.MapLayerCollection.<AddAndLoadAsync>d__15.MoveNext() 在 C:\Users\autod\Documents\GitHub\MapBoard\MapBoard.Core\Mapping\Model\LayerInfo\MapLayerCollection.cs 中: 第 119 行
+                在 MapBoard.Mapping.Model.MapLayerCollection.<LoadAsync>d__26.MoveNext() 在 C:\Users\autod\Documents\GitHub\MapBoard\MapBoard.Core\Mapping\Model\LayerInfo\MapLayerCollection.cs 中: 第 219 行
+                */
+                Debug.WriteLine($"！！！！！！！图层{layer.Name}加载错误，但忽略：{ex.Message}");
             }
             catch (Exception ex)
             {
