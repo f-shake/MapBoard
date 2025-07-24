@@ -34,8 +34,13 @@
             [bool]$SelfContained,
             [bool]$SingleFile
         )
-        dotnet publish MapBoard.UI -c Release -o $OutputDir -r win-x64 --self-contained $SelfContained /p:PublishSingleFile=$SingleFile
+        
         Show-Message "正在发布WPF到 $OutputDir"
+        dotnet publish MapBoard.UI -c Release -o $OutputDir/bin -r win-x64 --self-contained $SelfContained /p:PublishSingleFile=$SingleFile
+        $loc = pwd
+        cd $OutputDir
+        New-Item -ItemType SymbolicLink -Path ./MapBoard -Target ./bin/MapBoard.exe
+        cd $loc
     }
 
     # 复制DLL文件

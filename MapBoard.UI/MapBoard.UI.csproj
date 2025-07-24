@@ -94,6 +94,7 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="PropertyChanged.Fody" />
     <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UI\Component\colorChart.PNG" />
