@@ -26,6 +26,8 @@
     </PackageReference>
     <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="Mapster" />
+    <PackageReference Include="MaxRev.Gdal.Core" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" />
     <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Newtonsoft.Json" />

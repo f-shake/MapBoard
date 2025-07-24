@@ -89,12 +89,9 @@ namespace MapBoard.IO
                 .Where(p => !p.IsIdField())//ID
                 .Where(p => p.Name.ToLower() != "shape_leng")//长度
                 .Where(p => p.Name.ToLower() != "shape_area");//面积
-            if (fields.Any(field => string.IsNullOrEmpty(field.Name)
-            || !Regex.IsMatch(field.Name[0].ToString(), "[a-zA-Z]")
-                  || !Regex.IsMatch(field.Name, "^[a-zA-Z0-9_]+$")))
-            {
-                throw new ArgumentException($"存在不合法的字段名");
-            }
+
+            fields.CheckInvalidFieldNames();
+
             //创建文件
             await CreateEgisShapefileAsync(type, name, folder, fields);
             path += ".shp";

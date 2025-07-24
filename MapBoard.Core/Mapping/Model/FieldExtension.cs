@@ -2,6 +2,7 @@
 using Esri.ArcGISRuntime.Mapping;
 using MapBoard.Model;
 using MapBoard.Util;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -12,11 +13,12 @@ using System.Threading.Tasks;
 
 namespace MapBoard.Mapping.Model
 {
-      /// <summary>
+    /// <summary>
     /// 字段扩展方法类
     /// </summary>
     public static class FieldExtension
     {
+
         /// <summary>
         /// 创建时间字段
         /// </summary>
@@ -35,6 +37,24 @@ namespace MapBoard.Mapping.Model
         public static bool CanBeRendererKey(this FieldInfo field)
         {
             return field.Type is FieldInfoType.Text or FieldInfoType.Integer or FieldInfoType.Float;
+        }
+
+        public static void CheckInvalidFieldNames(this IEnumerable<Field> fields)
+        {
+            var invalidFields = fields.Where(p => FieldInfo.IsValidFieldName(p.Name) == false).ToList();
+            if (invalidFields.Count > 0)
+            {
+                throw new ArgumentException($"存在不合法的字段名：{string.Join(",", invalidFields.Select(p => p.Name))}，字段名必须以字母开头，且只能包含字母、数字和下划线。", nameof(fields));
+            }
+        }
+
+        public static void CheckInvalidFieldNames(this IEnumerable<FieldInfo> fields)
+        {
+            var invalidFields = fields.Where(p => FieldInfo.IsValidFieldName(p.Name) == false).ToList();
+            if (invalidFields.Count > 0)
+            {
+                throw new ArgumentException($"存在不合法的字段名：{string.Join(",", invalidFields.Select(p => p.Name))}，字段名必须以字母开头，且只能包含字母、数字和下划线。", nameof(fields));
+            }
         }
 
         /// <summary>
@@ -80,7 +100,6 @@ namespace MapBoard.Mapping.Model
                    field.Equals("id", StringComparison.OrdinalIgnoreCase) ||
                    field.Equals("objectid", StringComparison.OrdinalIgnoreCase);
         }
-
         /// <summary>
         /// 将字段信息与数据源进行同步
         /// </summary>

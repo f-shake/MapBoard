@@ -127,7 +127,7 @@ public partial class AttributeTablePopup : Popup
                     1),
                     path: "BindingContext.SelectFeatureCommand"));
             tapGesture.SetBinding(TapGestureRecognizer.CommandParameterProperty,
-                new Binding("Feature"));
+                new Binding("OFeature"));
 
             selectLabel.GestureRecognizers.Add(tapGesture);
             Grid.SetColumn(selectLabel, Layer.Fields.Length);

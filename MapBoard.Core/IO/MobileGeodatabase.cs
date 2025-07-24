@@ -48,12 +48,8 @@ namespace MapBoard.IO
                 .Where(p => !p.IsIdField())//ID
                 .Where(p => p.Name.ToLower() != "shape_leng")//长度
                 .Where(p => p.Name.ToLower() != "shape_area");//面积
-            if (fields.Any(field => string.IsNullOrEmpty(field.Name)
-            || !Regex.IsMatch(field.Name[0].ToString(), "[a-zA-Z]")
-                  || !Regex.IsMatch(field.Name, "^[a-zA-Z0-9_]+$")))
-            {
-                throw new ArgumentException($"存在不合法的字段名");
-            }
+
+            fields.CheckInvalidFieldNames();
 
             TableDescription td = new TableDescription(name, SpatialReferences.Wgs84, type);
             foreach (var field in fields)
@@ -87,7 +83,7 @@ namespace MapBoard.IO
                 {
                     Current = await Geodatabase.OpenAsync(gdbFile);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 
                 }

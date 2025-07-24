@@ -32,6 +32,7 @@ using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using Esri.ArcGISRuntime.Mapping;
 using MobileMapPackage = MapBoard.IO.MobileMapPackage;
 using FluentFTP;
+using MapBoard.IO.Gdb;
 
 namespace MapBoard.Util
 {
@@ -297,16 +298,23 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static string GetImportMapPath(ImportMapType type, Window parentWindow)
         {
-            OpenFileDialog dialog = new OpenFileDialog()
-                .AddFilterIf(type == ImportMapType.MapPackageOverwrite, "地图画板地图包", "mbmpkg")
-                //.AddFilterIf(type == ImportMapType.MapPackgeAppend, "地图画板地图包", "mbmpkg")
-                .AddFilterIf(type == ImportMapType.LayerPackge, "mblpkg地图画板图层包", "mblpkg")
-                .AddFilterIf(type == ImportMapType.Gpx, "GPS轨迹文件", "gpx")
-                .AddFilterIf(type == ImportMapType.Shapefile, "Shapefile", "shp")
-                .AddFilterIf(type == ImportMapType.CSV, "CSV表格", "csv")
-                .AddFilterIf(type == ImportMapType.KML, "KML地理标记", "kml", "kmz")
-                .AddFilterIf(type == ImportMapType.Mmpk, "移动地图包", "mmpk");
-            return dialog.GetPath(parentWindow);
+            if ((int)type < 100)//导入文件
+            {
+                OpenFileDialog dialog = new OpenFileDialog()
+                    .AddFilterIf(type == ImportMapType.MapPackageOverwrite, "地图画板地图包", "mbmpkg")
+                    //.AddFilterIf(type == ImportMapType.MapPackgeAppend, "地图画板地图包", "mbmpkg")
+                    .AddFilterIf(type == ImportMapType.LayerPackge, "mblpkg地图画板图层包", "mblpkg")
+                    .AddFilterIf(type == ImportMapType.Gpx, "GPS轨迹文件", "gpx")
+                    .AddFilterIf(type == ImportMapType.Shapefile, "Shapefile", "shp")
+                    .AddFilterIf(type == ImportMapType.CSV, "CSV表格", "csv")
+                    .AddFilterIf(type == ImportMapType.KML, "KML地理标记", "kml", "kmz")
+                    .AddFilterIf(type == ImportMapType.Mmpk, "移动地图包", "mmpk");
+                return dialog.GetPath(parentWindow);
+            }
+            else
+            {
+                return new OpenFolderDialog().GetPath(parentWindow);
+            }
         }
 
         /// <summary>
@@ -449,6 +457,9 @@ namespace MapBoard.Util
                         await MobileMapPackage.ImportAsync(path, layers);
                         break;
 
+                    case ImportMapType.FgdbDir:
+                        await FileGdb.ImportAsync(path, layers);
+                        break;
                     default:
                         break;
                 }
@@ -569,7 +580,7 @@ namespace MapBoard.Util
                     throw new ArgumentException("无法识别端口号", nameof(ip));
                 }
             }
-            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com" ,port);
+            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com", port);
             newMessage?.Invoke("正在连接FTP");
             await ftp.Connect();
             newMessage?.Invoke("正在上传到FTP");

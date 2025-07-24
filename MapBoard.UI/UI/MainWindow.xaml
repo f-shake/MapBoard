@@ -332,6 +332,10 @@
                                         Click="ImportMenu_Click"
                                         Header="移动地图包（mmpk）"
                                         Tag="8" />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
+                                        Header="文件地理数据库（GDB）"
+                                        Tag="101" />
                                 </ui:MenuFlyout>
                             </ui:SplitButton.Flyout>
                         </ui:SplitButton>
