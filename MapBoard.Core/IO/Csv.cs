@@ -14,17 +14,58 @@ using CsvHelper;
 using System.Globalization;
 using FzLib;
 using System.Dynamic;
+using MapBoard.Util;
 
 namespace MapBoard.IO
 {
     public static class Csv
     {
+        public static void ExportAttributes(string path, IEnumerable<FieldInfo> fields, IEnumerable<Feature> features)
+        {
+            using var writer = new StreamWriter(path, false, new UTF8Encoding(true));
+            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            csv.WriteField("ID");
+            foreach (var field in fields)
+            {
+                csv.WriteField(field.DisplayName);
+            }
+            csv.NextRecord();
+
+            int index = 0;
+            foreach (var feature in features)
+            {
+                csv.WriteField(++index);
+                foreach (var field in fields)
+                {
+                    csv.WriteField(feature.GetAttributeValue(field.Name));
+                }
+                csv.NextRecord();
+            }
+
+        }
+
+        public static Task ExportAttributesAsync(string path, IEnumerable<FieldInfo> fields, IEnumerable<Feature> features)
+        {
+            return Task.Run(() =>
+            {
+                ExportAttributes(path, fields, features);
+            });
+        }
+
+        public static Task ExportAttributesAsync(string path, IMapLayerInfo layer)
+        {
+            return Task.Run(() =>
+            {
+                ExportAttributes(path, layer.Fields, layer.GetAllFeatures());
+            });
+        }
+
         /// <summary>
         /// 导出到CSV
         /// </summary>
         /// <param name="path"></param>
         /// <param name="features"></param>
-        public static void Export(string path, Feature[] features)
+        public static void ExportPoints(string path, Feature[] features)
         {
             /*
             这是一个名为 Export 的 C# 函数。它接受两个参数：path 和 features。其中 path 表示要导出的CSV文件的路径，而 features 表示要导出的要素数组。
@@ -131,11 +172,11 @@ namespace MapBoard.IO
         /// <param name="path"></param>
         /// <param name="features"></param>
         /// <returns></returns>
-        public static Task ExportAsync(string path, Feature[] features)
+        public static Task ExportPointsAsync(string path, Feature[] features)
         {
             return Task.Run(() =>
             {
-                Export(path, features);
+                ExportPoints(path, features);
             });
         }
         /// <summary>

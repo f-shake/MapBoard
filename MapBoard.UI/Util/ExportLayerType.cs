@@ -9,6 +9,7 @@
         GeoJSON = 5,
         OpenLayers = 6,
         GeoJSONWithStyle = 7,
-        Shapefile = 8
+        Shapefile = 8,
+        Csv = 9,
     }
 }

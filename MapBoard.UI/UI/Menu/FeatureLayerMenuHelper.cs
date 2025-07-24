@@ -111,20 +111,6 @@ namespace MapBoard.UI.Menu
         }
 
         /// <summary>
-        /// 坐标转换
-        /// </summary>
-        /// <returns></returns>
-        private async Task LayerTopoAsync()
-        {
-            OverlayAnalysisDialog dialog = new OverlayAnalysisDialog(mapView.Layers, layer);
-
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
-            {
-                await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
-            }
-        }
-
-        /// <summary>
         /// 复制属性
         /// </summary>
         /// <returns></returns>
@@ -247,7 +233,8 @@ namespace MapBoard.UI.Menu
         {
             return new List<(string header, string desc, Func<Task> action, bool visible)>()
             {
-                ("导出到CSV表格","将图形导出为CSV表格",ToCsvAsync, true),
+                ("导出到CSV表格（坐标点）","将图形导出为CSV表格",ToGeometryCsvAsync, true),
+                ("导出到CSV表格（属性表）","将属性导出为CSV表格",ToAttributeCsvAsync, true),
                 ("导出到GeoJSON","将图形导出为GeoJSON",ToGeoJsonAsync, true),
                 ("导出到CesiumGeoJSON","将图形导出为带样式的GeoJSON",ToGeoJsonWithStyleAsync, true),
             };
@@ -292,6 +279,20 @@ namespace MapBoard.UI.Menu
                     };
                     yield return item;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 坐标转换
+        /// </summary>
+        /// <returns></returns>
+        private async Task LayerTopoAsync()
+        {
+            OverlayAnalysisDialog dialog = new OverlayAnalysisDialog(mapView.Layers, layer);
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
+            {
+                await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
             }
         }
 
@@ -438,12 +439,12 @@ namespace MapBoard.UI.Menu
         }
 
         /// <summary>
-        /// 转到CSV
+        /// 转到属性表CSV
         /// </summary>
         /// <returns></returns>
-        private Task ToCsvAsync()
+        private Task ToAttributeCsvAsync()
         {
-            return ExportBase("Csv表格", "csv", async path => await Csv.ExportAsync(path, mapView.Selection.SelectedFeatures.ToArray()));
+            return ExportBase("CSV表格", "csv", async path => await Csv.ExportAttributesAsync(path, layer.Fields, [.. mapView.Selection.SelectedFeatures]));
         }
 
         /// <summary>
@@ -454,6 +455,7 @@ namespace MapBoard.UI.Menu
         {
             return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportAsync(path, mapView.Selection.SelectedFeatures));
         }
+
         /// <summary>
         /// 转到GeoJSON
         /// </summary>
@@ -463,6 +465,14 @@ namespace MapBoard.UI.Menu
             return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportWithStyleAsync(path, mapView.Selection.SelectedFeatures, mapView.Layers.Selected));
         }
 
+        /// <summary>
+        /// 转到每个坐标点一行的CSV
+        /// </summary>
+        /// <returns></returns>
+        private Task ToGeometryCsvAsync()
+        {
+            return ExportBase("CSV表格", "csv", async path => await Csv.ExportPointsAsync(path, [.. mapView.Selection.SelectedFeatures]));
+        }
         /// <summary>
         /// 合并
         /// </summary>

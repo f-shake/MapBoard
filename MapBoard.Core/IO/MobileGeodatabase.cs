@@ -46,8 +46,8 @@ namespace MapBoard.IO
             //排除由ArcGIS自动创建的临时字段，判断字段合法性
             fields = fields
                 .Where(p => !p.IsIdField())//ID
-                .Where(p => p.Name.ToLower() != "shape_leng")//长度
-                .Where(p => p.Name.ToLower() != "shape_area");//面积
+                .Where(p => !p.Name.Equals("shape_leng", StringComparison.CurrentCultureIgnoreCase))//长度
+                .Where(p => !p.Name.Equals("shape_area", StringComparison.CurrentCultureIgnoreCase));//面积
 
             fields.CheckInvalidFieldNames();
 

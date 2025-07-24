@@ -100,6 +100,7 @@ namespace MapBoard.Mapping.Model
                    field.Equals("id", StringComparison.OrdinalIgnoreCase) ||
                    field.Equals("objectid", StringComparison.OrdinalIgnoreCase);
         }
+
         /// <summary>
         /// 将字段信息与数据源进行同步
         /// </summary>

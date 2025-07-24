@@ -84,6 +84,10 @@ public class GdalGdbConverter
                 cancellationToken.ThrowIfCancellationRequested();
                 //获取图层
                 Layer layer = dataSource.GetLayerByIndex(i);
+                if (layer.GetSpatialRef() == null)
+                {
+                    continue;
+                }
                 try
                 {
                     (var gdbLayer, var map) = GetTableDescription(layer);
@@ -120,6 +124,14 @@ public class GdalGdbConverter
         }
 
         return epsgCode;
+    }
+
+    private static bool IsFieldIgnored(string name)
+    {
+        return name.StartsWith("shape_", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("fid", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("objectid", StringComparison.OrdinalIgnoreCase);
     }
 
     private void Assert(bool value, string message)
@@ -448,14 +460,6 @@ public class GdalGdbConverter
             _ => throw new ArgumentOutOfRangeException($"图层的几何类型{type}不在可处理范围内"),
         };
         return (layerInfo, map);
-    }
-
-    private bool IsFieldIgnored(string name)
-    {
-        return name.StartsWith("shape_", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("fid", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("objectid", StringComparison.OrdinalIgnoreCase);
     }
     private bool IsValidTableChar(char c)
     {

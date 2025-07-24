@@ -169,6 +169,10 @@ namespace MapBoard.UI.Menu
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Shapefile, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Shapefile),
                     "正在导出Shapefile");
+                    AddToMenu(menuExport, "CSV属性表",
+                        () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Csv, MainWindow),
+                        p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Csv),
+                    "正在导出CSV属性表");
                 }
             }
             else//多选
