@@ -1,5 +1,6 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Tasks.Geoprocessing;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using System;
@@ -88,25 +89,28 @@ namespace MapBoard.Util
                     throw new ArgumentOutOfRangeException(nameof(operation), "不支持的叠加分析操作类型");
             }
         }
-        
-       public static async Task OverlayAnalysisAsync(this IMapLayerInfo mainLayer, MapLayerCollection layers, Feature[] features,
-          IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)
+
+        public static async Task OverlayAnalysisAsync(this IMapLayerInfo mainLayer, MapLayerCollection layers, Feature[] features,
+           IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)
         {
             List<FieldInfo> fields = GetTargetFields(mainLayer, anotherLayer, operation);
             GeometryType geometryType = GetTargetGeometryType(operation, mainLayer.GeometryType, anotherLayer.GeometryType);
 
             var layer = await LayerUtility.CreateLayerAsync(geometryType, layers, mainLayer.Name + "-叠加分析", fields);
-
-            var anotherLayerFeatures = await anotherLayer.GetAllFeaturesAsync();
-            List<Feature> targetFeatures = operation switch
+            await Task.Run(async () =>
             {
-                OverlayAnalysisOperation.Intersect => ProcessIntersect(features, anotherLayerFeatures, layer),
-                OverlayAnalysisOperation.Clip => ProcessClip(features, anotherLayerFeatures, layer),
-                OverlayAnalysisOperation.Union => throw new NotImplementedException(),
-                OverlayAnalysisOperation.Erase => throw new NotImplementedException(),
-            };
+                var anotherLayerFeatures = await anotherLayer.GetAllFeaturesAsync();
+                List<Feature> targetFeatures = operation switch
+                {
+                    OverlayAnalysisOperation.Intersect => ProcessIntersect(features, anotherLayerFeatures, layer),
+                    OverlayAnalysisOperation.Clip => ProcessClip(features, anotherLayerFeatures, layer),
+                    //OverlayAnalysisOperation.Union => throw new NotImplementedException(),
+                    OverlayAnalysisOperation.Erase => ProcessErase(features, anotherLayerFeatures, layer),
+                    _ => throw new NotImplementedException(),
+                };
 
-            await layer.AddFeaturesAsync(targetFeatures, FeaturesChangedSource.FeatureOperation);
+                await layer.AddFeaturesAsync(targetFeatures, FeaturesChangedSource.FeatureOperation);
+            });
         }
 
         private static List<FieldInfo> GetTargetFields(IMapLayerInfo mainLayer, IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)
@@ -161,6 +165,38 @@ namespace MapBoard.Util
 
             return targetFeatures;
         }
+
+
+        private static List<Feature> ProcessErase(Feature[] features, Feature[] anotherLayerFeatures, IMapLayerInfo layer)
+        {
+            List<Feature> targetFeatures = new List<Feature>();
+            Geometry metgedAnotherLayer = GeometryEngine.Union(anotherLayerFeatures.Select(p => p.Geometry));
+            foreach (var f1 in features)
+            {
+                if (f1.Geometry.Within(metgedAnotherLayer))
+                {
+                    continue;
+                }
+                Feature feature = null;
+                if (!f1.Geometry.Intersects(metgedAnotherLayer))
+                {
+                    feature = layer.CreateFeature(f1.Attributes, f1.Geometry);
+                    targetFeatures.Add(feature);
+                    continue;
+                }
+
+                var geom = f1.Geometry.Difference(metgedAnotherLayer);
+                if (geom.IsEmpty || geom.GeometryType != layer.GeometryType)
+                {
+                    continue;
+                }
+                feature = layer.CreateFeature(f1.Attributes, geom);
+                targetFeatures.Add(feature);
+            }
+
+            return targetFeatures;
+        }
+
 
         private static List<Feature> ProcessIntersect(Feature[] features, Feature[] anotherLayerFeatures, IMapLayerInfo layer)
         {

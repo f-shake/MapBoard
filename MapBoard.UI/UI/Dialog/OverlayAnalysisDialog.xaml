@@ -32,13 +32,13 @@
                 </RadioButton.Tag>
             </RadioButton>
 
-            <RadioButton
+            <!--<RadioButton
                 Checked="RadioButton_Checked"
                 Content="合并">
                 <RadioButton.Tag>
                     <md:OverlayAnalysisOperation>Union</md:OverlayAnalysisOperation>
                 </RadioButton.Tag>
-            </RadioButton>
+            </RadioButton>-->
 
             <RadioButton
                 Checked="RadioButton_Checked"

@@ -44,10 +44,6 @@ namespace MapBoard.UI.Dialog
         /// </summary>
         public MapLayerInfo SelectedLayer { get; set; }
 
-        private void CommonDialog_PrimaryButtonClick(ModernWpf.Controls.ContentDialog sender, ModernWpf.Controls.ContentDialogButtonClickEventArgs args)
-        {
-        }
-
         private void UdpateSelectableLayers()
         {
             var list = AllLayers.Cast<MapLayerInfo>()
