@@ -18,7 +18,6 @@ namespace MapBoard.Mapping.Model
     /// </summary>
     public static class FieldExtension
     {
-
         /// <summary>
         /// 创建时间字段
         /// </summary>
@@ -56,7 +55,6 @@ namespace MapBoard.Mapping.Model
                 throw new ArgumentException($"存在不合法的字段名：{string.Join(",", invalidFields.Select(p => p.Name))}，字段名必须以字母开头，且只能包含字母、数字和下划线。", nameof(fields));
             }
         }
-
         /// <summary>
         /// 是否存在某个类型、某个名称的字段
         /// </summary>

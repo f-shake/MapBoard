@@ -36,7 +36,7 @@ public class GdalGdbConverter
 
     private string gdbPath;
 
-    public List<GdbLayer> Convert(string path, CancellationToken cancellationToken = default)
+    public List<ImportingLayer> Convert(string path, CancellationToken cancellationToken = default)
     {
         gdbPath = Path.GetFullPath(path);
 
@@ -75,7 +75,7 @@ public class GdalGdbConverter
             }
         }
 
-        var layers = new List<GdbLayer>();
+        var layers = new List<ImportingLayer>();
 
         try
         {
@@ -90,15 +90,15 @@ public class GdalGdbConverter
                 }
                 try
                 {
-                    (var gdbLayer, var map) = GetTableDescription(layer);
+                    var importingLayer = GetTableDescription(layer);
 
-                    if (name2Alias.TryGetValue(gdbLayer.Name, out string value) && !string.IsNullOrWhiteSpace(value))
+                    if (name2Alias.TryGetValue(importingLayer.Name, out string value) && !string.IsNullOrWhiteSpace(value))
                     {
-                        gdbLayer.Name = value;
+                        importingLayer.Name = value;
                     }
-                    gdbLayer.Features = ConvertFeatures(layer, map, gdbLayer.SpatialReference);
+                    importingLayer.Features = ConvertFeatures(layer, importingLayer.SpatialReference);
 
-                    layers.Add(gdbLayer);
+                    layers.Add(importingLayer);
                 }
                 catch (Exception ex)
                 {
@@ -126,13 +126,6 @@ public class GdalGdbConverter
         return epsgCode;
     }
 
-    private static bool IsFieldIgnored(string name)
-    {
-        return name.StartsWith("shape_", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("fid", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
-            || name.StartsWith("objectid", StringComparison.OrdinalIgnoreCase);
-    }
 
     private void Assert(bool value, string message)
     {
@@ -142,9 +135,9 @@ public class GdalGdbConverter
         }
     }
 
-    private List<GdbFeature> ConvertFeatures(Layer layer, IDictionary<string, string> fieldNameMap, ASR sr)
+    private List<SimpleFeature> ConvertFeatures(Layer layer, ASR sr)
     {
-        List<GdbFeature> newFeatures = new List<GdbFeature>();
+        List<SimpleFeature> newFeatures = new List<SimpleFeature>();
         while (true)
         {
             OFeature feature = layer.GetNextFeature();
@@ -152,13 +145,9 @@ public class GdalGdbConverter
             {
                 break;
             }
-            var attr = GetAttributes(layer.GetFIDColumn(), feature, fieldNameMap);
+            var attr = GetAttributes(layer.GetFIDColumn(), feature);
             AGeometry geom = layer.GetGeomType() == wkbGeometryType.wkbNone ? null : GetGeometry(feature, sr);
-            newFeatures.Add(new GdbFeature
-            {
-                Attributes = attr,
-                Geometry = geom,
-            });
+            newFeatures.Add(new SimpleFeature(attr, geom));
         }
         return newFeatures;
     }
@@ -229,7 +218,9 @@ public class GdalGdbConverter
         return line;
     }
 
-    private Dictionary<string, object> GetAttributes(string idFieldName, OFeature feature, IDictionary<string, string> fieldNameMap)
+    public static readonly object UnknownFieldType = new object();
+
+    private Dictionary<string, object> GetAttributes(string idFieldName, OFeature feature)
     {
         Dictionary<string, object> dic = new Dictionary<string, object>();
         var id = feature.GetFID();
@@ -238,10 +229,6 @@ public class GdalGdbConverter
         {
             var fieldDef = feature.GetFieldDefnRef(i);
             string name = fieldDef.GetNameUTF8();
-            if (fieldNameMap.TryGetValue(name, out string newName))
-            {
-                name = newName;
-            }
             object value = fieldDef.GetFieldType() switch
             {
                 FieldType.OFTInteger => feature.GetFieldAsInteger(i),
@@ -251,8 +238,13 @@ public class GdalGdbConverter
                 FieldType.OFTDate => GetDatetime(feature, i) == null ? null : DateOnly.FromDateTime(GetDatetime(feature, i).Value),
                 FieldType.OFTInteger64 => feature.GetFieldAsInteger64(i),
                 FieldType.OFTDateTime => GetDatetime(feature, i),
-                _ => throw new NotImplementedException(),
+                _ => UnknownFieldType
             };
+
+            if (value == UnknownFieldType)
+            {
+                continue;
+            }
 
             dic.Add(name, value);
         }
@@ -265,20 +257,15 @@ public class GdalGdbConverter
         }
     }
 
-    private (List<FieldInfo> fields, Dictionary<string, string> fieldNameMap) GetFields(FeatureDefn layerDef)
+    private List<FieldInfo> GetFields(FeatureDefn layerDef)
     {
         int fieldCount = layerDef.GetFieldCount();
         List<FieldInfo> fields = new List<FieldInfo>();
-        Dictionary<string, string> fieldNameMap = new Dictionary<string, string>();
         for (int j = 0; j < fieldCount; j++)
         {
             var fieldDef = layerDef.GetFieldDefn(j);
             string name = fieldDef.GetNameUTF8();
-            if (IsFieldIgnored(name))
-            {
-                continue;
-            }
-            FieldInfoType type = fieldDef.GetFieldType() switch
+            FieldInfoType? type = fieldDef.GetFieldType() switch
             {
                 FieldType.OFTInteger => FieldInfoType.Integer,
                 FieldType.OFTReal => FieldInfoType.Float,
@@ -288,21 +275,22 @@ public class GdalGdbConverter
                 FieldType.OFTTime => FieldInfoType.DateTime,
                 FieldType.OFTInteger64 => FieldInfoType.Integer,
                 FieldType.OFTDateTime => FieldInfoType.DateTime,
-                _ => throw new NotImplementedException(),
+                _ => null
             };
+            if (type == null)
+            {
+                continue;
+            }
 
             string alias = fieldDef.GetFieldAliasAsStringUTF8();
-            int length = fieldDef.GetWidth();
-            var newName = FieldInfo.GetValidFieldName(name);
-            fieldNameMap.Add(name, newName);
             fields.Add(new FieldInfo()
             {
-                Name = newName,
-                Type = type,
-                DisplayName = string.IsNullOrWhiteSpace(alias) ? newName : alias,
+                Name = name,
+                Type = type.Value,
+                DisplayName = string.IsNullOrWhiteSpace(alias) ? name : alias,
             });
         }
-        return (fields, fieldNameMap);
+        return fields;
     }
 
     private AGeometry GetGeometry(OFeature feature, ASR sr)
@@ -399,35 +387,20 @@ public class GdalGdbConverter
         }
         return results;
     }
-    private (GdbLayer layer, Dictionary<string, string> fieldNameMap) GetTableDescription(Layer layer)
+    private ImportingLayer GetTableDescription(Layer layer)
     {
         string name = layer.GetNameUTF8();
-        StringBuilder sanitizedName = new StringBuilder(name.Length);
-
-        foreach (char c in name)
-        {
-            sanitizedName.Append(IsValidTableChar(c) ? c : '_');
-        }
 
         var srid = GetEpsgId(layer.GetSpatialRef());
         ASR sr = srid == 0 ? null : ASR.Create(srid);
-        name = sanitizedName.ToString();
 
-        var layerInfo = new GdbLayer()
+        var layerInfo = new ImportingLayer()
         {
             Name = name,
             SpatialReference = sr
         };
-        List<FieldInfo> fields = [];
-        (var tempFields, var map) = GetFields(layer.GetLayerDefn());
-        foreach (var field in tempFields)
-        {
-            if (IsFieldIgnored(field.Name))
-            {
-                continue;
-            }
-            fields.Add(field);
-        }
+        List<FieldInfo> fields = GetFields(layer.GetLayerDefn());
+
         layerInfo.Fields = [.. fields];
         var type = layer.GetGeomType();
         layerInfo.GeometryType = type switch
@@ -459,7 +432,7 @@ public class GdalGdbConverter
 
             _ => throw new ArgumentOutOfRangeException($"图层的几何类型{type}不在可处理范围内"),
         };
-        return (layerInfo, map);
+        return layerInfo;
     }
     private bool IsValidTableChar(char c)
     {

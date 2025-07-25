@@ -1,13 +1,15 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
 using System.Collections.Generic;
 using MapBoard.Model;
+using Esri.ArcGISRuntime.Data;
 
-namespace MapBoard.IO.Gdb;
+namespace MapBoard.Mapping.Model;
 
-public class GdbLayer : LayerInfo
+public class ImportingLayer : LayerInfo
 {
     public GeometryType GeometryType { get; set; }
-    public List<GdbFeature> Features { get; set; } = new List<GdbFeature>();
+
+    public List<SimpleFeature> Features { get; set; } = new List<SimpleFeature>();
 
     public SpatialReference SpatialReference { get; set; }
 }

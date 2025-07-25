@@ -15,7 +15,6 @@ namespace MapBoard.Model
     public class FieldInfo : INotifyPropertyChanged, ICloneable
     {
         public const int MaxFieldNameLength = 200;
-        private string name = "";
 
         public FieldInfo(string name, string displayName, FieldInfoType type)
         {
@@ -38,54 +37,12 @@ namespace MapBoard.Model
         /// <summary>
         /// 字段名
         /// </summary>
-        public string Name
-        {
-            get => name;
-            set => name = IsValidFieldName(value) ? value : throw new ArgumentException($"字段名不合法：{value}，字段名必须以字母或下划线开头，且只能包含字母、数字和下划线。", nameof(value));
-        }
+        public string Name { get; set; }
+
         /// <summary>
         /// 字段类型
         /// </summary>
         public FieldInfoType Type { get; set; }
-
-        private static bool IsEnglishLetter(char c)
-        {
-            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-        }
-
-        public static string GetValidFieldName(string name)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name);
-            if (name.Length > MaxFieldNameLength)
-            {
-                name = name[..MaxFieldNameLength];
-            }
-            if ((name[0] is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or '_')
-                && name.Skip(1).All(p => p is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9') or '_'))
-            {
-                return name;
-            }
-
-            var chars = name.ToCharArray();
-            for (int i = 0; i < chars.Length; i++)
-            {
-                if (i == 0)
-                {
-                    if (!IsEnglishLetter(chars[i]) && chars[i] != '_')
-                    {
-                        chars[i] = '_';
-                    }
-                }
-                else
-                {
-                    if (!IsEnglishLetter(chars[i]) && chars[i] != '_')
-                    {
-                        chars[i] = '_';
-                    }
-                }
-            }
-            return new string(chars);
-        }
 
         public static bool IsCompatibleType(FieldInfoType type, object propertyValue, out object value)
         {
@@ -218,6 +175,7 @@ namespace MapBoard.Model
             }
             return false;
         }
+
         public object Clone()
         {
             return MemberwiseClone();

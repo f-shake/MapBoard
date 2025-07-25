@@ -445,7 +445,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.Shapefile:
-                        await Shapefile.ImportAsync(path, layers);
+                        await Importer.ImportShapefileAsync(path, layers);
                         break;
 
                     case ImportMapType.CSV:
@@ -463,7 +463,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.FgdbDir:
-                        await FileGdb.ImportAsync(path, layers);
+                        await Importer.ImportFileGdbAsync(path, layers);
                         break;
                     default:
                         break;

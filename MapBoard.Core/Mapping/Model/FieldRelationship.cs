@@ -76,26 +76,8 @@ namespace MapBoard.Mapping.Model
             var type = field.FieldType.GetRelationship().MapBoardType;
             string name = field.Name;
 
-            name = FieldInfo.GetValidFieldName(name);
-
             string alias = string.IsNullOrEmpty(field.Alias) ? field.Name : field.Alias;
             return new FieldInfo(name, alias, type);
-        }
-
-        /// <summary>
-        /// 从ArcGISRuntime到FiledInfo，会排除ID字段
-        /// </summary>
-        /// <param name="fields"></param>
-        /// <returns>从原表字段名到新字段的映射</returns>
-        public static IReadOnlyDictionary<string, FieldInfo> ToFieldInfos(this IEnumerable<Field> fields)
-        {
-            Dictionary<string, FieldInfo> result = new Dictionary<string, FieldInfo>();
-            foreach (var field in fields.Where(field => !field.IsIdField()))
-            {
-                result.Add(field.Name, field.ToFieldInfo());
-            }
-
-            return result.AsReadOnly();
         }
 
         public struct FieldItem

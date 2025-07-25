@@ -42,14 +42,14 @@ namespace MapBoard.IO
 
                 var table = mmpkLayer.FeatureTable;
 
-                var layer = await LayerUtility.ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
+                var layer = await Importer.ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
 
                 layer.Renderer.RawJson = rendererJson;
-                layer.Labels = mmpkLayer.LabelDefinitions.Select(p => new LabelInfo()
+                layer.Labels = [.. mmpkLayer.LabelDefinitions.Select(p => new LabelInfo()
                 {
                     RawJson = p.ToJson(),
                     UseRawJson = true
-                }).ToArray();
+                })];
                 layer.Renderer.UseRawJson = true;
                 layer.ApplyStyle();
             }

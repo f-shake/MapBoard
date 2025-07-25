@@ -137,16 +137,6 @@ namespace MapBoard.IO
                  .Where(p => ShapefileExtensions.Contains(Path.GetExtension(p)));
         }
 
-        /// <summary>
-        /// 导入shapefile文件到新图层
-        /// </summary>
-        /// <param name="path"></param>
-        public static async Task ImportAsync(string path, MapLayerCollection layers)
-        {
-            ShapefileFeatureTable table = new ShapefileFeatureTable(path);
-            await LayerUtility.ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
-        }
-
         public static async Task ExportToShapefile(string path, IMapLayerInfo layer)
         {
             string name = Path.GetFileNameWithoutExtension(path);

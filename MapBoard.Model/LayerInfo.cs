@@ -36,10 +36,7 @@ namespace MapBoard.Model
         {
             get
             {
-                if (fields == null)
-                {
-                    fields = Array.Empty<FieldInfo>();
-                }
+                fields ??= [];
                 return fields;
             }
             set => fields = value;
