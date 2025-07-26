@@ -1,6 +1,5 @@
 ﻿using FzLib;
-using MapBoard.IO;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Model;
 using MapBoard.Models;
 using MapBoard.Query;

@@ -1,7 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
-using MapBoard.IO;
+using MapBoard.IO.Formats;
 using MapBoard.Model;
 using MapBoard.Util;
 using Mapster;

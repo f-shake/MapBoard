@@ -15,7 +15,7 @@ using FzLib;
 using FzLib.DataAnalysis;
 using System.Diagnostics;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     public static class MobileGeodatabase
     {

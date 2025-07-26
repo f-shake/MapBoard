@@ -4,7 +4,7 @@ using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using FzLib;
 using MapBoard.IO;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Mapping;
 using MapBoard.Model;
 using MapBoard.Util;
@@ -46,7 +46,7 @@ namespace MapBoard.Services
         private static TrackService current;
         private bool canUpdate = false;
         private GnssStatusInfo gnssStatus;
-        private Gpx gpx = new Gpx();
+        private GpxDocument gpx = new GpxDocument();
         private GpxTrack gpxTrack;
         private Location lastLocation;
 

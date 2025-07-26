@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     /// <summary>
     /// GPX相关异常

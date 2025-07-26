@@ -10,6 +10,7 @@ using MapBoard.Mapping.Model;
 using System.Threading;
 using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.IO
 {

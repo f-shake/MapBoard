@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     public interface IGpxElement : ICloneable
     {

@@ -1,7 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.UI;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using FzLib.WPF.Dialog;
 using ModernWpf.FzExtension.CommonDialog;
 using System;

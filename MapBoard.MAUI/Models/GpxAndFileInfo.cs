@@ -1,5 +1,5 @@
 ﻿using FzLib;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Models;
 using System.ComponentModel;
 
@@ -7,12 +7,12 @@ namespace MapBoard.Models
 {
     public class GpxAndFileInfo : INotifyPropertyChanged
     {
-        private Gpx gpx;
+        private GpxDocument gpx;
 
         public GpxAndFileInfo(string file)
         {
             File = new SimpleFile(file);
-            Gpx = new Gpx()
+            Gpx = new GpxDocument()
             {
                 Time = File.Time,
             };
@@ -25,7 +25,7 @@ namespace MapBoard.Models
 
         public SimpleFile File { get; private set; }
 
-        public Gpx Gpx
+        public GpxDocument Gpx
         {
             get => gpx;
             set => this.SetValueAndNotify(ref gpx, value, nameof(Gpx));

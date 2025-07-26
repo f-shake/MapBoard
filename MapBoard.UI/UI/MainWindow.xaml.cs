@@ -542,11 +542,11 @@ namespace MapBoard.UI
                              try
                              {
                                  var visibleOnly = arcMap.Layers.Any(p => p.LayerVisible) && await CommonDialog.ShowYesNoDialogAsync("是否仅导出可见图层？");
-
-                                 await new OpenLayers(path, Directory.GetFiles("res/openlayers"),
-                                    Config.Instance.BaseLayers.ToArray(),
-                                    arcMap.Layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true).ToArray())
-                                 .ExportAsync();
+                                 var layers = arcMap.Layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true);
+                                 var baseLayers = Config.Instance.BaseLayers
+                                 .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
+                                 .Select(p => p.Path);
+                                 await Exporter.ExportOpenlayersAsync(path, layers, baseLayers, Directory.GetFiles("res/openlayers"));
                                  IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, this);
                              }
                              catch (Exception ex)
@@ -608,7 +608,8 @@ namespace MapBoard.UI
                  {
                      await IOUtility.ImportMapAsync(this, path, arcMap.Layers, type, p);
                  }, "正在导入");
-            };
+            }
+            ;
         }
 
         /// <summary>

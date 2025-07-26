@@ -1,7 +1,6 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using FzLib.WPF.Dialog;
-using MapBoard.IO;
 using MapBoard.UI.Dialog;
 using MapBoard.Mapping;
 using MapBoard.Util;
@@ -17,6 +16,7 @@ using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.UI.Menu
 {

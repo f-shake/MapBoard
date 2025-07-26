@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     /// <summary>
     /// GPX trkpt对象

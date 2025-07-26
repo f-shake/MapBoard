@@ -12,10 +12,11 @@ using System.Threading.Tasks;
 using MapBoard.Mapping.Model;
 using System.Text.RegularExpressions;
 using FzLib;
+using MapBoard.IO.Abstractions;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
-    public class Shapefile : IFeatureTableImporter
+    internal class Shapefile : IFeatureTableImporter, IFeatureTableExporter
     {
         /// <summary>
         /// shapefile的可能的文件扩展名
@@ -137,21 +138,6 @@ namespace MapBoard.IO
                  .Where(p => ShapefileExtensions.Contains(Path.GetExtension(p)));
         }
 
-        public static async Task ExportToShapefile(string path, IMapLayerInfo layer)
-        {
-            string name = Path.GetFileNameWithoutExtension(path);
-            string dir = Path.GetDirectoryName(path);
-            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, layer.Fields);
-            ShapefileFeatureTable shp = await ShapefileFeatureTable.OpenAsync(Path.Combine(dir, name + ".shp"));
-            var oldFeatures = await layer.QueryFeaturesAsync(new QueryParameters());
-            List<Feature> newFeatures = new List<Feature>();
-            foreach (var feature in oldFeatures)
-            {
-                newFeatures.Add(shp.CreateFeature(feature.Attributes, feature.Geometry));
-            }
-            await shp.AddFeaturesAsync(newFeatures);
-            shp.Close();
-        }
 
         /// <summary>
         /// 重新计算并更新Shapefile的空间范围
@@ -170,6 +156,35 @@ namespace MapBoard.IO
             BitConverter.GetBytes(extent.YMax).CopyTo(extentBytes, 24);
             await fileStream.WriteAsync(extentBytes.AsMemory(0, 32));
             fileStream.Close();
+        }
+
+        public async Task ExportAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
+        {
+            string name = Path.GetFileNameWithoutExtension(path);
+            string dir = Path.GetDirectoryName(path);
+            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, layer.Fields);
+            ShapefileFeatureTable shp = await ShapefileFeatureTable.OpenAsync(Path.Combine(dir, name + ".shp"));
+            List<Feature> newFeatures = new List<Feature>();
+            foreach (var feature in features)
+            {
+                newFeatures.Add(shp.CreateFeature(feature.Attributes, feature.Geometry));
+            }
+            await shp.AddFeaturesAsync(newFeatures);
+            shp.Close();
+        }
+
+        public ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
+        {
+            return ValueTask.FromResult<IEnumerable<FeatureTable>>([new ShapefileFeatureTable(path)]);
+        }
+
+        public string GetLayerName(FeatureTable featureTable)
+        {
+            return Path.GetFileNameWithoutExtension(((ShapefileFeatureTable)featureTable).Path);
+        }
+
+        public void OnLayerImported(FeatureTable featureTable, IMapLayerInfo layer)
+        {
         }
 
         /// <summary>
@@ -248,20 +263,6 @@ namespace MapBoard.IO
             //写入投影信息和编码信息
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".prj"), SpatialReferences.Wgs84.WkText);
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".cpg"), "UTF-8");
-        }
-
-        public ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
-        {
-            return ValueTask.FromResult<IEnumerable<FeatureTable>>([new ShapefileFeatureTable(path)]);
-        }
-
-        public void OnLayerImported(FeatureTable featureTable, IMapLayerInfo layer)
-        {
-        }
-
-        public string GetLayerName(FeatureTable featureTable)
-        {
-            return Path.GetFileNameWithoutExtension(((ShapefileFeatureTable)featureTable).Path);
         }
     }
 }

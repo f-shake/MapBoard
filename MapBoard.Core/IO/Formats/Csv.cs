@@ -16,7 +16,7 @@ using FzLib;
 using System.Dynamic;
 using MapBoard.Util;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     public static class Csv
     {

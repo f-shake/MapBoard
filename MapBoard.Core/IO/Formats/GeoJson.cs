@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     public static class GeoJson
     {
@@ -101,7 +101,7 @@ namespace MapBoard.IO
             }
             if (g.SpatialReference != null && g.SpatialReference.Wkid != 4326)
             {
-                g = GeometryEngine.Project(g, SpatialReferences.Wgs84);
+                g = g.Project(SpatialReferences.Wgs84);
             }
 
             switch (g)

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     /// <summary>
     /// GPX trk对象
@@ -16,7 +16,7 @@ namespace MapBoard.IO.Gpx
     public class GpxTrack : IGpxElement
     {
         private static readonly HashSet<string> hiddenElements = ["cmt", "src", "link", "number", "type"];
-        internal GpxTrack(Gpx parent)
+        internal GpxTrack(GpxDocument parent)
         {
             Parent = parent;
         }
@@ -41,7 +41,7 @@ namespace MapBoard.IO.Gpx
         /// <summary>
         /// 对应的GPX对象
         /// </summary>
-        internal Gpx Parent { get; set; }
+        internal GpxDocument Parent { get; set; }
         public object Clone()
         {
             GpxTrack newObj = MemberwiseClone() as GpxTrack;

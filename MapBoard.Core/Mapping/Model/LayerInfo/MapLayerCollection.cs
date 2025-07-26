@@ -16,6 +16,7 @@ using MLayerCollection = MapBoard.Model.LayerCollection;
 using ELayerCollection = Esri.ArcGISRuntime.Mapping.LayerCollection;
 using MapBoard.IO;
 using Mapster;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.Mapping.Model
 {

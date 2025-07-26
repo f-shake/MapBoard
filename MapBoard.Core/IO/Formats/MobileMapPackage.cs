@@ -1,6 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
+using MapBoard.IO.Abstractions;
 using MapBoard.Mapping;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
@@ -16,7 +17,7 @@ using System.Net;
 using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
 
     internal class MobileMapPackage : IFeatureTableImporter

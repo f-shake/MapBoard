@@ -12,12 +12,12 @@ using System.Collections.Generic;
 using System.Linq;
 using MapBoard.Mapping.Model;
 using FzLib;
-using MapBoard.IO;
 using System.Runtime.CompilerServices;
 using System.IO;
 using System.Windows.Input;
 using MapBoard.Util;
 using System.ComponentModel;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.UI.Dialog
 {

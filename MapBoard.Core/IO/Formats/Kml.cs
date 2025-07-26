@@ -13,7 +13,7 @@ using System.Linq;
 using FzLib.Collection;
 using Esri.ArcGISRuntime.Mapping;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     public static class Kml
     {
@@ -133,7 +133,7 @@ namespace MapBoard.IO
         {
             foreach (var feature in await layer.GetAllFeaturesAsync())
             {
-                foreach (var g in GeometryUtility.EnsureSinglePart(feature.Geometry))
+                foreach (var g in feature.Geometry.EnsureSinglePart())
                 {
                     var geometry = new KmlGeometry(g, KmlAltitudeMode.ClampToGround);
                     var placemark = new KmlPlacemark(geometry);

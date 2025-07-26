@@ -17,7 +17,7 @@ using System.Diagnostics;
 using ImageMagick;
 using Rational = MetadataExtractor.Rational;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     public static class Photo
     {

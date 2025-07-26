@@ -1,7 +1,8 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
-using Esri.ArcGISRuntime.Mapping;
 using FzLib.Program;
+using MapBoard.IO.Abstractions;
+using MapBoard.IO.Formats;
 using MapBoard.IO.Gdb;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;

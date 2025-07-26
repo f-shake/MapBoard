@@ -360,8 +360,11 @@ namespace MapBoard.UI.Menu
         {
             try
             {
-                await new OpenLayers(path, Directory.GetFiles("res/openlayers"), Config.Instance.BaseLayers.ToArray(), new[] { layer })
-                 .ExportAsync();
+                var baseLayers = Config.Instance.BaseLayers
+                .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
+                .Select(p => p.Path);
+                await Exporter.ExportOpenlayersAsync(path, layer, baseLayers, Directory.GetFiles("res/openlayers"));
+
                 IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, MainWindow);
             }
             catch (Exception ex)

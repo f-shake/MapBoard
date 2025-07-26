@@ -32,6 +32,7 @@ using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using Esri.ArcGISRuntime.Mapping;
 using FluentFTP;
 using MapBoard.IO.Gdb;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.Util
 {
@@ -160,7 +161,7 @@ namespace MapBoard.Util
                         break;
 
                     case ExportLayerType.Shapefile:
-                        await Shapefile.ExportToShapefile(path, layer);
+                        await Exporter.ExportShapefileAsync(path, layer);
                         break;
 
                     case ExportLayerType.Csv:
@@ -370,7 +371,7 @@ namespace MapBoard.Util
                 switch (type)
                 {
                     case ImportLayerType.Gpx:
-                        features = await Gps.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
+                        features = await Gpx.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
                         break;
 
                     case ImportLayerType.Csv:
@@ -657,13 +658,13 @@ namespace MapBoard.Util
                     win.BringToFront();
                     break;
                 case 1:
-                    await Gps.ImportAllToNewLayerAsync(files, Gps.GpxImportType.Line, layers, Config.Instance.BasemapCoordinateSystem);
+                    await Gpx.ImportAllToNewLayerAsync(files, Gpx.GpxImportType.Line, layers, Config.Instance.BasemapCoordinateSystem);
                     break;
                 case 2:
-                    await Gps.ImportAllToNewLayerAsync(files, Gps.GpxImportType.Point, layers, Config.Instance.BasemapCoordinateSystem);
+                    await Gpx.ImportAllToNewLayerAsync(files, Gpx.GpxImportType.Point, layers, Config.Instance.BasemapCoordinateSystem);
                     break;
                 case 3:
-                    await Gps.ImportMultipleToLayerAsync(files, layer as IMapLayerInfo, Config.Instance.BasemapCoordinateSystem);
+                    await Gpx.ImportMultipleToLayerAsync(files, layer as IMapLayerInfo, Config.Instance.BasemapCoordinateSystem);
                     break;
 
             }

@@ -2,6 +2,7 @@
 using Esri.ArcGISRuntime.Geometry;
 using FzLib.Collection;
 using FzLib.Program;
+using MapBoard.IO.Abstractions;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using MaxRev.Gdal.Core;

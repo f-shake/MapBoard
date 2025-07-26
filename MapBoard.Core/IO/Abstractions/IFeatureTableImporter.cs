@@ -3,7 +3,7 @@ using MapBoard.Mapping.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-namespace MapBoard.IO
+namespace MapBoard.IO.Abstractions
 {
     public interface IFeatureTableImporter
     {

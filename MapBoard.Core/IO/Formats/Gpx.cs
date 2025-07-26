@@ -8,18 +8,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LibGpx = MapBoard.IO.Gpx.Gpx;
+using LibGpx = MapBoard.IO.Formats.Gps.GpxDocument;
 using static MapBoard.Model.CoordinateSystem;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
     /// <summary>
     /// GPX文件与ArcGIS的互操作
     /// </summary>
-    public static class Gps
+    public static class Gpx
     {
         private const string Filed_Name = "Name";
         private const string Filed_Path = "Path";
@@ -77,7 +77,7 @@ namespace MapBoard.IO
         /// <param name="layer"></param>
         /// <param name="baseCs"></param>
         /// <returns></returns>
-        private static IEnumerable<Feature> ImportAsPolyline(Gpx.GpxTrack track, IMapLayerInfo layer, CoordinateSystem baseCs)
+        private static IEnumerable<Feature> ImportAsPolyline(GpxTrack track, IMapLayerInfo layer, CoordinateSystem baseCs)
         {
             List<MapPoint> points = new List<MapPoint>();
             foreach (var point in track.GetPoints())
@@ -97,7 +97,7 @@ namespace MapBoard.IO
         /// <param name="layer"></param>
         /// <param name="baseCs"></param>
         /// <returns></returns>
-        private static IEnumerable<Feature> ImportAsPoint(Gpx.GpxTrack track, IMapLayerInfo layer, CoordinateSystem baseCs)
+        private static IEnumerable<Feature> ImportAsPoint(GpxTrack track, IMapLayerInfo layer, CoordinateSystem baseCs)
         {
             int i = 0;
             foreach (var point in track.GetPoints())
@@ -118,7 +118,7 @@ namespace MapBoard.IO
         /// <param name="index"></param>
         /// <param name="feature"></param>
         /// <param name="time"></param>
-        private static void ApplyAttributes(Gpx.GpxTrack track, IMapLayerInfo layer, int? index, Feature feature, DateTime? time)
+        private static void ApplyAttributes(GpxTrack track, IMapLayerInfo layer, int? index, Feature feature, DateTime? time)
         {
             if (layer.HasField(Filed_Name, FieldInfoType.Text))
             {

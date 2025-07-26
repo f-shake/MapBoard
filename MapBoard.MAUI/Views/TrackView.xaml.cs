@@ -11,7 +11,7 @@ using System.Linq;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using MapBoard.IO;
 using MapBoard.Mapping;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using Esri.ArcGISRuntime.Geometry;
 using MapBoard.Models;
 using MapBoard.Util;
@@ -131,7 +131,7 @@ public partial class TrackView : ContentView, ISidePanel
             };
             layer.ApplyStyle();
 
-            Gpx gpx = await GpxSerializer.FromFileAsync(path);
+            GpxDocument gpx = await GpxSerializer.FromFileAsync(path);
             var points = gpx.GetPoints();
             var line = new Polyline(points.Select(p => p.ToXYMapPoint()));
             var feature = layer.CreateFeature(null, line);
@@ -154,7 +154,7 @@ public partial class TrackView : ContentView, ISidePanel
         var handle = ProgressPopup.Show("ÕýÔÚ¼ÓÔØ¹ì¼£");
         try
         {
-            Gpx gpx = await GpxSerializer.FromFileAsync(path);
+            GpxDocument gpx = await GpxSerializer.FromFileAsync(path);
 
             var overlay = MainMapView.Current.TrackOverlay;
             var extent = await overlay.LoadColoredGpxAsync(gpx);

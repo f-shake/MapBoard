@@ -24,7 +24,7 @@ using log4net.Layout;
 using System.Reflection;
 using System.Diagnostics;
 using MapBoard.IO;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Mapping;
 using Esri.ArcGISRuntime;
 
