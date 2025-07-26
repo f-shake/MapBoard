@@ -8,6 +8,6 @@ namespace MapBoard.IO.Abstractions
 {
     public interface IFeatureTableExporter
     {
-        public Task ExportAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features);
+        public Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features);
     }
 }

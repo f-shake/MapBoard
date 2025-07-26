@@ -158,7 +158,7 @@ namespace MapBoard.IO.Formats
             fileStream.Close();
         }
 
-        public async Task ExportAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
+        public async Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
         {
             string name = Path.GetFileNameWithoutExtension(path);
             string dir = Path.GetDirectoryName(path);

@@ -17,6 +17,7 @@ using MapBoard.Model;
 using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using MapBoard.IO.Formats;
+using MapBoard.IO;
 
 namespace MapBoard.UI.Menu
 {
@@ -444,7 +445,7 @@ namespace MapBoard.UI.Menu
         /// <returns></returns>
         private Task ToAttributeCsvAsync()
         {
-            return ExportBase("CSV表格", "csv", async path => await Csv.ExportAttributesAsync(path, layer.Fields, [.. mapView.Selection.SelectedFeatures]));
+            return ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvAttributeTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures]));
         }
 
         /// <summary>
@@ -471,7 +472,7 @@ namespace MapBoard.UI.Menu
         /// <returns></returns>
         private Task ToGeometryCsvAsync()
         {
-            return ExportBase("CSV表格", "csv", async path => await Csv.ExportPointsAsync(path, [.. mapView.Selection.SelectedFeatures]));
+            return ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvXYTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures]));
         }
         /// <summary>
         /// 合并

@@ -23,17 +23,23 @@ namespace MapBoard.IO
 
         public static Task<List<IMapLayerInfo>> ImportFileGdbAsync(string path, MapLayerCollection layers)
         {
-            return ImportFromMemoryLayers<FileGeodatabase>(path, layers);
+            return ImportFromMemoryLayers(new FileGeodatabase(), path, layers);
         }
 
         public static Task<List<IMapLayerInfo>> ImportMobileMapPackageAsync(string path, MapLayerCollection layers)
         {
-            return ImportFromFeatureTables<MobileMapPackage>(path, layers);
+            return ImportFromFeatureTables(new MobileMapPackage(), path, layers);
         }
 
         public static async Task<IMapLayerInfo> ImportShapefileAsync(string path, MapLayerCollection layers)
         {
-            var results = await ImportFromFeatureTables<Shapefile>(path, layers);
+            var results = await ImportFromFeatureTables(new Shapefile(), path, layers);
+            return results[0];
+        }
+
+        public static async Task<IMapLayerInfo> ImportCsvXYAsync(string path, MapLayerCollection layers)
+        {
+            var results = await ImportFromMemoryLayers(new Csv(), path, layers);
             return results[0];
         }
 
@@ -41,9 +47,8 @@ namespace MapBoard.IO
 
         #region 中间方法
 
-        private static async Task<List<IMapLayerInfo>> ImportFromFeatureTables<T>(string path, MapLayerCollection layers) where T : IFeatureTableImporter, new()
+        private static async Task<List<IMapLayerInfo>> ImportFromFeatureTables(IFeatureTableImporter importer, string path, MapLayerCollection layers)
         {
-            var importer = new T();
             var tables = await importer.GetFeatureTablesAsync(path);
             List<IMapLayerInfo> results = new List<IMapLayerInfo>();
             foreach (var table in tables)
@@ -55,9 +60,8 @@ namespace MapBoard.IO
             return results;
         }
 
-        private static async Task<List<IMapLayerInfo>> ImportFromMemoryLayers<T>(string path, MapLayerCollection layers) where T : IMemoryLayerImporter, new()
+        private static async Task<List<IMapLayerInfo>> ImportFromMemoryLayers(IMemoryLayerImporter importer, string path, MapLayerCollection layers)
         {
-            var importer = new T();
             var importingLayers = await importer.GetLayersAsync(path);
             return await CreateLayerAndImport(layers, importingLayers);
         }
@@ -152,14 +156,8 @@ namespace MapBoard.IO
             await table.LoadAsync();
             FeatureQueryResult features = await table.QueryFeaturesAsync(new QueryParameters());
 
-            var importingLayer = new SimpleLayer
-            {
-                Name = layerName,
-                Features = features.Select(p => new SimpleFeature(p.Attributes, p.Geometry)).ToList(),
-                Fields = [.. table.Fields.Select(p => p.ToFieldInfo())],
-                GeometryType = table.GeometryType,
-                SpatialReference = table.SpatialReference,
-            };
+            var importingLayer = new SimpleLayer(layerName, table.GeometryType, [.. table.Fields.Select(p => p.ToFieldInfo())],
+                table.SpatialReference, features.Select(p => new SimpleFeature(p.Attributes, p.Geometry)));
 
             return await CreateLayerAndImport(layers, importingLayer);
 

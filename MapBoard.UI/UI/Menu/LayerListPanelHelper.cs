@@ -133,14 +133,10 @@ namespace MapBoard.UI.Menu
                         {
                             AddToMenu(menuImport, "GPX轨迹文件",
                                 () => IOUtility.GetImportFeaturePath(ImportLayerType.Gpx, MainWindow),
-                                p => IOUtility.ImportFeatureAsync(MainWindow, p, e, MapView, ImportLayerType.Gpx),
+                                p => IOUtility.ImportGpxToLayerAsync(MainWindow, p, e, MapView),
                                 "正在导入GPX轨迹文件");
                         }
 
-                        AddToMenu(menuImport, "CSV文件",
-                            () => IOUtility.GetImportFeaturePath(ImportLayerType.Csv, MainWindow),
-                            p => IOUtility.ImportFeatureAsync(MainWindow, p, e, MapView, ImportLayerType.Csv),
-                            "正在导入CSV文件");
                     }
                     var menuExport = new MenuItem() { Header = "导出" };
                     menu.Items.Add(menuExport);

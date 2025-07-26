@@ -394,16 +394,10 @@ public class FileGeodatabase : IMemoryLayerImporter
         var srid = GetEpsgId(layer.GetSpatialRef());
         ASR sr = srid == 0 ? null : ASR.Create(srid);
 
-        var layerInfo = new SimpleLayer()
-        {
-            Name = name,
-            SpatialReference = sr
-        };
         List<FieldInfo> fields = GetFields(layer.GetLayerDefn());
 
-        layerInfo.Fields = [.. fields];
         var type = layer.GetGeomType();
-        layerInfo.GeometryType = type switch
+        var geometryType = type switch
         {
             wkbGeometryType.wkbPoint
             or wkbGeometryType.wkbPointM
@@ -432,7 +426,7 @@ public class FileGeodatabase : IMemoryLayerImporter
 
             _ => throw new ArgumentOutOfRangeException($"图层的几何类型{type}不在可处理范围内"),
         };
-        return layerInfo;
+        return new SimpleLayer(name, geometryType, fields, sr);
     }
 
     public ValueTask<IEnumerable<SimpleLayer>> GetLayersAsync(string path)

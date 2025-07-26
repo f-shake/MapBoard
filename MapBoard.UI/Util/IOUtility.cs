@@ -66,16 +66,6 @@ namespace MapBoard.Util
                         }
                     }
                 }
-                else if (files.Count(p => p.EndsWith(".csv")) == files.Length && layers.Selected is IMapLayerInfo w2)
-                {
-                    if (await CommonDialog.ShowYesNoDialogAsync("是否导入CSV文件？") == true)
-                    {
-                        foreach (var file in files)
-                        {
-                            await Csv.ImportAsync(file, w2);
-                        }
-                    }
-                }
                 else
                 {
                     SnakeBar.ShowError("不支持的文件格式，文件数量过多，或文件集合的类型不都一样");
@@ -165,7 +155,7 @@ namespace MapBoard.Util
                         break;
 
                     case ExportLayerType.Csv:
-                        await Csv.ExportAttributesAsync(path, layer);
+                        await Exporter.ExportCsvAttributeTableAsync(path, layer);
                         break;
 
                     default:
@@ -361,26 +351,13 @@ namespace MapBoard.Util
         /// <param name="mapView"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static async Task ImportFeatureAsync(Window owner, string path, IMapLayerInfo layer, MainMapView mapView, ImportLayerType type)
+        public static async Task ImportGpxToLayerAsync(Window owner, string path, IMapLayerInfo layer, MainMapView mapView)
         {
             Debug.Assert(path != null);
 
             try
             {
-                IReadOnlyList<Feature> features = null;
-                switch (type)
-                {
-                    case ImportLayerType.Gpx:
-                        features = await Gpx.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
-                        break;
-
-                    case ImportLayerType.Csv:
-                        features = await Csv.ImportAsync(path, layer);
-                        break;
-
-                    default:
-                        break;
-                }
+                IReadOnlyList<Feature> features = await Gpx.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
                 SnakeBar snake = new SnakeBar(owner);
                 snake.ShowButton = true;
                 snake.ButtonContent = "查看";
@@ -449,9 +426,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.CSV:
-                        var table = await Csv.ImportToDataTableAsync(path);
-                        await new ImportTableDialog(layers, table, Path.GetFileNameWithoutExtension(path))
-                            .ShowAsync();
+                    await    Importer.ImportCsvXYAsync(path, layers);
                         break;
 
                     case ImportMapType.KML:
