@@ -30,7 +30,6 @@ using MapBoard.UI.GpxToolbox;
 using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using Esri.ArcGISRuntime.Mapping;
-using MobileMapPackage = MapBoard.IO.MobileMapPackage;
 using FluentFTP;
 using MapBoard.IO.Gdb;
 
@@ -459,7 +458,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.Mmpk:
-                        await MobileMapPackage.ImportAsync(path, layers);
+                        await Importer.ImportMobileMapPackageAsync(path, layers);
                         break;
 
                     case ImportMapType.FgdbDir:

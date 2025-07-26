@@ -5,7 +5,7 @@ using Esri.ArcGISRuntime.Data;
 
 namespace MapBoard.Mapping.Model;
 
-public class ImportingLayer : LayerInfo
+public class SimpleLayer : LayerInfo
 {
     public GeometryType GeometryType { get; set; }
 

@@ -18,6 +18,51 @@ namespace MapBoard.IO
 {
     public static class Importer
     {
+        #region 各种类型的公开导入方法
+
+        public static Task<List<IMapLayerInfo>> ImportFileGdbAsync(string path, MapLayerCollection layers)
+        {
+            return ImportFromMemoryLayers<FileGeodatabase>(path, layers);
+        }
+
+        public static Task<List<IMapLayerInfo>> ImportMobileMapPackageAsync(string path, MapLayerCollection layers)
+        {
+            return ImportFromFeatureTables<MobileMapPackage>(path, layers);
+        }
+
+        public static async Task<IMapLayerInfo> ImportShapefileAsync(string path, MapLayerCollection layers)
+        {
+            var results = await ImportFromFeatureTables<Shapefile>(path, layers);
+            return results[0];
+        }
+
+        #endregion
+
+        #region 中间方法
+
+        private static async Task<List<IMapLayerInfo>> ImportFromFeatureTables<T>(string path, MapLayerCollection layers) where T : IFeatureTableImporter, new()
+        {
+            var importer = new T();
+            var tables = await importer.GetFeatureTablesAsync(path);
+            List<IMapLayerInfo> results = new List<IMapLayerInfo>();
+            foreach (var table in tables)
+            {
+                var layer = await ImportFromFeatureTable(importer.GetLayerName(table), layers, table);
+                importer.OnLayerImported(table, layer);
+                results.Add(layer);
+            }
+            return results;
+        }
+
+        private static async Task<List<IMapLayerInfo>> ImportFromMemoryLayers<T>(string path, MapLayerCollection layers) where T : IMemoryLayerImporter, new()
+        {
+            var importer = new T();
+            var importingLayers = await importer.GetLayersAsync(path);
+            return await CreateLayerAndImport(layers, importingLayers);
+        }
+        #endregion
+
+        #region 私有方法
         public static string GetValidFieldName(string name)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -59,27 +104,54 @@ namespace MapBoard.IO
             return new string(chars);
         }
 
-        public static async Task<List<IMapLayerInfo>> ImportFileGdbAsync(string path, MapLayerCollection layers)
+        public static bool IsFieldIgnored(string name)
         {
-            if (!App.ProgramDirectoryPath.All(char.IsAscii))
-            {
-                throw new InvalidOperationException($"当使用GDAL相关功能时，程序所在目录应当仅包含ASCII字符。当前目录{App.ProgramDirectoryPath}不满足条件。");
-            }
-            var converter = new GdalGdbConverter();
-            List<ImportingLayer> gdbLayers = null;
-            await Task.Run(() =>
-            {
-                gdbLayers = converter.Convert(path);
-            });
-            return await CreateLayerAndImport(layers, gdbLayers);
+            return name.StartsWith("shape_", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("fid_", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("fid", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("objectid", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static async Task<IMapLayerInfo> ImportFromFeatureTable(string layerName, MapLayerCollection layers, FeatureTable table)
+        private static async Task<List<IMapLayerInfo>> CreateLayerAndImport(MapLayerCollection layers, IEnumerable<SimpleLayer> importingLayers)
+        {
+            List<IMapLayerInfo> results = new List<IMapLayerInfo>();
+            foreach (var importingLayer in importingLayers)
+            {
+                results.Add(await CreateLayerAndImport(layers, importingLayer));
+            }
+            return results;
+        }
+
+        private static async Task<IMapLayerInfo> CreateLayerAndImport(MapLayerCollection layers, SimpleLayer importingLayer)
+        {
+            Normalize(importingLayer);
+            var layer = await LayerUtility.CreateLayerAsync(importingLayer.GeometryType, layers, importingLayer.Name, importingLayer.Fields);
+
+            if (importingLayer.Features.Count == 0)
+            {
+                return layer;
+            }
+
+            List<Feature> features = new List<Feature>(importingLayer.Features.Count);
+            await Task.Run(() =>
+            {
+                foreach (var feature in importingLayer.Features)
+                {
+                    var esriFeature = layer.CreateFeature(feature.Attributes, feature.Geometry);
+                    features.Add(esriFeature);
+                }
+            });
+            await layer.AddFeaturesAsync(features, FeaturesChangedSource.Import);
+            return layer;
+        }
+
+        private static async Task<IMapLayerInfo> ImportFromFeatureTable(string layerName, MapLayerCollection layers, FeatureTable table)
         {
             await table.LoadAsync();
             FeatureQueryResult features = await table.QueryFeaturesAsync(new QueryParameters());
 
-            var importingLayer = new ImportingLayer
+            var importingLayer = new SimpleLayer
             {
                 Name = layerName,
                 Features = features.Select(p => new SimpleFeature(p.Attributes, p.Geometry)).ToList(),
@@ -136,58 +208,8 @@ namespace MapBoard.IO
             //return layer;
         }
 
-        /// <summary>
-        /// 导入shapefile文件到新图层
-        /// </summary>
-        /// <param name="path"></param>
-        public static async Task<IMapLayerInfo> ImportShapefileAsync(string path, MapLayerCollection layers)
-        {
-            ShapefileFeatureTable table = new ShapefileFeatureTable(path);
-            return await ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
-        }
 
-        public static bool IsFieldIgnored(string name)
-        {
-            return name.StartsWith("shape_", StringComparison.OrdinalIgnoreCase)
-                || name.StartsWith("fid_", StringComparison.OrdinalIgnoreCase)
-                || name.Equals("fid", StringComparison.OrdinalIgnoreCase)
-                || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
-                || name.Equals("objectid", StringComparison.OrdinalIgnoreCase);
-        }
-        private static async Task<List<IMapLayerInfo>> CreateLayerAndImport(MapLayerCollection layers, IEnumerable<ImportingLayer> importingLayers)
-        {
-            List<IMapLayerInfo> results = new List<IMapLayerInfo>();
-            foreach (var importingLayer in importingLayers)
-            {
-                results.Add(await CreateLayerAndImport(layers, importingLayer));
-            }
-            return results;
-        }
-
-        private static async Task<IMapLayerInfo> CreateLayerAndImport(MapLayerCollection layers, ImportingLayer importingLayer)
-        {
-            Normalize(importingLayer);
-            var layer = await LayerUtility.CreateLayerAsync(importingLayer.GeometryType, layers, importingLayer.Name, importingLayer.Fields);
-
-            if (importingLayer.Features.Count == 0)
-            {
-                return layer;
-            }
-
-            List<Feature> features = new List<Feature>(importingLayer.Features.Count);
-            await Task.Run(() =>
-            {
-                foreach (var feature in importingLayer.Features)
-                {
-                    var esriFeature = layer.CreateFeature(feature.Attributes, feature.Geometry);
-                    features.Add(esriFeature);
-                }
-            });
-            await layer.AddFeaturesAsync(features, FeaturesChangedSource.Import);
-            return layer;
-        }
-
-        private static void Normalize(ImportingLayer layer)
+        private static void Normalize(SimpleLayer layer)
         {
             (var fields, var map) = NormalizeFields(layer.Fields);
             layer.Fields = [.. fields];
@@ -270,5 +292,7 @@ namespace MapBoard.IO
             }
             return geometry.ToWgs84();
         }
+
+        #endregion
     }
 }

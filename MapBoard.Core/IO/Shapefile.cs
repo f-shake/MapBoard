@@ -15,7 +15,7 @@ using FzLib;
 
 namespace MapBoard.IO
 {
-    public static class Shapefile
+    public class Shapefile : IFeatureTableImporter
     {
         /// <summary>
         /// shapefile的可能的文件扩展名
@@ -248,6 +248,20 @@ namespace MapBoard.IO
             //写入投影信息和编码信息
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".prj"), SpatialReferences.Wgs84.WkText);
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".cpg"), "UTF-8");
+        }
+
+        public ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
+        {
+            return ValueTask.FromResult<IEnumerable<FeatureTable>>([new ShapefileFeatureTable(path)]);
+        }
+
+        public void OnLayerImported(FeatureTable featureTable, IMapLayerInfo layer)
+        {
+        }
+
+        public string GetLayerName(FeatureTable featureTable)
+        {
+            return Path.GetFileNameWithoutExtension(((ShapefileFeatureTable)featureTable).Path);
         }
     }
 }

@@ -1,28 +1,28 @@
-﻿using MapBoard.Model;
+﻿using Esri.ArcGISRuntime.Data;
+using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Mapping;
 using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using MapBoard.Util;
+using Newtonsoft.Json.Linq;
+using OSGeo.OGR;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Threading.Tasks;
-using MapBoard.Mapping.Model;
 using System.Linq;
-using Newtonsoft.Json.Linq;
-using MapBoard.Util;
 using System.Net;
+using System.Reflection.Emit;
 using System.Threading;
-using Esri.ArcGISRuntime.Data;
-using System.Collections.Generic;
-using Esri.ArcGISRuntime.Mapping;
-using Esri.ArcGISRuntime.Geometry;
+using System.Threading.Tasks;
 namespace MapBoard.IO
 {
-    public class MobileMapPackage
+
+    internal class MobileMapPackage : IFeatureTableImporter
     {
-        /// <summary>
-        /// 导入shapefile文件到新图层
-        /// </summary>
-        /// <param name="path"></param>
-        public static async Task ImportAsync(string path, MapLayerCollection layers)
+
+        public async ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
         {
             Esri.ArcGISRuntime.Mapping.MobileMapPackage mmpk = await Esri.ArcGISRuntime.Mapping.MobileMapPackage.OpenAsync(path);
             var mmpkLayers = new List<FeatureLayer>();
@@ -30,30 +30,30 @@ namespace MapBoard.IO
             {
                 mmpkLayers.AddRange(map.OperationalLayers.OfType<FeatureLayer>());
             }
-            if (mmpkLayers.Count == 0)
-            {
-                return;
-            }
 
-            foreach (var mmpkLayer in mmpkLayers)
-            {
-                var rendererJson = mmpkLayer.Renderer.ToJson();
-                var labelJsons = mmpkLayer.LabelDefinitions.ToDictionary(p => p.WhereClause, p => p.ToJson());
-
-                var table = mmpkLayer.FeatureTable;
-
-                var layer = await Importer.ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
-
-                layer.Renderer.RawJson = rendererJson;
-                layer.Labels = [.. mmpkLayer.LabelDefinitions.Select(p => new LabelInfo()
-                {
-                    RawJson = p.ToJson(),
-                    UseRawJson = true
-                })];
-                layer.Renderer.UseRawJson = true;
-                layer.ApplyStyle();
-            }
-
+            return mmpkLayers.Select(p => p.FeatureTable);
         }
+
+        public string GetLayerName(FeatureTable featureTable)
+        {
+            return featureTable.TableName;
+        }
+
+        public void OnLayerImported(FeatureTable featureTable, IMapLayerInfo layer)
+        {
+            var mmpkLayer = featureTable.Layer as FeatureLayer;
+            var rendererJson = mmpkLayer.Renderer.ToJson();
+            var labelJsons = mmpkLayer.LabelDefinitions.ToDictionary(p => p.WhereClause, p => p.ToJson());
+
+            layer.Renderer.RawJson = rendererJson;
+            layer.Labels = [.. mmpkLayer.LabelDefinitions.Select(p => new LabelInfo()
+                    {
+                        RawJson = p.ToJson(),
+                        UseRawJson = true
+                    })];
+            layer.Renderer.UseRawJson = true;
+            layer.ApplyStyle();
+        }
+
     }
 }

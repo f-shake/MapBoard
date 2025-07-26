@@ -1,8 +1,13 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using FzLib.Collection;
+using FzLib.Program;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
 using MaxRev.Gdal.Core;
 using OSGeo.OGR;
 using OSGeo.OSR;
+using Swan;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,30 +18,26 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using FieldType = OSGeo.OGR.FieldType;
-using OGeometry = OSGeo.OGR.Geometry;
-using AGeometry = Esri.ArcGISRuntime.Geometry.Geometry;
-using APolyline = Esri.ArcGISRuntime.Geometry.Polyline;
-using APolygon = Esri.ArcGISRuntime.Geometry.Polygon;
 using AFeature = Esri.ArcGISRuntime.Data.Feature;
 using AFieldInfo = Esri.ArcGISRuntime.Data.Field;
-using OFeature = OSGeo.OGR.Feature;
-using MapBoard.Model;
-using MapBoard.Mapping.Model;
-using FzLib.Collection;
-using Swan;
+using AGeometry = Esri.ArcGISRuntime.Geometry.Geometry;
+using APolygon = Esri.ArcGISRuntime.Geometry.Polygon;
+using APolyline = Esri.ArcGISRuntime.Geometry.Polyline;
 using ASR = Esri.ArcGISRuntime.Geometry.SpatialReference;
+using FieldType = OSGeo.OGR.FieldType;
+using OFeature = OSGeo.OGR.Feature;
+using OGeometry = OSGeo.OGR.Geometry;
 using OSR = OSGeo.OSR.SpatialReference;
 
 namespace MapBoard.IO.Gdb;
 
-public class GdalGdbConverter
+public class FileGeodatabase : IMemoryLayerImporter
 {
     private DataSource dataSource;
 
     private string gdbPath;
 
-    public List<ImportingLayer> Convert(string path, CancellationToken cancellationToken = default)
+    private List<SimpleLayer> Convert(string path, CancellationToken cancellationToken = default)
     {
         gdbPath = Path.GetFullPath(path);
 
@@ -75,7 +76,7 @@ public class GdalGdbConverter
             }
         }
 
-        var layers = new List<ImportingLayer>();
+        var layers = new List<SimpleLayer>();
 
         try
         {
@@ -114,7 +115,6 @@ public class GdalGdbConverter
         return layers;
     }
 
-
     private static int GetEpsgId(OSR sr)
     {
         string authCode = sr.GetAuthorityCode("PROJCS") ?? sr.GetAuthorityCode("GEOGCS");
@@ -125,7 +125,6 @@ public class GdalGdbConverter
 
         return epsgCode;
     }
-
 
     private void Assert(bool value, string message)
     {
@@ -387,14 +386,14 @@ public class GdalGdbConverter
         }
         return results;
     }
-    private ImportingLayer GetTableDescription(Layer layer)
+    private SimpleLayer GetTableDescription(Layer layer)
     {
         string name = layer.GetNameUTF8();
 
         var srid = GetEpsgId(layer.GetSpatialRef());
         ASR sr = srid == 0 ? null : ASR.Create(srid);
 
-        var layerInfo = new ImportingLayer()
+        var layerInfo = new SimpleLayer()
         {
             Name = name,
             SpatialReference = sr
@@ -434,23 +433,13 @@ public class GdalGdbConverter
         };
         return layerInfo;
     }
-    private bool IsValidTableChar(char c)
+
+    public ValueTask<IEnumerable<SimpleLayer>> GetLayersAsync(string path)
     {
-        //ChatGPT
-
-        // 检查是否为字母或中文（支持 Unicode 字符）
-        if (char.IsLetter(c))
-            return true;
-
-        // 检查是否为数字
-        if (char.IsDigit(c))
-            return true;
-
-        // 检查是否为下划线
-        if (c == '_')
-            return true;
-
-        // 其他字符（包括符号和控制字符）均视为非法
-        return false;
+        if (!App.ProgramDirectoryPath.All(char.IsAscii))
+        {
+            throw new InvalidOperationException($"当使用GDAL相关功能时，程序所在目录应当仅包含ASCII字符。当前目录{App.ProgramDirectoryPath}不满足条件。");
+        }
+        return new ValueTask<IEnumerable<SimpleLayer>>(Task.Run(() => Convert(path).Cast<SimpleLayer>()));
     }
 }
