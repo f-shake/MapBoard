@@ -19,10 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace MapBoard.IO.Formats
 {
-
     internal class MobileMapPackage : IFeatureTableImporter
     {
-
         public async ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
         {
             Esri.ArcGISRuntime.Mapping.MobileMapPackage mmpk = await Esri.ArcGISRuntime.Mapping.MobileMapPackage.OpenAsync(path);

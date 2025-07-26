@@ -535,48 +535,8 @@ namespace MapBoard.UI
             if (!string.IsNullOrWhiteSpace(path))
             {
                 await DoAsync(async p =>
-                 {
-                     switch (type)
-                     {
-                         case ExportMapType.OpenLayers:
-                             try
-                             {
-                                 var visibleOnly = arcMap.Layers.Any(p => p.LayerVisible) && await CommonDialog.ShowYesNoDialogAsync("是否仅导出可见图层？");
-                                 var layers = arcMap.Layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true);
-                                 var baseLayers = Config.Instance.BaseLayers
-                                 .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
-                                 .Select(p => p.Path);
-                                 await Exporter.ExportOpenlayersAsync(path, layers, baseLayers, Directory.GetFiles("res/openlayers"));
-                                 IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, this);
-                             }
-                             catch (Exception ex)
-                             {
-                                 App.Log.Error("导出失败", ex);
-                                 await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
-                             }
-                             break;
-
-                         case ExportMapType.MapPackageFtp:
-                             try
-                             {
-                                 Config.LastFTP = path;
-
-                                 await IOUtility.SaveToFtpAsync(path, arcMap.Layers, m => p.SetMessage(m));
-
-                                 SnakeBar snake = new SnakeBar(this);
-                                 snake.ShowMessage("已传输至FTP");
-                             }
-                             catch (Exception ex)
-                             {
-                                 App.Log.Error("导出失败", ex);
-                                 await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
-                             }
-                             break;
-
-                         default:
-                             await IOUtility.ExportMapAsync(this, path, arcMap, arcMap.Layers, type);
-                             break;
-                     }
+                {
+                    await IOUtility.ExportMapAsync(this, path, arcMap, arcMap.Layers, type);
                  }, "正在导出");
             }
 

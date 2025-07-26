@@ -454,7 +454,7 @@ namespace MapBoard.UI.Menu
         /// <returns></returns>
         private Task ToGeoJsonAsync()
         {
-            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportAsync(path, mapView.Selection.SelectedFeatures));
+            return ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonAsync(path, layer, mapView.Selection.SelectedFeatures));
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace MapBoard.UI.Menu
         /// <returns></returns>
         private Task ToGeoJsonWithStyleAsync()
         {
-            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportWithStyleAsync(path, mapView.Selection.SelectedFeatures, mapView.Layers.Selected));
+            return ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonWithStylesAsync(path, layer, mapView.Selection.SelectedFeatures));
         }
 
         /// <summary>

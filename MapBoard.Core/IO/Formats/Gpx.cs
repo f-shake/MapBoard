@@ -24,7 +24,7 @@ namespace MapBoard.IO.Formats
     /// <summary>
     /// GPX文件与ArcGIS的互操作
     /// </summary>
-    public class Gpx(GpxImportType importType) : IMemoryLayerImporter
+    internal class Gpx(GpxImportType importType) : IMemoryLayerImporter
     {
         private const string Filed_Name = "Name";
         private const string Filed_Path = "Path";

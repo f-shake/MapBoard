@@ -16,7 +16,7 @@ namespace MapBoard.IO.Formats
     /// <summary>
     /// OpenLayers网络GIS
     /// </summary>
-    public class OpenLayers : IMapExporter
+    internal class OpenLayers : IMapExporter
     {
         public const string JS = @"var map = new ol.Map({
     target: 'map',
@@ -123,7 +123,7 @@ map.on('click', function(e) {
             foreach (var layer in layers)
             {
                 string temp = Path.GetTempFileName() + ".kmz";
-                await Kml.ExportAsync(temp, layer);
+                await Exporter.ExportKmlAsync(temp, layer);
                 using var fs = File.OpenRead(temp);
                 using ZipArchive zip = new ZipArchive(fs, ZipArchiveMode.Read, false);
                 zip.Entries[0].ExtractToFile(Path.Combine(dir, $"{layer.Name}.kml"));

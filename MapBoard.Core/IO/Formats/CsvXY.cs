@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace MapBoard.IO.Formats
 {
-    public class CsvXY : IFeatureTableExporter
+    internal class CsvXY : IFeatureTableExporter
     {
         public async Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
         {

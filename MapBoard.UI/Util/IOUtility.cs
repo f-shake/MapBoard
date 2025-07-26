@@ -38,6 +38,7 @@ namespace MapBoard.Util
 {
     public static class IOUtility
     {
+
         /// <summary>
         /// 拖放文件到窗口
         /// </summary>
@@ -76,7 +77,6 @@ namespace MapBoard.Util
                 ShowException(ex, "导入失败");
             }
         }
-
         /// <summary>
         /// 拖放目录到窗口
         /// </summary>
@@ -98,13 +98,14 @@ namespace MapBoard.Util
                     switch (index)
                     {
                         case 0:
-                            string[] extensions = { ".jpg", ".jpeg", ".heif", ".heic", ".dng" };
-                            files = await EnumerateFilesAsync(folders, extensions);
-                            await Photo.ImportImageLocation(files, layers);
-
+                            foreach (var folder in folders)
+                            {
+                                await Importer.ImportPhotoLocationsAsync(folder, layers);
+                            }
                             break;
+
                         case 1:
-                            files = await EnumerateFilesAsync(folders, new string[] { ".gpx" });
+                            files = await EnumerateFilesAsync(folders, [".gpx"]);
                             await ImportGpxAsync(files, layers.Selected, layers);
                             break;
                         default:
@@ -139,15 +140,15 @@ namespace MapBoard.Util
                         break;
 
                     case ExportLayerType.KML:
-                        await Kml.ExportAsync(path, layer);
+                        await Exporter.ExportKmlAsync(path, layer);
                         break;
 
                     case ExportLayerType.GeoJSON:
-                        await GeoJson.ExportAsync(path, layer);
+                        await Exporter.ExportGeoJsonAsync(path, layer);
                         break;
 
                     case ExportLayerType.GeoJSONWithStyle:
-                        await GeoJson.ExportWithStyleAsync(path, layer);
+                        await Exporter.ExportGeoJsonWithStylesAsync(path, layer);
                         break;
 
                     case ExportLayerType.Shapefile:
@@ -185,6 +186,31 @@ namespace MapBoard.Util
             {
                 switch (type)
                 {
+                    case ExportMapType.OpenLayers:
+                        try
+                        {
+                            var visibleOnly = layers.Any(p => p.LayerVisible) && await CommonDialog.ShowYesNoDialogAsync("是否仅导出可见图层？");
+                            var processLayers = layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true);
+                            var baseLayers = Config.Instance.BaseLayers
+                            .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
+                            .Select(p => p.Path);
+                            await Exporter.ExportOpenlayersAsync(path, processLayers, baseLayers, Directory.GetFiles("res/openlayers"));
+                        }
+                        catch (Exception ex)
+                        {
+                            App.Log.Error("导出失败", ex);
+                            await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
+                        }
+                        break;
+
+                    case ExportMapType.MapPackageFtp:
+                        Config.Instance.LastFTP = path;
+                        await SaveToFtpAsync(path, layers, m => { });
+
+                        SnakeBar snake = new SnakeBar(Application.Current.MainWindow);
+                        snake.ShowMessage("已传输至FTP");
+                        return;
+
                     case ExportMapType.MapPackage:
                         await Package.ExportMapAsync(path, layers, true);
                         break;
@@ -195,7 +221,7 @@ namespace MapBoard.Util
 
 
                     case ExportMapType.KML:
-                        await Kml.ExportAsync(path, layers.Cast<MapLayerInfo>());
+                        await Exporter.ExportKmlAsync(path, layers.Cast<MapLayerInfo>());
                         break;
 
                     case ExportMapType.Screenshot:
@@ -431,7 +457,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.KML:
-                        await Kml.ImportAsync(path, layers);
+                        await Importer.ImportKmlAsync(path, layers);
                         break;
 
                     case ImportMapType.Mmpk:
@@ -440,6 +466,15 @@ namespace MapBoard.Util
 
                     case ImportMapType.FgdbDir:
                         await Importer.ImportFileGdbAsync(path, layers);
+                        break;
+
+                    case ImportMapType.GpxDir:
+                        var gpxs = await EnumerateFilesAsync([path], [".gpx"]);
+                        await ImportGpxAsync(gpxs, null, layers);
+                        break;
+
+                    case ImportMapType.PhotoDir:
+                        await Importer.ImportPhotoLocationsAsync(path, layers);
                         break;
                     default:
                         break;
@@ -451,6 +486,43 @@ namespace MapBoard.Util
             {
                 ShowException(ex, "导入失败");
             }
+        }
+
+        public static async Task SaveToFtpAsync(string ip, MapLayerCollection layers, Action<string> newMessage = null)
+        {
+            newMessage?.Invoke("正在准备文件");
+            string tempPath = $"{Path.GetTempFileName()}.mbmpkg";
+            await Package.ExportMapAsync(tempPath, layers, true);
+
+            ip = ip.Trim();
+            if (ip.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+            {
+                ip = ip["ftp://".Length..];
+            }
+            ip = ip.Trim('/').Trim('\\').Replace("：", ":");
+            int port = 21;
+            if (ip.Contains(':'))
+            {
+                var parts = ip.Split(':');
+                ip = parts[0];
+                if (int.TryParse(parts[1], out port))
+                {
+                    if (port is < 0 or > ushort.MaxValue)
+                    {
+                        throw new ArgumentException("端口号超出范围", nameof(ip));
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("无法识别端口号", nameof(ip));
+                }
+            }
+            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com", port);
+            newMessage?.Invoke("正在连接FTP");
+            await ftp.Connect();
+            newMessage?.Invoke("正在上传到FTP");
+            await ftp.UploadFile(tempPath, Path.GetFileName($"地图画板 - {DateTime.Now:yyyyMMdd-HHmmss}.mbmpkg"));
+            await ftp.Disconnect();
         }
 
         /// <summary>
@@ -531,44 +603,6 @@ namespace MapBoard.Util
                 await CommonDialog.ShowErrorDialogAsync(ex, "打开失败");
             }
         }
-
-        public static async Task SaveToFtpAsync(string ip, MapLayerCollection layers, Action<string> newMessage = null)
-        {
-            newMessage?.Invoke("正在准备文件");
-            string tempPath = $"{Path.GetTempFileName()}.mbmpkg";
-            await Package.ExportMapAsync(tempPath, layers, true);
-
-            ip = ip.Trim();
-            if (ip.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-            {
-                ip = ip["ftp://".Length..];
-            }
-            ip = ip.Trim('/').Trim('\\').Replace("：", ":");
-            int port = 21;
-            if (ip.Contains(':'))
-            {
-                var parts = ip.Split(':');
-                ip = parts[0];
-                if (int.TryParse(parts[1], out port))
-                {
-                    if (port is < 0 or > ushort.MaxValue)
-                    {
-                        throw new ArgumentException("端口号超出范围", nameof(ip));
-                    }
-                }
-                else
-                {
-                    throw new ArgumentException("无法识别端口号", nameof(ip));
-                }
-            }
-            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com", port);
-            newMessage?.Invoke("正在连接FTP");
-            await ftp.Connect();
-            newMessage?.Invoke("正在上传到FTP");
-            await ftp.UploadFile(tempPath, Path.GetFileName($"地图画板 - {DateTime.Now:yyyyMMdd-HHmmss}.mbmpkg"));
-            await ftp.Disconnect();
-        }
-
         /// <summary>
         /// 枚举指定目录下的文件
         /// </summary>
@@ -612,7 +646,7 @@ namespace MapBoard.Util
         {
             List<SelectDialogItem> items = new List<SelectDialogItem>()
                 {
-                       new SelectDialogItem("使用GPX工具箱打开", "使用GPX工具箱打开该轨迹"),
+                       new SelectDialogItem("使用GPX工具箱打开", "使用GPX工具箱打开轨迹"),
                         new SelectDialogItem("导入到新图层（线）","每一个文件将会生成一条线"),
                         new SelectDialogItem("导入到新图层（点）","生成所有文件的轨迹点"),
                 };

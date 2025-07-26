@@ -1,5 +1,4 @@
 ﻿using Esri.ArcGISRuntime.Data;
-using MapBoard.IO.Formats;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using System;

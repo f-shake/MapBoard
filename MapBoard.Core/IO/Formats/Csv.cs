@@ -18,7 +18,7 @@ using MapBoard.IO.Abstractions;
 
 namespace MapBoard.IO.Formats
 {
-    public class Csv : IFeatureTableExporter, IMemoryLayerImporter
+    internal class Csv : IFeatureTableExporter, IMemoryLayerImporter
     {
         public Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
         {

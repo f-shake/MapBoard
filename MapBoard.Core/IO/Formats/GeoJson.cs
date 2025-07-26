@@ -1,5 +1,6 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using MapBoard.IO.Abstractions;
 using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using MapBoard.Util;
@@ -15,9 +16,11 @@ using System.Threading.Tasks;
 
 namespace MapBoard.IO.Formats
 {
-    public static class GeoJson
+    internal class GeoJson(bool withStyles) : IFeatureTableExporter
     {
-        public async static Task<JObject> ConvertAsync(IMapLayerInfo layer)
+        public bool WithStyles { get; } = withStyles;
+
+        private async static Task<JObject> ConvertAsync(IMapLayerInfo layer)
         {
             var features = await layer.GetAllFeaturesAsync();
             JObject result = null;
@@ -25,18 +28,7 @@ namespace MapBoard.IO.Formats
             return result;
         }
 
-        public async static Task<string> ExportAsync(string path, IEnumerable<Feature> features)
-        {
-            string result = null;
-            await Task.Run(() =>
-            {
-                result = Convert(features).ToString();
-                File.WriteAllText(path, result, new UTF8Encoding(true));
-            });
-            return result;
-        }
-
-        public async static Task<string> ExportWithStyleAsync(string path, IEnumerable<Feature> features, ILayerInfo layer)
+        private async static Task<string> ExportWithStyleAsync(string path, IEnumerable<Feature> features, ILayerInfo layer)
         {
             string result = null;
             await Task.Run(() =>
@@ -52,16 +44,16 @@ namespace MapBoard.IO.Formats
             return result;
         }
 
-        public async static Task ExportAsync(string path, IMapLayerInfo layer)
+        public Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
         {
-            var features = await layer.GetAllFeaturesAsync();
-            await ExportAsync(path, features);
-        }
-
-        public async static Task ExportWithStyleAsync(string path, IMapLayerInfo layer)
-        {
-            var features = await layer.GetAllFeaturesAsync();
-            await ExportWithStyleAsync(path, features, layer);
+            if (WithStyles)
+            {
+                return ExportAsync(path, features);
+            }
+            else
+            {
+                return ExportWithStyleAsync(path, features, layer);
+            }
         }
 
         private static JObject Convert(IEnumerable<Feature> features)
@@ -89,6 +81,17 @@ namespace MapBoard.IO.Formats
                 jFeatures.Add(jF);
             }
             return jRoot;
+        }
+
+        private async static Task<string> ExportAsync(string path, IEnumerable<Feature> features)
+        {
+            string result = null;
+            await Task.Run(() =>
+            {
+                result = Convert(features).ToString();
+                File.WriteAllText(path, result, new UTF8Encoding(true));
+            });
+            return result;
         }
 
         private static JObject GetGeometryJson(Feature f)
@@ -146,6 +149,42 @@ namespace MapBoard.IO.Formats
             return jGeo;
         }
 
+        private static JArray GetLineStringJson(Polyline polyline)
+        {
+            Debug.Assert(polyline.Parts.Count == 1);
+            JArray jLine = new JArray();
+            foreach (var point in polyline.Parts[0].Points)
+            {
+                jLine.Add(new JArray { point.X, point.Y });
+            }
+            return jLine;
+        }
+
+        private static JArray GetMultiLineStringJson(Polyline polyline)
+        {
+            JArray jMultiLine = new JArray();
+            foreach (var part in polyline.Parts)
+            {
+                JArray jLine = new JArray();
+                foreach (var point in part.Points)
+                {
+                    jLine.Add(new JArray { point.X, point.Y });
+                }
+                jMultiLine.Add(jLine);
+            }
+            return jMultiLine;
+        }
+
+        private static JArray GetMultiPointJson(Multipoint multipoint)
+        {
+            JArray jPoints = new JArray();
+            foreach (var p in multipoint.Points)
+            {
+                jPoints.Add(new JArray { p.X, p.Y });
+            }
+            return jPoints;
+        }
+
         private static JArray GetMultiPolygonJson(Polygon polygon)
         {
             JArray jMultiPolygon = new JArray();
@@ -181,43 +220,6 @@ namespace MapBoard.IO.Formats
         {
             return new JArray { point.X, point.Y };
         }
-
-        private static JArray GetMultiPointJson(Multipoint multipoint)
-        {
-            JArray jPoints = new JArray();
-            foreach (var p in multipoint.Points)
-            {
-                jPoints.Add(new JArray { p.X, p.Y });
-            }
-            return jPoints;
-        }
-
-        private static JArray GetLineStringJson(Polyline polyline)
-        {
-            Debug.Assert(polyline.Parts.Count == 1);
-            JArray jLine = new JArray();
-            foreach (var point in polyline.Parts[0].Points)
-            {
-                jLine.Add(new JArray { point.X, point.Y });
-            }
-            return jLine;
-        }
-
-        private static JArray GetMultiLineStringJson(Polyline polyline)
-        {
-            JArray jMultiLine = new JArray();
-            foreach (var part in polyline.Parts)
-            {
-                JArray jLine = new JArray();
-                foreach (var point in part.Points)
-                {
-                    jLine.Add(new JArray { point.X, point.Y });
-                }
-                jMultiLine.Add(jLine);
-            }
-            return jMultiLine;
-        }
-
         private static JArray GetPolygonJson(Polygon polygon)
         {
             JArray jPolygon = new JArray();
