@@ -23,31 +23,57 @@ namespace MapBoard.IO
 
         public static Task<List<IMapLayerInfo>> ImportFileGdbAsync(string path, MapLayerCollection layers)
         {
-            return ImportFromMemoryLayers(new FileGeodatabase(), path, layers);
+            return ImportToNewLayers(new FileGeodatabase(), path, layers);
         }
 
         public static Task<List<IMapLayerInfo>> ImportMobileMapPackageAsync(string path, MapLayerCollection layers)
         {
-            return ImportFromFeatureTables(new MobileMapPackage(), path, layers);
+            return ImportToNewLayers(new MobileMapPackage(), path, layers);
         }
 
         public static async Task<IMapLayerInfo> ImportShapefileAsync(string path, MapLayerCollection layers)
         {
-            var results = await ImportFromFeatureTables(new Shapefile(), path, layers);
+            var results = await ImportToNewLayers(new Shapefile(), path, layers);
             return results[0];
         }
 
         public static async Task<IMapLayerInfo> ImportCsvXYAsync(string path, MapLayerCollection layers)
         {
-            var results = await ImportFromMemoryLayers(new Csv(), path, layers);
+            var results = await ImportToNewLayers(new Csv(), path, layers);
             return results[0];
+        }
+
+        public static async Task<IMapLayerInfo> ImportGpxPointsAsync(string path, MapLayerCollection layers)
+        {
+            var results = await ImportToNewLayers(new Gpx(Gpx.GpxImportType.Point), path, layers);
+            return results[0];
+        }
+
+        public static async Task<IMapLayerInfo> ImportGpxLineAsync(string path, MapLayerCollection layers)
+        {
+            var results = await ImportToNewLayers(new Gpx(Gpx.GpxImportType.Line), path, layers);
+            return results[0];
+        }
+
+        public static async Task<IList<Feature>> ImportGpxAsync(string path, IMapLayerInfo existingLayer)
+        {
+            switch (existingLayer.GeometryType)
+            {
+                case GeometryType.Point:
+                    return await ImportToExistingLayer(new Gpx(Gpx.GpxImportType.Point), path, existingLayer);
+                case GeometryType.Polyline:
+                    return await ImportToExistingLayer(new Gpx(Gpx.GpxImportType.Line), path, existingLayer);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(existingLayer));
+            }
         }
 
         #endregion
 
         #region 中间方法
 
-        private static async Task<List<IMapLayerInfo>> ImportFromFeatureTables(IFeatureTableImporter importer, string path, MapLayerCollection layers)
+
+        private static async Task<List<IMapLayerInfo>> ImportToNewLayers(IFeatureTableImporter importer, string path, MapLayerCollection layers)
         {
             var tables = await importer.GetFeatureTablesAsync(path);
             List<IMapLayerInfo> results = new List<IMapLayerInfo>();
@@ -60,10 +86,17 @@ namespace MapBoard.IO
             return results;
         }
 
-        private static async Task<List<IMapLayerInfo>> ImportFromMemoryLayers(IMemoryLayerImporter importer, string path, MapLayerCollection layers)
+        private static async Task<List<IMapLayerInfo>> ImportToNewLayers(IMemoryLayerImporter importer, string path, MapLayerCollection layers)
         {
             var importingLayers = await importer.GetLayersAsync(path);
-            return await CreateLayerAndImport(layers, importingLayers);
+            return await ImportToNewLayers(layers, importingLayers);
+        }
+
+        private static async Task<IList<Feature>> ImportToExistingLayer(IMemoryLayerImporter importer, string path, IMapLayerInfo layer)
+        {
+            var importingLayers = await importer.GetLayersAsync(path);
+            Debug.Assert(importingLayers.Count() == 1);
+            return await ImportToExistingLayer(layer, importingLayers.First());
         }
         #endregion
 
@@ -118,17 +151,17 @@ namespace MapBoard.IO
                 || name.Equals("objectid", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static async Task<List<IMapLayerInfo>> CreateLayerAndImport(MapLayerCollection layers, IEnumerable<SimpleLayer> importingLayers)
+        private static async Task<List<IMapLayerInfo>> ImportToNewLayers(MapLayerCollection layers, IEnumerable<SimpleLayer> importingLayers)
         {
             List<IMapLayerInfo> results = new List<IMapLayerInfo>();
             foreach (var importingLayer in importingLayers)
             {
-                results.Add(await CreateLayerAndImport(layers, importingLayer));
+                results.Add(await ImportToNewLayer(layers, importingLayer));
             }
             return results;
         }
 
-        private static async Task<IMapLayerInfo> CreateLayerAndImport(MapLayerCollection layers, SimpleLayer importingLayer)
+        private static async Task<IMapLayerInfo> ImportToNewLayer(MapLayerCollection layers, SimpleLayer importingLayer)
         {
             Normalize(importingLayer);
             var layer = await LayerUtility.CreateLayerAsync(importingLayer.GeometryType, layers, importingLayer.Name, importingLayer.Fields);
@@ -151,6 +184,45 @@ namespace MapBoard.IO
             return layer;
         }
 
+
+        private static async Task<IList<Feature>> ImportToExistingLayer(IMapLayerInfo layer, SimpleLayer importingLayer)
+        {
+            Normalize(importingLayer);
+
+            if (importingLayer.Features.Count == 0)
+            {
+                return [];
+            }
+
+            List<Feature> features = new List<Feature>(importingLayer.Features.Count);
+            await Task.Run(() =>
+            {
+                var existingLayerFields = layer.Fields.ToDictionary(p => p.Name);
+                foreach (var feature in importingLayer.Features)
+                {
+                    Dictionary<string, object> newAttributes = new Dictionary<string, object>();
+                    foreach (var attribute in feature.Attributes)
+                    {
+                        if (attribute.Value == null)
+                        {
+                            continue;
+                        }
+                        if (existingLayerFields.TryGetValue(attribute.Key, out FieldInfo existingField))
+                        {
+                            if (FieldInfo.IsCompatibleType(existingField.Type, attribute.Value, out object newValue))
+                            {
+                                newAttributes.Add(attribute.Key, newValue);
+                            }
+                        }
+                    }
+                    var esriFeature = layer.CreateFeature(newAttributes, feature.Geometry);
+                    features.Add(esriFeature);
+                }
+            });
+            await layer.AddFeaturesAsync(features, FeaturesChangedSource.Import);
+            return features;
+        }
+
         private static async Task<IMapLayerInfo> ImportFromFeatureTable(string layerName, MapLayerCollection layers, FeatureTable table)
         {
             await table.LoadAsync();
@@ -159,7 +231,7 @@ namespace MapBoard.IO
             var importingLayer = new SimpleLayer(layerName, table.GeometryType, [.. table.Fields.Select(p => p.ToFieldInfo())],
                 table.SpatialReference, features.Select(p => new SimpleFeature(p.Attributes, p.Geometry)));
 
-            return await CreateLayerAndImport(layers, importingLayer);
+            return await ImportToNewLayer(layers, importingLayer);
 
             ////从原表字段名到新字段的映射
             //IMapLayerInfo layer = await CreateLayerAsync(

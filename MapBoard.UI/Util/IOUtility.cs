@@ -357,7 +357,8 @@ namespace MapBoard.Util
 
             try
             {
-                IReadOnlyList<Feature> features = await Gpx.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
+                IReadOnlyList<Feature> features = null;
+                await Importer.ImportGpxAsync(path, layer);
                 SnakeBar snake = new SnakeBar(owner);
                 snake.ShowButton = true;
                 snake.ButtonContent = "查看";
@@ -426,7 +427,7 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.CSV:
-                    await    Importer.ImportCsvXYAsync(path, layers);
+                        await Importer.ImportCsvXYAsync(path, layers);
                         break;
 
                     case ImportMapType.KML:
@@ -622,26 +623,33 @@ namespace MapBoard.Util
                 items.Add(new SelectDialogItem("导入到当前图层", "将轨迹导入到当前图层"));
             }
             int index = await CommonDialog.ShowSelectItemDialogAsync($"选择打开GPX文件的方式，共{files.Count()}个文件", items);
-            switch (index)
+            if (index == 0)
             {
-                case 0:
-                    var win = new GpxWindow
-                    {
-                        LoadFiles = files.ToArray()
-                    };
-                    win.Show();
-                    win.BringToFront();
-                    break;
-                case 1:
-                    await Gpx.ImportAllToNewLayerAsync(files, Gpx.GpxImportType.Line, layers, Config.Instance.BasemapCoordinateSystem);
-                    break;
-                case 2:
-                    await Gpx.ImportAllToNewLayerAsync(files, Gpx.GpxImportType.Point, layers, Config.Instance.BasemapCoordinateSystem);
-                    break;
-                case 3:
-                    await Gpx.ImportMultipleToLayerAsync(files, layer as IMapLayerInfo, Config.Instance.BasemapCoordinateSystem);
-                    break;
+                var win = new GpxWindow
+                {
+                    LoadFiles = files.ToArray()
+                };
+                win.Show();
+                win.BringToFront();
+                return;
+            }
 
+            foreach (var file in files)
+            {
+
+                switch (index)
+                {
+                    case 1:
+                        await Importer.ImportGpxLineAsync(file, layers);
+                        break;
+                    case 2:
+                        await Importer.ImportGpxPointsAsync(file, layers);
+                        break;
+                    case 3:
+                        await Importer.ImportGpxAsync(file, layer);
+                        break;
+
+                }
             }
         }
 
