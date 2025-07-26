@@ -373,10 +373,11 @@
                                         Click="ExportMenu_Click"
                                         Header="截图"
                                         Tag="6" />
+                                    <Separator />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="OpenLayers网络地图"
-                                        Tag="7" />
+                                        Tag="101" />
                                 </ui:MenuFlyout>
                             </ui:SplitButton.Flyout>
                         </ui:SplitButton>

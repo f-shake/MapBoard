@@ -279,7 +279,7 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static string GetExportMapPath(ExportMapType type, Window parentWindow)
         {
-            if (type is ExportMapType.OpenLayers)
+            if ((int)type > 100)
             {
                 var folderDialog = new OpenFolderDialog();
                 return folderDialog.GetPath(parentWindow);

@@ -162,12 +162,60 @@ namespace MapBoard.IO.Formats
         {
             string name = Path.GetFileNameWithoutExtension(path);
             string dir = Path.GetDirectoryName(path);
-            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, layer.Fields);
+            List<FieldInfo> fields = new List<FieldInfo>();
+            foreach (var field in layer.Fields)
+            {
+                if (field.IsIdField())
+                {
+                    continue;
+                }
+                string fieldName = field.Name.Length > 10 ? field.Name[..10] : field.Name;
+                var type = field.Type == FieldInfoType.DateTime ? FieldInfoType.Date : field.Type;
+                if (fields.Any(p => p.Name == fieldName))
+                {
+                    throw new Exception($"截断至长度10后的字段名存在重复：{fieldName}");
+                }
+                fields.Add(new FieldInfo(fieldName, field.DisplayName, type));
+            }
+            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, fields);
             ShapefileFeatureTable shp = await ShapefileFeatureTable.OpenAsync(Path.Combine(dir, name + ".shp"));
             List<Feature> newFeatures = new List<Feature>();
             foreach (var feature in features)
             {
-                newFeatures.Add(shp.CreateFeature(feature.Attributes, feature.Geometry));
+                var dic = new Dictionary<string, object>();
+                foreach (var key in feature.Attributes.Keys.ToList())
+                {
+                    if (FieldExtension.IsIdField(key))
+                    {
+                        continue;
+                    }
+                    var value = feature.Attributes[key];
+                    if (value is DateOnly dt)
+                    {
+                        value = dt.ToDateTime(TimeOnly.MinValue);
+                    }
+                    else if (value is long or ulong or uint)
+                    {
+                        if (value is long l && l > int.MaxValue
+                            || value is ulong ul && ul > int.MaxValue
+                            || value is uint ui && ui > int.MaxValue)
+                        {
+                            throw new Exception($"要素的属性{key}的值{value}大于Shapefile允许的最大值{int.MaxValue}");
+                        }
+                        value = Convert.ToInt32(value);
+                    }
+                    else if (value is string s)
+                    {
+                        if (s.Length > 254)
+                        {
+                            throw new Exception($"要素的属性{key}的值{value}长于Shapefile允许的最大长度254");
+                        }
+                    }
+
+                    dic.Add(key.Length > 10 ? key[..10] : key, value);
+                }
+                var newFeature = shp.CreateFeature(dic, feature.Geometry);
+                newFeatures.Add(newFeature);
             }
             await shp.AddFeaturesAsync(newFeatures);
             shp.Close();

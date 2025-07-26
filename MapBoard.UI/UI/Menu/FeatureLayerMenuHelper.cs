@@ -1,9 +1,15 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.UI.Controls;
 using FzLib.WPF.Dialog;
-using MapBoard.UI.Dialog;
+using MapBoard.IO;
+using MapBoard.IO.Formats;
 using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using MapBoard.UI.Dialog;
 using MapBoard.Util;
+using Microsoft.Win32;
 using ModernWpf.Controls;
 using ModernWpf.FzExtension.CommonDialog;
 using System;
@@ -12,12 +18,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using MapBoard.Mapping.Model;
-using MapBoard.Model;
-using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
-using MapBoard.IO.Formats;
-using MapBoard.IO;
 
 namespace MapBoard.UI.Menu
 {
@@ -234,10 +235,24 @@ namespace MapBoard.UI.Menu
         {
             return new List<(string header, string desc, Func<Task> action, bool visible)>()
             {
-                ("导出到CSV表格（坐标点）","将图形导出为CSV表格",ToGeometryCsvAsync, true),
-                ("导出到CSV表格（属性表）","将属性导出为CSV表格",ToAttributeCsvAsync, true),
-                ("导出到GeoJSON","将图形导出为GeoJSON",ToGeoJsonAsync, true),
-                ("导出到CesiumGeoJSON","将图形导出为带样式的GeoJSON",ToGeoJsonWithStyleAsync, true),
+                ("坐标表（*.csv）","将图形坐标点导出为CSV表格",
+                ()=>ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvXYTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures])),
+                true),
+                ("属性表（*.csv）","将属性导出为CSV表格",
+                ()=>ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvAttributeTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures])),
+                true),
+                ("GeoJSON（*.geojson）","将图形导出为GeoJSON",
+                ()=>ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonAsync(path, layer, mapView.Selection.SelectedFeatures)),
+                true),
+                ("CesiumGeoJSON（*.geojson）","将图形导出为带样式的GeoJSON",
+                ()=> ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonWithStylesAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
+                ("KML打包文件（*.kmz）","将图形导出为KML文件",
+                ()=> ExportBase("KML打包文件", "kmz", async path => await Exporter.ExportKmlAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
+                ("Shapefile（*.shp）","将图形导出为Shapefile文件",
+                ()=> ExportBase("Shapefile", "shp", async path => await Exporter.ExportShapefileAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
             };
         }
 
@@ -439,41 +454,6 @@ namespace MapBoard.UI.Menu
             }
         }
 
-        /// <summary>
-        /// 转到属性表CSV
-        /// </summary>
-        /// <returns></returns>
-        private Task ToAttributeCsvAsync()
-        {
-            return ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvAttributeTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures]));
-        }
-
-        /// <summary>
-        /// 转到GeoJSON
-        /// </summary>
-        /// <returns></returns>
-        private Task ToGeoJsonAsync()
-        {
-            return ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonAsync(path, layer, mapView.Selection.SelectedFeatures));
-        }
-
-        /// <summary>
-        /// 转到GeoJSON
-        /// </summary>
-        /// <returns></returns>
-        private Task ToGeoJsonWithStyleAsync()
-        {
-            return ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonWithStylesAsync(path, layer, mapView.Selection.SelectedFeatures));
-        }
-
-        /// <summary>
-        /// 转到每个坐标点一行的CSV
-        /// </summary>
-        /// <returns></returns>
-        private Task ToGeometryCsvAsync()
-        {
-            return ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvXYTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures]));
-        }
         /// <summary>
         /// 合并
         /// </summary>
