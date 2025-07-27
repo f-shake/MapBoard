@@ -310,6 +310,11 @@
                                 <ui:MenuFlyout>
                                     <MenuItem
                                         Click="ImportMenu_Click"
+                                        Header="地图包（*.mbmpkg）"
+                                        Tag="1" />
+                                    <Separator />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
                                         Header="图层包（*.mblpkg）"
                                         Tag="3" />
                                     <MenuItem
@@ -354,9 +359,13 @@
                             Click="ExportButton_Click"
                             Content="导出"
                             Tag="1"
-                            ToolTip="导出为地图包">
+                            ToolTip="导出为地图包（快速）">
                             <ui:SplitButton.Flyout>
                                 <ui:MenuFlyout>
+                                    <MenuItem
+                                        Click="ExportMenu_Click"
+                                        Header="地图包（快速）"
+                                        Tag="1" />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="地图包（重建）"
@@ -365,6 +374,7 @@
                                         Click="ExportMenu_Click"
                                         Header="地图包（FTP）"
                                         Tag="3" />
+                                    <Separator />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="KML打包文件"

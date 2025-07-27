@@ -63,7 +63,7 @@ namespace MapBoard.IO.Formats
             var extent = await table.QueryExtentAsync(new QueryParameters());
             string path = table.Path;
             table.Close();
-            UpdateExtentAsync(path, extent);
+            await UpdateExtentAsync(path, extent);
         }
 
         /// <summary>
@@ -138,7 +138,6 @@ namespace MapBoard.IO.Formats
                  .Where(p => ShapefileExtensions.Contains(Path.GetExtension(p)));
         }
 
-
         /// <summary>
         /// 重新计算并更新Shapefile的空间范围
         /// </summary>
@@ -150,10 +149,10 @@ namespace MapBoard.IO.Formats
             using FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite);
             fileStream.Seek(36, SeekOrigin.Begin);
             byte[] extentBytes = new byte[32];
-            BitConverter.GetBytes(extent.XMin).CopyTo(extentBytes, 0);
-            BitConverter.GetBytes(extent.YMin).CopyTo(extentBytes, 8);
-            BitConverter.GetBytes(extent.XMax).CopyTo(extentBytes, 16);
-            BitConverter.GetBytes(extent.YMax).CopyTo(extentBytes, 24);
+            WriteDoubleBE(extent.XMin, extentBytes, 0);
+            WriteDoubleBE(extent.YMin, extentBytes, 8);
+            WriteDoubleBE(extent.XMax, extentBytes, 16);
+            WriteDoubleBE(extent.YMax, extentBytes, 24);
             await fileStream.WriteAsync(extentBytes.AsMemory(0, 32));
             fileStream.Close();
         }
@@ -218,7 +217,10 @@ namespace MapBoard.IO.Formats
                 newFeatures.Add(newFeature);
             }
             await shp.AddFeaturesAsync(newFeatures);
+            var extent = await shp.QueryExtentAsync(new QueryParameters());
             shp.Close();
+
+            UpdateExtentAsync(path, extent);
         }
 
         public ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
@@ -311,6 +313,16 @@ namespace MapBoard.IO.Formats
             //写入投影信息和编码信息
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".prj"), SpatialReferences.Wgs84.WkText);
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".cpg"), "UTF-8");
+        }
+
+        private static void WriteDoubleBE(double value, byte[] buffer, int offset)
+        {
+            byte[] little = BitConverter.GetBytes(value);
+            //if (BitConverter.IsLittleEndian)
+            //{
+            //    Array.Reverse(little);
+            //}
+            Buffer.BlockCopy(little, 0, buffer, offset, 8);
         }
     }
 }

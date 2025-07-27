@@ -141,31 +141,31 @@ namespace MapBoard.UI.Menu
                     var menuExport = new MenuItem() { Header = "导出" };
                     menu.Items.Add(menuExport);
 
-                    AddToMenu(menuExport, "图层包",
+                    AddToMenu(menuExport, "图层包（*.mblpkg）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.LayerPackge, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.LayerPackge),
                         "正在导出图层包");
-                    AddToMenu(menuExport, "KML打包文件",
+                    AddToMenu(menuExport, "KML打包文件（*.kmz）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.KML, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.KML),
                         "正在导出KML打包文件");
-                    AddToMenu(menuExport, "GeoJSON文件",
+                    AddToMenu(menuExport, "GeoJSON文件（*.geojson）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.GeoJSON, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.GeoJSON),
                         "正在导出GeoJSON文件");
-                    AddToMenu(menuExport, "CesiumGeoJSON文件",
+                    AddToMenu(menuExport, "CesiumGeoJSON文件（*.geojson）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.GeoJSONWithStyle, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.GeoJSONWithStyle),
                         "正在导出带样式的GeoJSON文件");
-                    AddToMenu(menuExport, "OpenLayers网络地图",
+                    AddToMenu(menuExport, "OpenLayers网络地图（文件夹）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.OpenLayers, MainWindow),
                         p => ExportOpenLayersLayer(layer, p),
                     "正在导出OpenLayers网络地图");
-                    AddToMenu(menuExport, "Shapefile",
+                    AddToMenu(menuExport, "Shapefile（*.shp）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Shapefile, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Shapefile),
                     "正在导出Shapefile");
-                    AddToMenu(menuExport, "CSV属性表",
+                    AddToMenu(menuExport, "CSV属性表（*.csv）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Csv, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Csv),
                     "正在导出CSV属性表");
