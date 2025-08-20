@@ -76,7 +76,7 @@ namespace MapBoard.IO.Formats
             await Task.Run(() =>
             {
                 var files = new DirectoryInfo(path).EnumerateFiles("*", SearchOption.AllDirectories)
-                .Where(p => ImageExtensions.Contains(p.Extension));
+                .Where(p => ImageExtensions.Contains(p.Extension, StringComparer.OrdinalIgnoreCase));
                 Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 4, }, file =>
                 {
                     try
