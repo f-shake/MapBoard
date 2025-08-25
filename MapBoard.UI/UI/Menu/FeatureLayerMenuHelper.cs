@@ -308,7 +308,11 @@ namespace MapBoard.UI.Menu
 
             if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
             {
-                await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
+                var results = await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
+                if (results.Count == 0)
+                {
+                    await CommonDialog.ShowOkDialogAsync("叠加分析", "叠加分析结果为空");
+                }
             }
         }
 

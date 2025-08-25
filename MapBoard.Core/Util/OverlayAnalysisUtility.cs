@@ -90,17 +90,17 @@ namespace MapBoard.Util
             }
         }
 
-        public static async Task OverlayAnalysisAsync(this IMapLayerInfo mainLayer, MapLayerCollection layers, Feature[] features,
+        public static async Task<List<Feature>> OverlayAnalysisAsync(this IMapLayerInfo mainLayer, MapLayerCollection layers, Feature[] features,
            IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)
         {
             List<FieldInfo> fields = GetTargetFields(mainLayer, anotherLayer, operation);
             GeometryType geometryType = GetTargetGeometryType(operation, mainLayer.GeometryType, anotherLayer.GeometryType);
-
+            List<Feature> targetFeatures = null;
             var layer = await LayerUtility.CreateLayerAsync(geometryType, layers, mainLayer.Name + "-叠加分析", fields);
             await Task.Run(async () =>
             {
                 var anotherLayerFeatures = await anotherLayer.GetAllFeaturesAsync();
-                List<Feature> targetFeatures = operation switch
+                targetFeatures = operation switch
                 {
                     OverlayAnalysisOperation.Intersect => ProcessIntersect(features, anotherLayerFeatures, layer),
                     OverlayAnalysisOperation.Clip => ProcessClip(features, anotherLayerFeatures, layer),
@@ -108,9 +108,12 @@ namespace MapBoard.Util
                     OverlayAnalysisOperation.Erase => ProcessErase(features, anotherLayerFeatures, layer),
                     _ => throw new NotImplementedException(),
                 };
-
-                await layer.AddFeaturesAsync(targetFeatures, FeaturesChangedSource.FeatureOperation);
+                if (targetFeatures.Count > 0)
+                {
+                    await layer.AddFeaturesAsync(targetFeatures, FeaturesChangedSource.FeatureOperation);
+                }
             });
+            return targetFeatures;
         }
 
         private static List<FieldInfo> GetTargetFields(IMapLayerInfo mainLayer, IMapLayerInfo anotherLayer, OverlayAnalysisOperation operation)

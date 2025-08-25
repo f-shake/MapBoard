@@ -181,11 +181,13 @@ namespace MapBoard.UI.Dialog
                      if (features.Count > 0)
                      {
                          MapView.Selection.Select(features, true);
+                         var extent = GeometryEngine.CombineExtents(features.Select(p => p.Geometry));
+                         await MapView.ZoomToGeometryAsync(extent);
                      }
                      else
                      {
                          IsEnabled = true;
-                         await CommonDialog.ShowErrorDialogAsync("没有找到任何符合条件的结果");
+                         await CommonDialog.ShowOkDialogAsync("查询", "没有找到任何符合条件的结果");
                      }
                  }, "正在查询");
             }
@@ -203,7 +205,7 @@ namespace MapBoard.UI.Dialog
 
         private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
         {
-            if(Layer.Fields.Length==0)
+            if (Layer.Fields.Length == 0)
             {
                 await CommonDialog.ShowErrorDialogAsync("该图层不含任何字段");
                 return;

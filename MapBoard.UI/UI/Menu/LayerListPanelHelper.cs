@@ -99,11 +99,18 @@ namespace MapBoard.UI.Menu
                         AddToMenu<IMapLayerInfo>(menu, "操作历史记录", layer, OpenHistoryDialog);
                         if (layer.NumberOfFeatures > 0)
                         {
-                            MenuItem subMenu = new MenuItem() { Header = "地理分析（正在加载）" };
+                            MenuItem subMenu = new MenuItem()
+                            {
+                                Header = "地理分析",
+                                Items = {
+                                    new MenuItem { Header = "正在加载" }
+                                }
+                            };
                             menu.Items.Add(subMenu);
                             //需要获取所有要素后，再显示菜单
                             layer.GetAllFeaturesAsync().ContinueWith(featuresTask =>
                             {
+                                MainWindow.Dispatcher.Invoke(() => subMenu.Items.Clear());
                                 if (featuresTask.IsCompletedSuccessfully)
                                 {
                                     var features = featuresTask.Result;
@@ -116,6 +123,10 @@ namespace MapBoard.UI.Menu
                                             subMenu.Items.Add(item);
                                         }
                                     });
+                                }
+                                else
+                                {
+                                    MainWindow.Dispatcher.Invoke(() => subMenu.Items.Add(new MenuItem { Header = "加载失败" }));
                                 }
                             });
                         }
