@@ -46,7 +46,10 @@ public class FileGeodatabase : IMemoryLayerImporter
         GdalBase.ConfigureAll();
         Driver driver = Ogr.GetDriverByName("OpenFileGDB");
         dataSource = driver.Open(gdbPath, 0);
-
+        if(dataSource==null)
+        {
+            throw new Exception("无法读取GDB，数据可能已损坏");
+        }
         var gdbItems = dataSource.ExecuteSQL("SELECT * FROM GDB_Items ", null, null);
         Dictionary<string, string> name2Alias = new Dictionary<string, string>();
         if (gdbItems != null)
