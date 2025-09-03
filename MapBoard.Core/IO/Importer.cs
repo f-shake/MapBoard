@@ -1,6 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using FzLib.Program;
+using hyjiacan.py4n;
 using MapBoard.IO.Abstractions;
 using MapBoard.IO.Formats;
 using MapBoard.IO.Gdb;
@@ -19,6 +20,10 @@ namespace MapBoard.IO
 {
     public static class Importer
     {
+        private static readonly PinyinFormat PinyinFormat = PinyinFormat.WITHOUT_TONE
+            | PinyinFormat.CAPITALIZE_FIRST_LETTER
+            | PinyinFormat.WITH_V;
+
         #region 各种类型的公开导入方法
 
         public static async Task<IMapLayerInfo> ImportCsvXYAsync(string path, MapLayerCollection layers)
@@ -62,16 +67,15 @@ namespace MapBoard.IO
             return ImportToNewLayers(new Kml(), path, layers);
         }
 
-        public static Task<List<IMapLayerInfo>> ImportPhotoLocationsAsync(string path, MapLayerCollection layers)
-        {
-            return ImportToNewLayers(new Photo(), path, layers);
-        }
-
         public static Task<List<IMapLayerInfo>> ImportMobileMapPackageAsync(string path, MapLayerCollection layers)
         {
             return ImportToNewLayers(new MobileMapPackage(), path, layers);
         }
 
+        public static Task<List<IMapLayerInfo>> ImportPhotoLocationsAsync(string path, MapLayerCollection layers)
+        {
+            return ImportToNewLayers(new Photo(), path, layers);
+        }
         public static async Task<IMapLayerInfo> ImportShapefileAsync(string path, MapLayerCollection layers)
         {
             var results = await ImportToNewLayers(new Shapefile(), path, layers);
@@ -110,6 +114,7 @@ namespace MapBoard.IO
         #endregion
 
         #region 私有方法
+
         public static string GetValidFieldName(string name)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -124,31 +129,40 @@ namespace MapBoard.IO
             }
 
             var chars = name.ToCharArray();
+            StringBuilder targetName = new StringBuilder();
             for (int i = 0; i < chars.Length; i++)
             {
                 if (i == 0)
                 {
                     // 第一个字符：必须是字母或下划线
-                    if (!char.IsAsciiLetter(chars[i]) && chars[i] != '_')
+                    if (char.IsAsciiLetter(chars[i]) || chars[i] == '_')
                     {
-                        chars[i] = '_';
+                        targetName.Append(chars[i]);
+                    }
+                    else
+                    {
+                        targetName.Append(GetPinyinOrUnderline(chars[i]));
                     }
                 }
                 else
                 {
                     // 其他字符：可以是字母、数字或下划线
-                    if (!char.IsAsciiLetterOrDigit(chars[i]) && chars[i] != '_')
+                    if (char.IsAsciiLetterOrDigit(chars[i]) || chars[i] == '_')
                     {
-                        chars[i] = '_';
+                        targetName.Append(chars[i]);
+                    }
+                    else
+                    {
+                        targetName.Append(GetPinyinOrUnderline(chars[i]));
                     }
                 }
             }
             //Mobile Geodatabase的开头不支持下划线
-            if (chars[0] == '_')
+            if (targetName[0] == '_')
             {
-                chars = ['f', .. chars];
+                targetName.Insert(0, 'f');
             }
-            return new string(chars);
+            return targetName.ToString();
         }
 
         public static bool IsFieldIgnored(string name)
@@ -158,6 +172,15 @@ namespace MapBoard.IO
                 || name.Equals("fid", StringComparison.OrdinalIgnoreCase)
                 || name.StartsWith("st_", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("objectid", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetPinyinOrUnderline(char c)
+        {
+            if (PinyinUtil.IsHanzi(c))
+            {
+                return Pinyin4Net.GetFirstPinyin(c, PinyinFormat);
+            }
+            return "_";
         }
 
         private static async Task<IMapLayerInfo> ImportFromFeatureTable(string layerName, MapLayerCollection layers, FeatureTable table)

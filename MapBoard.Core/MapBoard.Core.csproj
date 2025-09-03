@@ -24,6 +24,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="hyjiacan.pinyin4net" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="MaxRev.Gdal.Core" />
