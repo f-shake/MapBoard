@@ -32,6 +32,7 @@ using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.Mapping;
 using LayerCollection = MapBoard.Model.LayerCollection;
 using ModernWpf.Controls;
+using FzLib.WPF;
 
 namespace MapBoard.UI
 {
@@ -43,7 +44,9 @@ namespace MapBoard.UI
         public LayerSettingPanel()
         {
             InitializeComponent();
-            Fonts = FontFamily.FamilyNames.Values.ToArray();
+            Fonts = [.. FontFamily.FamilyNames.Values];
+
+            FixExpanderProblems();
         }
 
         /// <summary>
@@ -93,6 +96,33 @@ namespace MapBoard.UI
             }
         }
 
+        private void FixExpanderProblems()
+        {
+            //不知道是WPF的BUG，还是ModernWpf的BUG，Expander控件，特别是标签的Expander，
+            //在收起时会导致页面其他地方的ScrollViewer无法滚动，并且右上角菜单显示错位、界面异常卡顿、CPU高占用。
+            //一开始只是在单位的ThinkPad等低配电脑上出现，后来在Surface Pro 7+和雷神aibook14Air也出现了。
+            //通过隐藏不同控件来排查问题的方式，最终发现问题出现标签的Expander上。
+            //只要标签的Expander展开，页面其他地方就可以滚动，收起后就不行了。
+            //所以通过手动在收起时隐藏内容来解决这个问题。
+            //但根本原因仍然为止。
+            //20250912
+            var expanders = grdExpanders.Children.OfType<Expander>();
+            foreach (var expander in expanders)
+            {
+                (expander.Content as FrameworkElement).Visibility = Visibility.Collapsed;
+                expander.Expanded += (s, e) =>
+                {
+                    (expander.Content as FrameworkElement).Visibility = Visibility.Visible;
+                };
+                expander.Collapsed +=async (s, e) =>
+                {
+                    IsHitTestVisible = false;
+                    await Task.Delay(300);
+                    (expander.Content as FrameworkElement).Visibility = Visibility.Collapsed;
+                    IsHitTestVisible = true;
+                };
+            }
+        }
         /// <summary>
         /// 如果选中的图层加载完成，重载面板
         /// </summary>
@@ -278,6 +308,40 @@ namespace MapBoard.UI
         }
 
         /// <summary>
+        /// 标注的设置项和JSON互转
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ConvertLabelButton_Click(object sender, RoutedEventArgs e)
+        {
+            IMapLayerInfo layer = Layers.Selected;
+            if (Label == null)
+            {
+                throw new Exception("不存在选中的Label");
+            }
+            if (Label.UseRawJson)
+            {
+                try
+                {
+                    var newLabel = LabelDefinition.FromJson(Label.RawJson).ToLabelInfo();
+                    int index = Labels.IndexOf(Label);
+                    Debug.Assert(index >= 0);
+                    Labels[index] = newLabel;
+                    Label = newLabel;
+                }
+                catch (Exception ex)
+                {
+                    CommonDialog.ShowErrorDialogAsync(ex, "转换失败");
+                }
+            }
+            else
+            {
+                Label.RawJson = Label.ToLabelDefinition().ToJson();
+                Label.UseRawJson = true;
+            }
+        }
+
+        /// <summary>
         /// 加载标注中字段名菜单
         /// </summary>
         private void LoadLabelFieldsMenu()
@@ -336,41 +400,6 @@ namespace MapBoard.UI
                     break;
             }
         }
-
-        /// <summary>
-        /// 标注的设置项和JSON互转
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ConvertLabelButton_Click(object sender, RoutedEventArgs e)
-        {
-            IMapLayerInfo layer = Layers.Selected;
-            if (Label == null)
-            {
-                throw new Exception("不存在选中的Label");
-            }
-            if (Label.UseRawJson)
-            {
-                try
-                {
-                    var newLabel = LabelDefinition.FromJson(Label.RawJson).ToLabelInfo();
-                    int index = Labels.IndexOf(Label);
-                    Debug.Assert(index >= 0);
-                    Labels[index] = newLabel;
-                    Label = newLabel;
-                }
-                catch (Exception ex)
-                {
-                    CommonDialog.ShowErrorDialogAsync(ex, "转换失败");
-                }
-            }
-            else
-            {
-                Label.RawJson = Label.ToLabelDefinition().ToJson();
-                Label.UseRawJson = true;
-            }
-        }
-
         #endregion
 
         #region 符号系统
@@ -436,16 +465,15 @@ namespace MapBoard.UI
         /// </summary>
         public ObservableCollection<KeySymbolPair> Keys { get; private set; } = new ObservableCollection<KeySymbolPair>();
 
+        public string RendererRawJson { get; set; }
+
+        public bool RendererUseRawJson { get; set; }
+
         /// <summary>
         /// 选择的唯一值Key
         /// </summary>
         [AlsoNotifyFor(nameof(IsChangeOrDeleteKeyButtonEnabled))]
         public KeySymbolPair SelectedKey { get; set; }
-
-        public string RendererRawJson { get; set; }
-
-        public bool RendererUseRawJson { get; set; }
-
         /// <summary>
         /// 生成多个集合的笛卡尔积，由New Bing编写
         /// </summary>
