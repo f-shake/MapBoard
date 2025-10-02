@@ -1,7 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -231,7 +231,7 @@ namespace MapBoard.Util
             return trk.Segments.Select(p => p.Points.Count).Sum();
         }
 
-        public static IList<GpxPoint> GetPoints(this Gpx gpx)
+        public static IList<GpxPoint> GetPoints(this GpxDocument gpx)
         {
 
             List<GpxPoint> points = new List<GpxPoint>();
@@ -244,7 +244,7 @@ namespace MapBoard.Util
             }
             return points;
         }
-        public static int GetPointsCount(this Gpx gpx)
+        public static int GetPointsCount(this GpxDocument gpx)
         {
             return gpx.Tracks.Select(trk => trk.Segments.Select(p => p.Points.Count).Sum()).Sum();
         }

@@ -23,7 +23,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 using System.Drawing;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using FzLib.Program;
 using System.Collections.ObjectModel;
 using ModernWpf.FzExtension.CommonDialog;
@@ -561,7 +561,7 @@ namespace MapBoard.UI.GpxToolbox
                 return;
             }
 
-            Gpx gpx = tracks[0].Gpx.Clone() as Gpx;
+            GpxDocument gpx = tracks[0].Gpx.Clone() as GpxDocument;
             gpx.Tracks.Clear();
             var track = gpx.CreateTrack();
             var seg = track.CreateSegment();

@@ -310,28 +310,46 @@
                                 <ui:MenuFlyout>
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="图层包（mblpkg）"
+                                        Header="地图包（*.mbmpkg）"
+                                        Tag="1" />
+                                    <Separator />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
+                                        Header="图层包（*.mblpkg）"
                                         Tag="3" />
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="GPS轨迹文件（GPX）"
+                                        Header="GPS轨迹文件（*.gpx）"
                                         Tag="4" />
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="Shapefile（shp）"
+                                        Header="Shapefile（*.shp）"
                                         Tag="5" />
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="CSV表格"
+                                        Header="CSV表格（*.csv）"
                                         Tag="6" />
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="KML"
+                                        Header="KML（*.kml; *.kmz）"
                                         Tag="7" />
                                     <MenuItem
                                         Click="ImportMenu_Click"
-                                        Header="移动地图包（mmpk）"
+                                        Header="移动地图包（*.mmpk）"
                                         Tag="8" />
+                                    <Separator />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
+                                        Header="文件地理数据库（*.gdb文件夹）"
+                                        Tag="101" />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
+                                        Header="GPS轨迹（文件夹）"
+                                        Tag="102" />
+                                    <MenuItem
+                                        Click="ImportMenu_Click"
+                                        Header="照片位置（文件夹）"
+                                        Tag="103" />
                                 </ui:MenuFlyout>
                             </ui:SplitButton.Flyout>
                         </ui:SplitButton>
@@ -341,9 +359,13 @@
                             Click="ExportButton_Click"
                             Content="导出"
                             Tag="1"
-                            ToolTip="导出为地图包">
+                            ToolTip="导出为地图包（快速）">
                             <ui:SplitButton.Flyout>
                                 <ui:MenuFlyout>
+                                    <MenuItem
+                                        Click="ExportMenu_Click"
+                                        Header="地图包（快速）"
+                                        Tag="1" />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="地图包（重建）"
@@ -352,6 +374,7 @@
                                         Click="ExportMenu_Click"
                                         Header="地图包（FTP）"
                                         Tag="3" />
+                                    <Separator />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="KML打包文件"
@@ -360,10 +383,11 @@
                                         Click="ExportMenu_Click"
                                         Header="截图"
                                         Tag="6" />
+                                    <Separator />
                                     <MenuItem
                                         Click="ExportMenu_Click"
                                         Header="OpenLayers网络地图"
-                                        Tag="7" />
+                                        Tag="101" />
                                 </ui:MenuFlyout>
                             </ui:SplitButton.Flyout>
                         </ui:SplitButton>

@@ -3,7 +3,7 @@ using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using Esri.ArcGISRuntime.UI.Controls;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using FzLib.WPF.Dialog;
 using MapBoard.Util;
 using ModernWpf.FzExtension.CommonDialog;
@@ -159,7 +159,7 @@ namespace MapBoard.Mapping
                 //    GraphicsOverlays.Remove(value.Overlay);
                 //    GraphicsOverlays.Add(value.Overlay);
                 //}
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SelectedTrajectorie.Gpx.Name"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SelectedTrajectorie.GpxDocument.Name"));
             }
         }
 
@@ -226,7 +226,7 @@ namespace MapBoard.Mapping
         /// <returns></returns>
         public async Task<List<TrackInfo>> LoadGpxAsync(string filePath, bool raiseEvent)
         {
-            Gpx gpx = await GpxSerializer.FromFileAsync(filePath);
+            GpxDocument gpx = await GpxSerializer.FromFileAsync(filePath);
 
             List<TrackInfo> loadedTrack = new List<TrackInfo>();
             for (int i = 0; i < gpx.Tracks.Count; i++)

@@ -15,6 +15,7 @@ using Esri.ArcGISRuntime.Data;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using MapBoard.Mapping.Model;
+using ModernWpf.Controls;
 
 namespace MapBoard.UI.Dialog
 {
@@ -147,7 +148,7 @@ namespace MapBoard.UI.Dialog
                 });
                 column++;
             }
-            AddButton(dg, "缩放到图形", new RoutedEventHandler(LocateButton_Click));
+            //AddButton(dg, "缩放到图形", new RoutedEventHandler(LocateButton_Click));
 
             //地图的选择发生改变后，需要同步更新表格的选择
             MapView.Selection.CollectionChanged += Selection_CollectionChanged;
@@ -286,7 +287,10 @@ namespace MapBoard.UI.Dialog
 
         private async void LocateButton_Click(object sender, RoutedEventArgs e)
         {
-            var feature = ((sender as Button).Tag as FeatureAttributeCollection).Feature;
+            var fa = (sender as HyperlinkButton).DataContext as FeatureAttributeCollection;
+            var feature = fa.Feature;
+            fa.IsSelected = true;
+            MapView.Selection.Select(fa.Feature);
             await MapView.ZoomToGeometryAsync(feature.Geometry);
         }
 

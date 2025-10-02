@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
 
 namespace MapBoard.Util
@@ -213,7 +214,7 @@ namespace MapBoard.Util
             {
                 throw new Exception("存在重复的字段名");
             }
-            if(layers.Any(p=>p.Name==name))
+            if (layers.Any(p => p.Name == name))
             {
                 throw new Exception("存在重复的图层名");
             }
@@ -294,70 +295,6 @@ namespace MapBoard.Util
             var result = await layer.Layer.FeatureTable.QueryStatisticsAsync(parameters);
             return result.Select(p => p.Group[fieldName]).ToArray();
         }
-
-        /// <summary>
-        /// 从Feature导入到地图图层
-        /// </summary>
-        /// <param name="layerName"></param>
-        /// <param name="layers"></param>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        public static async Task<IMapLayerInfo> ImportFromFeatureTable(string layerName, MapLayerCollection layers, FeatureTable table)
-        {
-            await table.LoadAsync();
-            FeatureQueryResult features = await table.QueryFeaturesAsync(new QueryParameters());
-            var fieldMap = table.Fields.ToFieldInfos();//从原表字段名到新字段的映射
-            IMapLayerInfo layer = await CreateLayerAsync(
-                table.GeometryType, layers, layerName, [.. fieldMap.Values]);
-            layer.LayerVisible = false;
-            var fields = layer.Fields.Select(p => p.Name).ToHashSet();
-            List<Feature> newFeatures = new List<Feature>();
-            await Task.Run(() =>
-            {
-                foreach (var feature in features)
-                {
-                    Dictionary<string, object> newAttributes = new Dictionary<string, object>();
-                    foreach (var attr in feature.Attributes)
-                    {
-                        if (attr.Key.Equals("id", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-                        string name = attr.Key;//现在是源文件的字段名
-
-                        if (!fieldMap.ContainsKey(name))
-                        {
-                            continue;
-                        }
-                        name = fieldMap[name].Name;//切换到目标表的字段名
-
-                        object value = attr.Value;
-                        if (value is short)
-                        {
-                            value = Convert.ToInt32(value);
-                        }
-                        else if (value is float)
-                        {
-                            value = Convert.ToDouble(value);
-                        }
-                        newAttributes.Add(name, value);
-                    }
-                    Feature newFeature = layer.CreateFeature(newAttributes, feature.Geometry.RemoveZAndM());
-                    newFeatures.Add(newFeature);
-                }
-            });
-            await layer.AddFeaturesAsync(newFeatures, FeaturesChangedSource.Import);
-
-            layer.LayerVisible = true;
-            return layer;
-        }
-        /// <summary>
-        /// 建立缓冲区
-        /// </summary>
-        /// <param name="layer"></param>
-        /// <param name="layers"></param>
-        /// <param name="meters"></param>
-        /// <returns></returns>
 
         /// <summary>
         /// 合并

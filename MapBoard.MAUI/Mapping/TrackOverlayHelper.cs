@@ -1,7 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Util;
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace MapBoard.Mapping
 
         public string GpxFile { get; private set; }
 
-        public async Task<Envelope> LoadColoredGpxAsync(Gpx gpx)
+        public async Task<Envelope> LoadColoredGpxAsync(GpxDocument gpx)
         {
             Clear();
             GpxFile = gpx.FilePath;

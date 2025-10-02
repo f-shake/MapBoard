@@ -1,0 +1,80 @@
+﻿<commondialog:CommonDialog
+    x:Class="MapBoard.UI.Dialog.OverlayAnalysisDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:commondialog="clr-namespace:ModernWpf.FzExtension.CommonDialog;assembly=ModernWpf.FzExtension"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fzc="clr-namespace:FzLib.WPF.Controls;assembly=FzCoreLib.Windows"
+    xmlns:m="clr-namespace:MapBoard"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:md="clr-namespace:MapBoard.Model;assembly=MapBoard.Model"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    Title="请选择目标"
+    CloseButtonText="取消"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
+    IsPrimaryButtonEnabled="False"
+    Loaded="Window_Loaded"
+    PrimaryButtonText="确定"
+    mc:Ignorable="d">
+    <ui:SimpleStackPanel
+        Orientation="Vertical"
+        Spacing="8">
+        <ui:SimpleStackPanel
+            x:Name="stkOperations"
+            Orientation="Vertical"
+            Spacing="8">
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="相交"
+                IsChecked="True">
+                <RadioButton.Tag>
+                    <md:OverlayAnalysisOperation>Intersect</md:OverlayAnalysisOperation>
+                </RadioButton.Tag>
+            </RadioButton>
+
+            <!--<RadioButton
+                Checked="RadioButton_Checked"
+                Content="合并">
+                <RadioButton.Tag>
+                    <md:OverlayAnalysisOperation>Union</md:OverlayAnalysisOperation>
+                </RadioButton.Tag>
+            </RadioButton>-->
+
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="裁剪">
+                <RadioButton.Tag>
+                    <md:OverlayAnalysisOperation>Clip</md:OverlayAnalysisOperation>
+                </RadioButton.Tag>
+            </RadioButton>
+
+            <RadioButton
+                Checked="RadioButton_Checked"
+                Content="擦除">
+                <RadioButton.Tag>
+                    <md:OverlayAnalysisOperation>Erase</md:OverlayAnalysisOperation>
+                </RadioButton.Tag>
+            </RadioButton>
+        </ui:SimpleStackPanel>
+        <GroupBox Header="输入图层">
+            <TextBlock Text="{Binding MainLayer.Name}" />
+        </GroupBox>
+
+        <GroupBox Header="叠加图层">
+            <ListView
+                MinWidth="240"
+                MaxHeight="240"
+                fzc:SmoothScrollViewerHelper.SmoothScroll="{Binding Source={x:Static m:Config.Instance}, Path=SmoothScroll}"
+                ItemsSource="{Binding Layers}"
+                SelectedItem="{Binding SelectedLayer}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Name}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </GroupBox>
+    </ui:SimpleStackPanel>
+</commondialog:CommonDialog>

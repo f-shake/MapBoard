@@ -8,14 +8,14 @@ using System.Linq.Expressions;
 using System.Xml.Linq;
 using XmpCore.Impl;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     /// <summary>
     /// GPX数据类型
     /// </summary>
-    public class Gpx : IGpxElement
+    public class GpxDocument : IGpxElement
     {
-        public Gpx()
+        public GpxDocument()
         {
         }
 
@@ -78,7 +78,7 @@ namespace MapBoard.IO.Gpx
 
         public object Clone()
         {
-            var info = MemberwiseClone() as Gpx;
+            var info = MemberwiseClone() as GpxDocument;
             info.Tracks = Tracks.Select(p => p.Clone() as GpxTrack).ToList();
             return info;
         }

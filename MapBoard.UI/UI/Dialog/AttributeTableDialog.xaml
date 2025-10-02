@@ -31,10 +31,9 @@
             CanUserDeleteRows="False"
             CellEditEnding="Dg_CellEditEnding"
             FrozenColumnCount="1"
-            HeadersVisibility="Column"
             ItemsSource="{Binding Attributes}"
-            SelectionMode="Single"
-            SelectionUnit="Cell">
+            SelectionMode="Extended"
+            SelectionUnit="CellOrRowHeader">
             <DataGrid.Resources>
                 <Style
                     BasedOn="{StaticResource DefaultDataGridCellStyle}"
@@ -72,6 +71,21 @@
                                 Click="CheckBox_Click"
                                 IsChecked="{Binding IsSelected, Mode=OneWay}"
                                 Tag="{Binding .}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    Width="56"
+                    CanUserResize="False"
+                    Header="跳转">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ui:HyperlinkButton
+                                Margin="8,0"
+                                HorizontalAlignment="Center"
+                                Click="LocateButton_Click"
+                                Content="转到"
+                                Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

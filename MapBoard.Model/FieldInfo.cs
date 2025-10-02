@@ -1,7 +1,9 @@
 ﻿using FzLib;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MapBoard.Model
@@ -12,7 +14,7 @@ namespace MapBoard.Model
     [DebuggerDisplay("Name={Name} Disp={DisplayName} Type={Type}")]
     public class FieldInfo : INotifyPropertyChanged, ICloneable
     {
-        private string name = "";
+        public const int MaxFieldNameLength = 200;
 
         public FieldInfo(string name, string displayName, FieldInfoType type)
         {
@@ -35,66 +37,12 @@ namespace MapBoard.Model
         /// <summary>
         /// 字段名
         /// </summary>
-        public string Name
-        {
-            get => name;
-            set
-            {
-                //为了方便，只支持长度为1-10的英文大小写、数字和下划线组成的字段名
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    name = "";
-                }
-                else if (value != null
-                     && value.Length <= 10
-                     && value.Length > 0
-                     && Regex.IsMatch(value[0].ToString(), "[a-zA-Z]")
-                     && Regex.IsMatch(value, "^[a-zA-Z0-9_]+$"))
-                {
-                    name = value;
-                }
-                else
-                {
-                }
-            }
-        }
+        public string Name { get; set; }
 
         /// <summary>
         /// 字段类型
         /// </summary>
         public FieldInfoType Type { get; set; }
-
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
-
-        /// <summary>
-        /// 判断属性值是否与字段类型对应
-        /// </summary>
-        /// <param name="propertyValue"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidEnumArgumentException"></exception>
-        public bool IsCompatibleType(object propertyValue, out object value)
-        {
-            return IsCompatibleType(Type, propertyValue, out value);
-        }
-
-        /// <summary>
-        /// 判断属性值是否与字段类型对应
-        /// </summary>
-        /// <param name="propertyValue"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidEnumArgumentException"></exception>
-        public bool IsCompatibleType(ref object propertyValue)
-        {
-            if (IsCompatibleType(Type, propertyValue, out object newValue))
-            {
-                propertyValue = newValue;
-                return true;
-            }
-            return false;
-        }
 
         public static bool IsCompatibleType(FieldInfoType type, object propertyValue, out object value)
         {
@@ -213,6 +161,52 @@ namespace MapBoard.Model
             }
         }
 
+        public static bool IsValidFieldName(string name)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            if (name.Length > MaxFieldNameLength)
+            {
+                return false;
+            }
+            if ((name[0] is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or '_')
+                && name.Skip(1).All(p => p is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9') or '_'))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        /// <summary>
+        /// 判断属性值是否与字段类型对应
+        /// </summary>
+        /// <param name="propertyValue"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidEnumArgumentException"></exception>
+        public bool IsCompatibleType(object propertyValue, out object value)
+        {
+            return IsCompatibleType(Type, propertyValue, out value);
+        }
+
+        /// <summary>
+        /// 判断属性值是否与字段类型对应
+        /// </summary>
+        /// <param name="propertyValue"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidEnumArgumentException"></exception>
+        public bool IsCompatibleType(ref object propertyValue)
+        {
+            if (IsCompatibleType(Type, propertyValue, out object newValue))
+            {
+                propertyValue = newValue;
+                return true;
+            }
+            return false;
+        }
         private static bool CanConvertToDouble(object o)
         {
             return System.Type.GetTypeCode(o.GetType()) switch

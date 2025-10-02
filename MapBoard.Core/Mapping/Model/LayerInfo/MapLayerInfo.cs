@@ -293,9 +293,13 @@ namespace MapBoard.Mapping.Model
         public Task<IEnumerable<Feature>> AddFeaturesAsync(IEnumerable<Feature> features, FeaturesChangedSource source)
         {
             ThrowIfNotEditable(source);
+            if(!features.Any())
+            {
+                throw new ArgumentException("要加入的要素集合不能为空", nameof(features));
+            }
             if (features.Select(p => p.FeatureTable).Distinct().Count() != 1)
             {
-                throw new ArgumentException("集合为空或要素来自不同的要素类");
+                throw new ArgumentException("要加入的要素集合来自不同的要素类");
             }
             return AddFeaturesAsync(features, source, features.First().FeatureTable != table);
         }

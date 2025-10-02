@@ -30,13 +30,15 @@ using MapBoard.UI.GpxToolbox;
 using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 using Esri.ArcGISRuntime.Mapping;
-using MobileMapPackage = MapBoard.IO.MobileMapPackage;
 using FluentFTP;
+using MapBoard.IO.Gdb;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.Util
 {
     public static class IOUtility
     {
+
         /// <summary>
         /// 拖放文件到窗口
         /// </summary>
@@ -65,16 +67,6 @@ namespace MapBoard.Util
                         }
                     }
                 }
-                else if (files.Count(p => p.EndsWith(".csv")) == files.Length && layers.Selected is IMapLayerInfo w2)
-                {
-                    if (await CommonDialog.ShowYesNoDialogAsync("是否导入CSV文件？") == true)
-                    {
-                        foreach (var file in files)
-                        {
-                            await Csv.ImportAsync(file, w2);
-                        }
-                    }
-                }
                 else
                 {
                     SnakeBar.ShowError("不支持的文件格式，文件数量过多，或文件集合的类型不都一样");
@@ -85,7 +77,6 @@ namespace MapBoard.Util
                 ShowException(ex, "导入失败");
             }
         }
-
         /// <summary>
         /// 拖放目录到窗口
         /// </summary>
@@ -107,13 +98,14 @@ namespace MapBoard.Util
                     switch (index)
                     {
                         case 0:
-                            string[] extensions = { ".jpg", ".jpeg", ".heif", ".heic", ".dng" };
-                            files = await EnumerateFilesAsync(folders, extensions);
-                            await Photo.ImportImageLocation(files, layers);
-
+                            foreach (var folder in folders)
+                            {
+                                await Importer.ImportPhotoLocationsAsync(folder, layers);
+                            }
                             break;
+
                         case 1:
-                            files = await EnumerateFilesAsync(folders, new string[] { ".gpx" });
+                            files = await EnumerateFilesAsync(folders, [".gpx"]);
                             await ImportGpxAsync(files, layers.Selected, layers);
                             break;
                         default:
@@ -148,19 +140,23 @@ namespace MapBoard.Util
                         break;
 
                     case ExportLayerType.KML:
-                        await Kml.ExportAsync(path, layer);
+                        await Exporter.ExportKmlAsync(path, layer);
                         break;
 
                     case ExportLayerType.GeoJSON:
-                        await GeoJson.ExportAsync(path, layer);
+                        await Exporter.ExportGeoJsonAsync(path, layer);
                         break;
 
                     case ExportLayerType.GeoJSONWithStyle:
-                        await GeoJson.ExportWithStyleAsync(path, layer);
+                        await Exporter.ExportGeoJsonWithStylesAsync(path, layer);
                         break;
 
                     case ExportLayerType.Shapefile:
-                        await Shapefile.ExportToShapefile(path, layer);
+                        await Exporter.ExportShapefileAsync(path, layer);
+                        break;
+
+                    case ExportLayerType.Csv:
+                        await Exporter.ExportCsvAttributeTableAsync(path, layer);
                         break;
 
                     default:
@@ -190,6 +186,31 @@ namespace MapBoard.Util
             {
                 switch (type)
                 {
+                    case ExportMapType.OpenLayers:
+                        try
+                        {
+                            var visibleOnly = layers.Any(p => p.LayerVisible) && await CommonDialog.ShowYesNoDialogAsync("是否仅导出可见图层？");
+                            var processLayers = layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true);
+                            var baseLayers = Config.Instance.BaseLayers
+                            .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
+                            .Select(p => p.Path);
+                            await Exporter.ExportOpenlayersAsync(path, processLayers, baseLayers, Directory.GetFiles("res/openlayers"));
+                        }
+                        catch (Exception ex)
+                        {
+                            App.Log.Error("导出失败", ex);
+                            await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
+                        }
+                        break;
+
+                    case ExportMapType.MapPackageFtp:
+                        Config.Instance.LastFTP = path;
+                        await SaveToFtpAsync(path, layers, m => { });
+
+                        SnakeBar snake = new SnakeBar(Application.Current.MainWindow);
+                        snake.ShowMessage("已传输至FTP");
+                        return;
+
                     case ExportMapType.MapPackage:
                         await Package.ExportMapAsync(path, layers, true);
                         break;
@@ -200,7 +221,7 @@ namespace MapBoard.Util
 
 
                     case ExportMapType.KML:
-                        await Kml.ExportAsync(path, layers.Cast<MapLayerInfo>());
+                        await Exporter.ExportKmlAsync(path, layers.Cast<MapLayerInfo>());
                         break;
 
                     case ExportMapType.Screenshot:
@@ -243,7 +264,8 @@ namespace MapBoard.Util
                         .AddFilterIf(type == ExportLayerType.KML, "KML打包文件", "kmz")
                         .AddFilterIf(type == ExportLayerType.GeoJSON, "GeoJSON文件", "geojson")
                         .AddFilterIf(type == ExportLayerType.GeoJSONWithStyle, "带样式GeoJSON文件", "geojson")
-                        .AddFilterIf(type == ExportLayerType.Shapefile, "Shapefile", "shp");
+                        .AddFilterIf(type == ExportLayerType.Shapefile, "Shapefile", "shp")
+                        .AddFilterIf(type == ExportLayerType.Csv, "CSV属性表", "csv");
                 dialog.FileName = $"地图画板图层 - {layer.Name}";
                 return dialog.GetPath(parentWindow);
             }
@@ -257,7 +279,7 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static string GetExportMapPath(ExportMapType type, Window parentWindow)
         {
-            if (type is ExportMapType.OpenLayers)
+            if ((int)type > 100)
             {
                 var folderDialog = new OpenFolderDialog();
                 return folderDialog.GetPath(parentWindow);
@@ -297,16 +319,23 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static string GetImportMapPath(ImportMapType type, Window parentWindow)
         {
-            OpenFileDialog dialog = new OpenFileDialog()
-                .AddFilterIf(type == ImportMapType.MapPackageOverwrite, "地图画板地图包", "mbmpkg")
-                //.AddFilterIf(type == ImportMapType.MapPackgeAppend, "地图画板地图包", "mbmpkg")
-                .AddFilterIf(type == ImportMapType.LayerPackge, "mblpkg地图画板图层包", "mblpkg")
-                .AddFilterIf(type == ImportMapType.Gpx, "GPS轨迹文件", "gpx")
-                .AddFilterIf(type == ImportMapType.Shapefile, "Shapefile", "shp")
-                .AddFilterIf(type == ImportMapType.CSV, "CSV表格", "csv")
-                .AddFilterIf(type == ImportMapType.KML, "KML地理标记", "kml", "kmz")
-                .AddFilterIf(type == ImportMapType.Mmpk, "移动地图包", "mmpk");
-            return dialog.GetPath(parentWindow);
+            if ((int)type < 100)//导入文件
+            {
+                OpenFileDialog dialog = new OpenFileDialog()
+                    .AddFilterIf(type == ImportMapType.MapPackageOverwrite, "地图画板地图包", "mbmpkg")
+                    //.AddFilterIf(type == ImportMapType.MapPackgeAppend, "地图画板地图包", "mbmpkg")
+                    .AddFilterIf(type == ImportMapType.LayerPackge, "mblpkg地图画板图层包", "mblpkg")
+                    .AddFilterIf(type == ImportMapType.Gpx, "GPS轨迹文件", "gpx")
+                    .AddFilterIf(type == ImportMapType.Shapefile, "Shapefile", "shp")
+                    .AddFilterIf(type == ImportMapType.CSV, "CSV表格", "csv")
+                    .AddFilterIf(type == ImportMapType.KML, "KML地理标记", "kml", "kmz")
+                    .AddFilterIf(type == ImportMapType.Mmpk, "移动地图包", "mmpk");
+                return dialog.GetPath(parentWindow);
+            }
+            else
+            {
+                return new OpenFolderDialog().GetPath(parentWindow);
+            }
         }
 
         /// <summary>
@@ -348,26 +377,14 @@ namespace MapBoard.Util
         /// <param name="mapView"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static async Task ImportFeatureAsync(Window owner, string path, IMapLayerInfo layer, MainMapView mapView, ImportLayerType type)
+        public static async Task ImportGpxToLayerAsync(Window owner, string path, IMapLayerInfo layer, MainMapView mapView)
         {
             Debug.Assert(path != null);
 
             try
             {
                 IReadOnlyList<Feature> features = null;
-                switch (type)
-                {
-                    case ImportLayerType.Gpx:
-                        features = await Gps.ImportToLayerAsync(path, layer, Config.Instance.BasemapCoordinateSystem);
-                        break;
-
-                    case ImportLayerType.Csv:
-                        features = await Csv.ImportAsync(path, layer);
-                        break;
-
-                    default:
-                        break;
-                }
+                await Importer.ImportGpxAsync(path, layer);
                 SnakeBar snake = new SnakeBar(owner);
                 snake.ShowButton = true;
                 snake.ButtonContent = "查看";
@@ -432,23 +449,35 @@ namespace MapBoard.Util
                         break;
 
                     case ImportMapType.Shapefile:
-                        await Shapefile.ImportAsync(path, layers);
+                        await Importer.ImportShapefileAsync(path, layers);
                         break;
 
                     case ImportMapType.CSV:
-                        var table = await Csv.ImportToDataTableAsync(path);
-                        await new ImportTableDialog(layers, table, Path.GetFileNameWithoutExtension(path))
-                            .ShowAsync();
+                        await Importer.ImportCsvXYAsync(path, layers);
                         break;
 
                     case ImportMapType.KML:
-                        await Kml.ImportAsync(path, layers);
+                        await Importer.ImportKmlAsync(path, layers);
                         break;
 
                     case ImportMapType.Mmpk:
-                        await MobileMapPackage.ImportAsync(path, layers);
+                        await Importer.ImportMobileMapPackageAsync(path, layers);
                         break;
 
+#if !RELEASEWITHOUTGDAL
+                    case ImportMapType.FgdbDir:
+                        await Importer.ImportFileGdbAsync(path, layers);
+                        break;
+#endif
+
+                    case ImportMapType.GpxDir:
+                        var gpxs = await EnumerateFilesAsync([path], [".gpx"]);
+                        await ImportGpxAsync(gpxs, null, layers);
+                        break;
+
+                    case ImportMapType.PhotoDir:
+                        await Importer.ImportPhotoLocationsAsync(path, layers);
+                        break;
                     default:
                         break;
                 }
@@ -459,6 +488,43 @@ namespace MapBoard.Util
             {
                 ShowException(ex, "导入失败");
             }
+        }
+
+        public static async Task SaveToFtpAsync(string ip, MapLayerCollection layers, Action<string> newMessage = null)
+        {
+            newMessage?.Invoke("正在准备文件");
+            string tempPath = $"{Path.GetTempFileName()}.mbmpkg";
+            await Package.ExportMapAsync(tempPath, layers, true);
+
+            ip = ip.Trim();
+            if (ip.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+            {
+                ip = ip["ftp://".Length..];
+            }
+            ip = ip.Trim('/').Trim('\\').Replace("：", ":");
+            int port = 21;
+            if (ip.Contains(':'))
+            {
+                var parts = ip.Split(':');
+                ip = parts[0];
+                if (int.TryParse(parts[1], out port))
+                {
+                    if (port is < 0 or > ushort.MaxValue)
+                    {
+                        throw new ArgumentException("端口号超出范围", nameof(ip));
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("无法识别端口号", nameof(ip));
+                }
+            }
+            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com", port);
+            newMessage?.Invoke("正在连接FTP");
+            await ftp.Connect();
+            newMessage?.Invoke("正在上传到FTP");
+            await ftp.UploadFile(tempPath, Path.GetFileName($"地图画板 - {DateTime.Now:yyyyMMdd-HHmmss}.mbmpkg"));
+            await ftp.Disconnect();
         }
 
         /// <summary>
@@ -539,44 +605,6 @@ namespace MapBoard.Util
                 await CommonDialog.ShowErrorDialogAsync(ex, "打开失败");
             }
         }
-
-        public static async Task SaveToFtpAsync(string ip, MapLayerCollection layers, Action<string> newMessage = null)
-        {
-            newMessage?.Invoke("正在准备文件");
-            string tempPath = $"{Path.GetTempFileName()}.mbmpkg";
-            await Package.ExportMapAsync(tempPath, layers, true);
-
-            ip = ip.Trim();
-            if (ip.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
-            {
-                ip = ip["ftp://".Length..];
-            }
-            ip = ip.Trim('/').Trim('\\').Replace("：", ":");
-            int port = 21;
-            if (ip.Contains(':'))
-            {
-                var parts = ip.Split(':');
-                ip = parts[0];
-                if (int.TryParse(parts[1], out port))
-                {
-                    if (port is < 0 or > ushort.MaxValue)
-                    {
-                        throw new ArgumentException("端口号超出范围", nameof(ip));
-                    }
-                }
-                else
-                {
-                    throw new ArgumentException("无法识别端口号", nameof(ip));
-                }
-            }
-            await using var ftp = new AsyncFtpClient(ip, "anonymous", "anonymous@domain.com" ,port);
-            newMessage?.Invoke("正在连接FTP");
-            await ftp.Connect();
-            newMessage?.Invoke("正在上传到FTP");
-            await ftp.UploadFile(tempPath, Path.GetFileName($"地图画板 - {DateTime.Now:yyyyMMdd-HHmmss}.mbmpkg"));
-            await ftp.Disconnect();
-        }
-
         /// <summary>
         /// 枚举指定目录下的文件
         /// </summary>
@@ -620,7 +648,7 @@ namespace MapBoard.Util
         {
             List<SelectDialogItem> items = new List<SelectDialogItem>()
                 {
-                       new SelectDialogItem("使用GPX工具箱打开", "使用GPX工具箱打开该轨迹"),
+                       new SelectDialogItem("使用GPX工具箱打开", "使用GPX工具箱打开轨迹"),
                         new SelectDialogItem("导入到新图层（线）","每一个文件将会生成一条线"),
                         new SelectDialogItem("导入到新图层（点）","生成所有文件的轨迹点"),
                 };
@@ -631,26 +659,33 @@ namespace MapBoard.Util
                 items.Add(new SelectDialogItem("导入到当前图层", "将轨迹导入到当前图层"));
             }
             int index = await CommonDialog.ShowSelectItemDialogAsync($"选择打开GPX文件的方式，共{files.Count()}个文件", items);
-            switch (index)
+            if (index == 0)
             {
-                case 0:
-                    var win = new GpxWindow
-                    {
-                        LoadFiles = files.ToArray()
-                    };
-                    win.Show();
-                    win.BringToFront();
-                    break;
-                case 1:
-                    await Gps.ImportAllToNewLayerAsync(files, Gps.GpxImportType.Line, layers, Config.Instance.BasemapCoordinateSystem);
-                    break;
-                case 2:
-                    await Gps.ImportAllToNewLayerAsync(files, Gps.GpxImportType.Point, layers, Config.Instance.BasemapCoordinateSystem);
-                    break;
-                case 3:
-                    await Gps.ImportMultipleToLayerAsync(files, layer as IMapLayerInfo, Config.Instance.BasemapCoordinateSystem);
-                    break;
+                var win = new GpxWindow
+                {
+                    LoadFiles = files.ToArray()
+                };
+                win.Show();
+                win.BringToFront();
+                return;
+            }
 
+            foreach (var file in files)
+            {
+
+                switch (index)
+                {
+                    case 1:
+                        await Importer.ImportGpxLineAsync(file, layers);
+                        break;
+                    case 2:
+                        await Importer.ImportGpxPointsAsync(file, layers);
+                        break;
+                    case 3:
+                        await Importer.ImportGpxAsync(file, layer);
+                        break;
+
+                }
             }
         }
 

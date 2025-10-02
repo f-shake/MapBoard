@@ -1,7 +1,7 @@
 ﻿using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
-using MapBoard.IO.Gpx;
+using MapBoard.IO.Formats.Gps;
 using MapBoard.Util;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace MapBoard.Mapping.Model
     /// </summary>
     public class TrackInfo : INotifyPropertyChanged, ICloneable
     {
-        public TrackInfo(string file, Gpx gpx, int trackIndex)
+        public TrackInfo(string file, GpxDocument gpx, int trackIndex)
         {
             FilePath = file;
             Gpx = gpx;
@@ -43,7 +43,7 @@ namespace MapBoard.Mapping.Model
         /// <summary>
         /// 对应的GPX对象
         /// </summary>
-        public Gpx Gpx { get; init; }
+        public GpxDocument Gpx { get; init; }
 
         public ObservableCollection<GpxPoint> Points { get;private set; }
 

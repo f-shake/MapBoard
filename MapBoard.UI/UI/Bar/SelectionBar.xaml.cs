@@ -18,10 +18,10 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using MapBoard.Mapping.Model;
 using FzLib.WPF;
-using MapBoard.IO;
 using System.IO;
 using MapBoard.UI.Menu;
 using Esri.ArcGISRuntime.Data;
+using MapBoard.IO.Formats;
 
 namespace MapBoard.UI.Bar
 {

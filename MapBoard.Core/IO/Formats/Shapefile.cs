@@ -12,10 +12,11 @@ using System.Threading.Tasks;
 using MapBoard.Mapping.Model;
 using System.Text.RegularExpressions;
 using FzLib;
+using MapBoard.IO.Abstractions;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
-    public static class Shapefile
+    internal class Shapefile : IFeatureTableImporter, IFeatureTableExporter
     {
         /// <summary>
         /// shapefile的可能的文件扩展名
@@ -62,7 +63,7 @@ namespace MapBoard.IO
             var extent = await table.QueryExtentAsync(new QueryParameters());
             string path = table.Path;
             table.Close();
-            UpdateExtentAsync(path, extent);
+            await UpdateExtentAsync(path, extent);
         }
 
         /// <summary>
@@ -89,12 +90,9 @@ namespace MapBoard.IO
                 .Where(p => !p.IsIdField())//ID
                 .Where(p => p.Name.ToLower() != "shape_leng")//长度
                 .Where(p => p.Name.ToLower() != "shape_area");//面积
-            if (fields.Any(field => string.IsNullOrEmpty(field.Name)
-            || !Regex.IsMatch(field.Name[0].ToString(), "[a-zA-Z]")
-                  || !Regex.IsMatch(field.Name, "^[a-zA-Z0-9_]+$")))
-            {
-                throw new ArgumentException($"存在不合法的字段名");
-            }
+
+            fields.CheckInvalidFieldNames();
+
             //创建文件
             await CreateEgisShapefileAsync(type, name, folder, fields);
             path += ".shp";
@@ -141,32 +139,6 @@ namespace MapBoard.IO
         }
 
         /// <summary>
-        /// 导入shapefile文件到新图层
-        /// </summary>
-        /// <param name="path"></param>
-        public static async Task ImportAsync(string path, MapLayerCollection layers)
-        {
-            ShapefileFeatureTable table = new ShapefileFeatureTable(path);
-            await LayerUtility.ImportFromFeatureTable(Path.GetFileNameWithoutExtension(path), layers, table);
-        }
-
-        public static async Task ExportToShapefile(string path, IMapLayerInfo layer)
-        {
-            string name = Path.GetFileNameWithoutExtension(path);
-            string dir = Path.GetDirectoryName(path);
-            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, layer.Fields);
-            ShapefileFeatureTable shp = await ShapefileFeatureTable.OpenAsync(Path.Combine(dir, name + ".shp"));
-            var oldFeatures = await layer.QueryFeaturesAsync(new QueryParameters());
-            List<Feature> newFeatures = new List<Feature>();
-            foreach (var feature in oldFeatures)
-            {
-                newFeatures.Add(shp.CreateFeature(feature.Attributes, feature.Geometry));
-            }
-            await shp.AddFeaturesAsync(newFeatures);
-            shp.Close();
-        }
-
-        /// <summary>
         /// 重新计算并更新Shapefile的空间范围
         /// </summary>
         /// <param name="path"></param>
@@ -177,12 +149,92 @@ namespace MapBoard.IO
             using FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite);
             fileStream.Seek(36, SeekOrigin.Begin);
             byte[] extentBytes = new byte[32];
-            BitConverter.GetBytes(extent.XMin).CopyTo(extentBytes, 0);
-            BitConverter.GetBytes(extent.YMin).CopyTo(extentBytes, 8);
-            BitConverter.GetBytes(extent.XMax).CopyTo(extentBytes, 16);
-            BitConverter.GetBytes(extent.YMax).CopyTo(extentBytes, 24);
+            WriteDoubleBE(extent.XMin, extentBytes, 0);
+            WriteDoubleBE(extent.YMin, extentBytes, 8);
+            WriteDoubleBE(extent.XMax, extentBytes, 16);
+            WriteDoubleBE(extent.YMax, extentBytes, 24);
             await fileStream.WriteAsync(extentBytes.AsMemory(0, 32));
             fileStream.Close();
+        }
+
+        public async Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
+        {
+            string name = Path.GetFileNameWithoutExtension(path);
+            string dir = Path.GetDirectoryName(path);
+            List<FieldInfo> fields = new List<FieldInfo>();
+            foreach (var field in layer.Fields)
+            {
+                if (field.IsIdField())
+                {
+                    continue;
+                }
+                string fieldName = field.Name.Length > 10 ? field.Name[..10] : field.Name;
+                var type = field.Type == FieldInfoType.DateTime ? FieldInfoType.Date : field.Type;
+                if (fields.Any(p => p.Name == fieldName))
+                {
+                    throw new Exception($"截断至长度10后的字段名存在重复：{fieldName}");
+                }
+                fields.Add(new FieldInfo(fieldName, field.DisplayName, type));
+            }
+            await CreateEgisShapefileAsync(layer.GeometryType, name, dir, fields);
+            ShapefileFeatureTable shp = await ShapefileFeatureTable.OpenAsync(Path.Combine(dir, name + ".shp"));
+            List<Feature> newFeatures = new List<Feature>();
+            foreach (var feature in features)
+            {
+                var dic = new Dictionary<string, object>();
+                foreach (var key in feature.Attributes.Keys.ToList())
+                {
+                    if (FieldExtension.IsIdField(key))
+                    {
+                        continue;
+                    }
+                    var value = feature.Attributes[key];
+                    if (value is DateOnly dt)
+                    {
+                        value = dt.ToDateTime(TimeOnly.MinValue);
+                    }
+                    else if (value is long or ulong or uint)
+                    {
+                        if (value is long l && l > int.MaxValue
+                            || value is ulong ul && ul > int.MaxValue
+                            || value is uint ui && ui > int.MaxValue)
+                        {
+                            throw new Exception($"要素的属性{key}的值{value}大于Shapefile允许的最大值{int.MaxValue}");
+                        }
+                        value = Convert.ToInt32(value);
+                    }
+                    else if (value is string s)
+                    {
+                        if (s.Length > 254)
+                        {
+                            throw new Exception($"要素的属性{key}的值{value}长于Shapefile允许的最大长度254");
+                        }
+                    }
+
+                    dic.Add(key.Length > 10 ? key[..10] : key, value);
+                }
+                var newFeature = shp.CreateFeature(dic, feature.Geometry);
+                newFeatures.Add(newFeature);
+            }
+            await shp.AddFeaturesAsync(newFeatures);
+            var extent = await shp.QueryExtentAsync(new QueryParameters());
+            shp.Close();
+
+            UpdateExtentAsync(path, extent);
+        }
+
+        public ValueTask<IEnumerable<FeatureTable>> GetFeatureTablesAsync(string path)
+        {
+            return ValueTask.FromResult<IEnumerable<FeatureTable>>([new ShapefileFeatureTable(path)]);
+        }
+
+        public string GetLayerName(FeatureTable featureTable)
+        {
+            return Path.GetFileNameWithoutExtension(((ShapefileFeatureTable)featureTable).Path);
+        }
+
+        public void OnLayerImported(FeatureTable featureTable, IMapLayerInfo layer)
+        {
         }
 
         /// <summary>
@@ -261,6 +313,16 @@ namespace MapBoard.IO
             //写入投影信息和编码信息
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".prj"), SpatialReferences.Wgs84.WkText);
             await File.WriteAllTextAsync(Path.Combine(folder, name + ".cpg"), "UTF-8");
+        }
+
+        private static void WriteDoubleBE(double value, byte[] buffer, int offset)
+        {
+            byte[] little = BitConverter.GetBytes(value);
+            //if (BitConverter.IsLittleEndian)
+            //{
+            //    Array.Reverse(little);
+            //}
+            Buffer.BlockCopy(little, 0, buffer, offset, 8);
         }
     }
 }

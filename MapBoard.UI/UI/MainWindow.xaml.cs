@@ -535,49 +535,9 @@ namespace MapBoard.UI
             if (!string.IsNullOrWhiteSpace(path))
             {
                 await DoAsync(async p =>
-                 {
-                     switch (type)
-                     {
-                         case ExportMapType.OpenLayers:
-                             try
-                             {
-                                 var visibleOnly = arcMap.Layers.Any(p => p.LayerVisible) && await CommonDialog.ShowYesNoDialogAsync("是否仅导出可见图层？");
-
-                                 await new OpenLayers(path, Directory.GetFiles("res/openlayers"),
-                                    Config.Instance.BaseLayers.ToArray(),
-                                    arcMap.Layers.OfType<IMapLayerInfo>().Where(p => visibleOnly ? p.LayerVisible : true).ToArray())
-                                 .ExportAsync();
-                                 IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, this);
-                             }
-                             catch (Exception ex)
-                             {
-                                 App.Log.Error("导出失败", ex);
-                                 await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
-                             }
-                             break;
-
-                         case ExportMapType.MapPackageFtp:
-                             try
-                             {
-                                 Config.LastFTP = path;
-
-                                 await IOUtility.SaveToFtpAsync(path, arcMap.Layers, m => p.SetMessage(m));
-
-                                 SnakeBar snake = new SnakeBar(this);
-                                 snake.ShowMessage("已传输至FTP");
-                             }
-                             catch (Exception ex)
-                             {
-                                 App.Log.Error("导出失败", ex);
-                                 await CommonDialog.ShowErrorDialogAsync(ex, "导出失败");
-                             }
-                             break;
-
-                         default:
-                             await IOUtility.ExportMapAsync(this, path, arcMap, arcMap.Layers, type);
-                             break;
-                     }
-                 }, "正在导出");
+                {
+                    await IOUtility.ExportMapAsync(this, path, arcMap, arcMap.Layers, type);
+                }, "正在导出");
             }
 
             canClosing = true;
@@ -600,6 +560,10 @@ namespace MapBoard.UI
         /// <param name="e"></param>
         private async void ImportMenu_Click(object sender, RoutedEventArgs e)
         {
+#if RELEASEWITHOUTGDAL
+            await CommonDialog.ShowErrorDialogAsync($"当前版本的{nameof(MapBoard)}不包含GDAL，无法使用FileGDB相关功能");
+            return;
+#else
             var type = (ImportMapType)int.Parse((sender as FrameworkElement).Tag as string);
             string path = IOUtility.GetImportMapPath(type, this);
             if (path != null)
@@ -608,7 +572,8 @@ namespace MapBoard.UI
                  {
                      await IOUtility.ImportMapAsync(this, path, arcMap.Layers, type, p);
                  }, "正在导入");
-            };
+            }
+#endif
         }
 
         /// <summary>

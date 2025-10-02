@@ -1,4 +1,4 @@
-﻿using MapBoard.IO.Gpx;
+﻿using MapBoard.IO.Formats.Gps;
 using MapBoard.Util;
 using System;
 using System.Diagnostics;

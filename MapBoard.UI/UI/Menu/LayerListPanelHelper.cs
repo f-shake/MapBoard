@@ -99,11 +99,18 @@ namespace MapBoard.UI.Menu
                         AddToMenu<IMapLayerInfo>(menu, "操作历史记录", layer, OpenHistoryDialog);
                         if (layer.NumberOfFeatures > 0)
                         {
-                            MenuItem subMenu = new MenuItem() { Header = "地理分析（正在加载）" };
+                            MenuItem subMenu = new MenuItem()
+                            {
+                                Header = "地理分析",
+                                Items = {
+                                    new MenuItem { Header = "正在加载" }
+                                }
+                            };
                             menu.Items.Add(subMenu);
                             //需要获取所有要素后，再显示菜单
                             layer.GetAllFeaturesAsync().ContinueWith(featuresTask =>
                             {
+                                MainWindow.Dispatcher.Invoke(() => subMenu.Items.Clear());
                                 if (featuresTask.IsCompletedSuccessfully)
                                 {
                                     var features = featuresTask.Result;
@@ -116,6 +123,10 @@ namespace MapBoard.UI.Menu
                                             subMenu.Items.Add(item);
                                         }
                                     });
+                                }
+                                else
+                                {
+                                    MainWindow.Dispatcher.Invoke(() => subMenu.Items.Add(new MenuItem { Header = "加载失败" }));
                                 }
                             });
                         }
@@ -133,42 +144,42 @@ namespace MapBoard.UI.Menu
                         {
                             AddToMenu(menuImport, "GPX轨迹文件",
                                 () => IOUtility.GetImportFeaturePath(ImportLayerType.Gpx, MainWindow),
-                                p => IOUtility.ImportFeatureAsync(MainWindow, p, e, MapView, ImportLayerType.Gpx),
+                                p => IOUtility.ImportGpxToLayerAsync(MainWindow, p, e, MapView),
                                 "正在导入GPX轨迹文件");
                         }
 
-                        AddToMenu(menuImport, "CSV文件",
-                            () => IOUtility.GetImportFeaturePath(ImportLayerType.Csv, MainWindow),
-                            p => IOUtility.ImportFeatureAsync(MainWindow, p, e, MapView, ImportLayerType.Csv),
-                            "正在导入CSV文件");
                     }
                     var menuExport = new MenuItem() { Header = "导出" };
                     menu.Items.Add(menuExport);
 
-                    AddToMenu(menuExport, "图层包",
+                    AddToMenu(menuExport, "图层包（*.mblpkg）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.LayerPackge, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.LayerPackge),
                         "正在导出图层包");
-                    AddToMenu(menuExport, "KML打包文件",
+                    AddToMenu(menuExport, "KML打包文件（*.kmz）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.KML, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.KML),
                         "正在导出KML打包文件");
-                    AddToMenu(menuExport, "GeoJSON文件",
+                    AddToMenu(menuExport, "GeoJSON文件（*.geojson）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.GeoJSON, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.GeoJSON),
                         "正在导出GeoJSON文件");
-                    AddToMenu(menuExport, "CesiumGeoJSON文件",
+                    AddToMenu(menuExport, "CesiumGeoJSON文件（*.geojson）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.GeoJSONWithStyle, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.GeoJSONWithStyle),
                         "正在导出带样式的GeoJSON文件");
-                    AddToMenu(menuExport, "OpenLayers网络地图",
+                    AddToMenu(menuExport, "OpenLayers网络地图（文件夹）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.OpenLayers, MainWindow),
                         p => ExportOpenLayersLayer(layer, p),
                     "正在导出OpenLayers网络地图");
-                    AddToMenu(menuExport, "Shapefile",
+                    AddToMenu(menuExport, "Shapefile（*.shp）",
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Shapefile, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Shapefile),
                     "正在导出Shapefile");
+                    AddToMenu(menuExport, "CSV属性表（*.csv）",
+                        () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Csv, MainWindow),
+                        p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Csv),
+                    "正在导出CSV属性表");
                 }
             }
             else//多选
@@ -356,8 +367,11 @@ namespace MapBoard.UI.Menu
         {
             try
             {
-                await new OpenLayers(path, Directory.GetFiles("res/openlayers"), Config.Instance.BaseLayers.ToArray(), new[] { layer })
-                 .ExportAsync();
+                var baseLayers = Config.Instance.BaseLayers
+                .Where(p => p.Enable && p.Visible && p.Type == BaseLayerType.WebTiledLayer)
+                .Select(p => p.Path);
+                await Exporter.ExportOpenlayersAsync(path, layer, baseLayers, Directory.GetFiles("res/openlayers"));
+
                 IOUtility.ShowExportedSnackbarAndClickToOpenFolder(path, MainWindow);
             }
             catch (Exception ex)

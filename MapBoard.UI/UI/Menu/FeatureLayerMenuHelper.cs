@@ -1,10 +1,15 @@
 ﻿using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.UI.Controls;
 using FzLib.WPF.Dialog;
 using MapBoard.IO;
-using MapBoard.UI.Dialog;
+using MapBoard.IO.Formats;
 using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using MapBoard.UI.Dialog;
 using MapBoard.Util;
+using Microsoft.Win32;
 using ModernWpf.Controls;
 using ModernWpf.FzExtension.CommonDialog;
 using System;
@@ -13,9 +18,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using MapBoard.Mapping.Model;
-using MapBoard.Model;
-using Microsoft.Win32;
 using CommonDialog = ModernWpf.FzExtension.CommonDialog.CommonDialog;
 
 namespace MapBoard.UI.Menu
@@ -221,6 +223,7 @@ namespace MapBoard.UI.Menu
                 ("字段赋值","批量为选中的图形赋予新的属性",CopyAttributeAsync, true),
                 ("缓冲区","为选中的图形建立缓冲区",BufferAsync, true),
                 ("坐标转换","转换图形的坐标系",CoordinateTransformateAsync, true),
+                ("叠加分析","两个图层之间进行合并、相交、裁切等操作",LayerTopoAsync, true),
              };
         }
 
@@ -232,9 +235,24 @@ namespace MapBoard.UI.Menu
         {
             return new List<(string header, string desc, Func<Task> action, bool visible)>()
             {
-                ("导出到CSV表格","将图形导出为CSV表格",ToCsvAsync, true),
-                ("导出到GeoJSON","将图形导出为GeoJSON",ToGeoJsonAsync, true),
-                ("导出到CesiumGeoJSON","将图形导出为带样式的GeoJSON",ToGeoJsonWithStyleAsync, true),
+                ("坐标表（*.csv）","将图形坐标点导出为CSV表格",
+                ()=>ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvXYTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures])),
+                true),
+                ("属性表（*.csv）","将属性导出为CSV表格",
+                ()=>ExportBase("CSV表格", "csv", async path => await Exporter.ExportCsvAttributeTableAsync(path, layer, [.. mapView.Selection.SelectedFeatures])),
+                true),
+                ("GeoJSON（*.geojson）","将图形导出为GeoJSON",
+                ()=>ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonAsync(path, layer, mapView.Selection.SelectedFeatures)),
+                true),
+                ("CesiumGeoJSON（*.geojson）","将图形导出为带样式的GeoJSON",
+                ()=> ExportBase("GeoJSON", "geojson", async path => await Exporter.ExportGeoJsonWithStylesAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
+                ("KML打包文件（*.kmz）","将图形导出为KML文件",
+                ()=> ExportBase("KML打包文件", "kmz", async path => await Exporter.ExportKmlAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
+                ("Shapefile（*.shp）","将图形导出为Shapefile文件",
+                ()=> ExportBase("Shapefile", "shp", async path => await Exporter.ExportShapefileAsync(path, layer, mapView.Selection.SelectedFeatures))
+                , true),
             };
         }
 
@@ -276,6 +294,24 @@ namespace MapBoard.UI.Menu
                         }
                     };
                     yield return item;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 坐标转换
+        /// </summary>
+        /// <returns></returns>
+        private async Task LayerTopoAsync()
+        {
+            OverlayAnalysisDialog dialog = new OverlayAnalysisDialog(mapView.Layers, layer);
+
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.SelectedLayer != null)
+            {
+                var results = await OverlayAnalysisUtility.OverlayAnalysisAsync(layer, mapView.Layers, features, dialog.SelectedLayer, dialog.Operation);
+                if (results.Count == 0)
+                {
+                    await CommonDialog.ShowOkDialogAsync("叠加分析", "叠加分析结果为空");
                 }
             }
         }
@@ -420,32 +456,6 @@ namespace MapBoard.UI.Menu
                     await FeatureUtility.GeneralizeSimplifyAsync(editableLayer, newFeatures, dialog.MaxDeviation);
                 }
             }
-        }
-
-        /// <summary>
-        /// 转到CSV
-        /// </summary>
-        /// <returns></returns>
-        private Task ToCsvAsync()
-        {
-            return ExportBase("Csv表格", "csv", async path => await Csv.ExportAsync(path, mapView.Selection.SelectedFeatures.ToArray()));
-        }
-
-        /// <summary>
-        /// 转到GeoJSON
-        /// </summary>
-        /// <returns></returns>
-        private Task ToGeoJsonAsync()
-        {
-            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportAsync(path, mapView.Selection.SelectedFeatures));
-        }
-        /// <summary>
-        /// 转到GeoJSON
-        /// </summary>
-        /// <returns></returns>
-        private Task ToGeoJsonWithStyleAsync()
-        {
-            return ExportBase("GeoJSON", "geojson", async path => await GeoJson.ExportWithStyleAsync(path, mapView.Selection.SelectedFeatures,mapView.Layers.Selected));
         }
 
         /// <summary>

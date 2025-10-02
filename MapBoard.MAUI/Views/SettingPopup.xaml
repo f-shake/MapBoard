@@ -51,12 +51,12 @@
                     <!--  https://github.com/dotnet/maui/issues/5924  -->
                     <TableSection Title="关于">
                         <TextCell
-                            Detail="https://github.com/autodotua/MapBoard"
+                            Detail="https://github.com/f-shake/MapBoard"
                             DetailColor="{AppThemeBinding Dark={DynamicResource Gray400},
                                                           Light={DynamicResource Gray600}}"
                             StyleId=""
                             Tapped="AboutButton_Click"
-                            Text="autodotua"
+                            Text="f-shake"
                             TextColor="{AppThemeBinding Dark={DynamicResource White},
                                                         Light={DynamicResource Black}}" />
                     </TableSection>

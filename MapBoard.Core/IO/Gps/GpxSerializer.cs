@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace MapBoard.IO.Gpx
+namespace MapBoard.IO.Formats.Gps
 {
     public static class GpxSerializer
     {
@@ -21,9 +21,9 @@ namespace MapBoard.IO.Gpx
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static async Task<Gpx> FromFileAsync(string path)
+        public static async Task<GpxDocument> FromFileAsync(string path)
         {
-            Gpx gpx = null;
+            GpxDocument gpx = null;
             await Task.Run(() =>
             {
                 var xmlString = File.ReadAllText(path);
@@ -36,7 +36,7 @@ namespace MapBoard.IO.Gpx
         /// 保存到原始位置
         /// </summary>
         /// <param name="path"></param>
-        public static void Save(this Gpx gpx, string path)
+        public static void Save(this GpxDocument gpx, string path)
         {
             File.WriteAllText(path, gpx.ToXmlString());
         }
@@ -44,7 +44,7 @@ namespace MapBoard.IO.Gpx
 
         #region Metadata
 
-        public static async Task<Gpx> LoadMetadatasFromFileAsync(string file)
+        public static async Task<GpxDocument> LoadMetadatasFromFileAsync(string file)
         {
             //XmlReader有点难用，让ChatGPT帮我写了。
             if (string.IsNullOrEmpty(file) || !File.Exists(file))
@@ -52,7 +52,7 @@ namespace MapBoard.IO.Gpx
                 throw new ArgumentException("Invalid file path or file not found.");
             }
 
-            Gpx gpx = new Gpx();
+            GpxDocument gpx = new GpxDocument();
 
             using (XmlReader reader = XmlReader.Create(file, new XmlReaderSettings()
             {
@@ -86,7 +86,7 @@ namespace MapBoard.IO.Gpx
             return gpx;
         }
 
-        private static async Task ReadMetadataAsync(XmlReader reader, Gpx gpx)
+        private static async Task ReadMetadataAsync(XmlReader reader, GpxDocument gpx)
         {
             while (await reader.ReadAsync())
             {
@@ -120,7 +120,7 @@ namespace MapBoard.IO.Gpx
             }
         }
 
-        private static async Task ReadExtensionsAsync(XmlReader reader, Gpx gpx)
+        private static async Task ReadExtensionsAsync(XmlReader reader, GpxDocument gpx)
         {
             while (await reader.ReadAsync())
             {
@@ -144,7 +144,7 @@ namespace MapBoard.IO.Gpx
 
         #region XML => Object
 
-        private static readonly Dictionary<string, Action<Gpx, string>> xml2GpxProperty = new Dictionary<string, Action<Gpx, string>>()
+        private static readonly Dictionary<string, Action<GpxDocument, string>> xml2GpxProperty = new Dictionary<string, Action<GpxDocument, string>>()
         {
             ["creator"] = (g, v) => g.Creator = v,
             ["name"] = (g, v) => g.Name = v,
@@ -167,9 +167,9 @@ namespace MapBoard.IO.Gpx
         /// <param name="path"></param>
         /// <returns></returns>
         /// <exception cref="XmlException"></exception>
-        public static Gpx LoadFromString(string xmlString, string path)
+        public static GpxDocument LoadFromString(string xmlString, string path)
         {
-            Gpx gpx = new Gpx();
+            GpxDocument gpx = new GpxDocument();
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlString);
             XmlElement gpxNode = xmlDoc["gpx"] ?? throw new XmlException("没有找到gpx元素");
@@ -273,9 +273,9 @@ namespace MapBoard.IO.Gpx
             }
         }
 
-        private static void SetGpxValue(Gpx gpx, string key, string value)
+        private static void SetGpxValue(GpxDocument gpx, string key, string value)
         {
-            if (xml2GpxProperty.TryGetValue(key, out Action<Gpx, string> func))
+            if (xml2GpxProperty.TryGetValue(key, out Action<GpxDocument, string> func))
             {
                 func(gpx, value);
             }
@@ -296,7 +296,7 @@ namespace MapBoard.IO.Gpx
         /// 获取GPX的XML字符串
         /// </summary>
         /// <returns></returns>
-        public static string ToXmlString(this Gpx gpx)
+        public static string ToXmlString(this GpxDocument gpx)
         {
             XmlDocument doc = new XmlDocument();
             XmlDeclaration dec = doc.CreateXmlDeclaration("1.0", "utf-8", "no");

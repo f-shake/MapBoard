@@ -1,49 +1,26 @@
-﻿using Esri.ArcGISRuntime.Geometry;
+﻿using Esri.ArcGISRuntime.Data;
+using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Ogc;
 using Esri.ArcGISRuntime.Symbology;
-using MapBoard.Model;
+using FzLib.Collection;
+using MapBoard.IO.Abstractions;
 using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
 using MapBoard.Util;
+using Sharpen;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
-using MapBoard.Mapping.Model;
-using System;
 using System.Linq;
-using FzLib.Collection;
-using Esri.ArcGISRuntime.Mapping;
+using System.Threading.Tasks;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
-    public static class Kml
+    internal class Kml : IFeatureTableExporter, IMemoryLayerImporter, IMapExporter
     {
-        /// <summary>
-        /// 异步导出到KML
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="layer"></param>
-        /// <returns></returns>
-        public static async Task ExportAsync(string path, IMapLayerInfo layer)
-        {
-            KmlDocument kml = new KmlDocument() { Name = layer.Name };
-            await Task.Run(async () =>
-            {
-                await AddToKmlAsync(layer, kml.ChildNodes);
-            });
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-            await kml.SaveAsAsync(path);
-        }
-
-        /// <summary>
-        /// 异步导出多个图层到KML
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="layers"></param>
-        /// <returns></returns>
-        public static async Task ExportAsync(string path, IEnumerable<IMapLayerInfo> layers)
+        public async Task ExportAsync(string path, IEnumerable<IMapLayerInfo> layers)
         {
             KmlDocument kml = new KmlDocument();
             await Task.Run(async () =>
@@ -62,65 +39,75 @@ namespace MapBoard.IO
             await kml.SaveAsAsync(path);
         }
 
-        /// <summary>
-        /// 异步导入KML到新图层。根据类型，可能建立多个图层
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="layers"></param>
-        /// <returns></returns>
-        public static async Task ImportAsync(string path, MapLayerCollection layers)
+        public async Task ExportFeatureTableAsync(string path, IMapLayerInfo layer, IEnumerable<Feature> features)
+        {
+            KmlDocument kml = new KmlDocument() { Name = layer.Name };
+            await Task.Run(async () =>
+            {
+                await AddToKmlAsync(layer, kml.ChildNodes, features);
+            });
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            await kml.SaveAsAsync(path);
+        }
+
+        public async ValueTask<IEnumerable<SimpleLayer>> GetLayersAsync(string path)
         {
             KmlDataset kml = new KmlDataset(new Uri(path));
             await kml.LoadAsync();
-            List<MapPoint> points = new List<MapPoint>();
-            List<Polyline> lines = new List<Polyline>();
-            List<Polygon> polygons = new List<Polygon>();
+            List<SimpleFeature> points = new List<SimpleFeature>();
+            List<SimpleFeature> lines = new List<SimpleFeature>();
+            List<SimpleFeature> polygons = new List<SimpleFeature>();
+            var fields = new List<FieldInfo>()
+            {
+                new FieldInfo(nameof(KmlPlacemark.Name), "名称", FieldInfoType.Text),
+                new FieldInfo(nameof(KmlPlacemark.Description), "描述", FieldInfoType.Text),
+            };
+
             await Task.Run(() =>
             {
                 foreach (var node in GetAllKmlPlacemark(kml))
                 {
+                    var dic = new Dictionary<string, object>()
+                    {
+                        [nameof(KmlPlacemark.Name)] = node.Name,
+                        [nameof(KmlPlacemark.Description)] = node.Description
+                    };
                     switch (node.GraphicType)
                     {
-                        case KmlGraphicType.None:
-                            break;
                         case KmlGraphicType.Point:
-                            points.Add(node.Geometry.RemoveZAndM() as MapPoint);
+                            points.Add(new SimpleFeature(dic, node.Geometry.RemoveZAndM()));
                             break;
                         case KmlGraphicType.Polyline:
-                            lines.Add(node.Geometry.RemoveZAndM() as Polyline);
+                            lines.Add(new SimpleFeature(dic, node.Geometry.RemoveZAndM()));
                             break;
                         case KmlGraphicType.Polygon:
-                            polygons.Add(node.Geometry.RemoveZAndM() as Polygon);
-                            break;
-                        case KmlGraphicType.ExtrudedPoint:
-                            break;
-                        case KmlGraphicType.ExtrudedPolyline:
-                            break;
-                        case KmlGraphicType.ExtrudedPolygon:
-                            break;
-                        case KmlGraphicType.Model:
-                            break;
-                        case KmlGraphicType.MultiGeometry:
+                            polygons.Add(new SimpleFeature(dic, node.Geometry.RemoveZAndM()));
                             break;
                     }
                 }
             });
             string name = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(path));
+
+            List<SimpleLayer> layers = new List<SimpleLayer>();
             if (points.Count > 0)
             {
-                var layer = await LayerUtility.CreateLayerAsync( GeometryType.Point, layers, name: name + "（点）");
-                await layer.AddFeaturesAsync(points.Select(p => layer.CreateFeature(null, p)), FeaturesChangedSource.Import);
+                layers.Add(new SimpleLayer($"{name}（点）",
+                    GeometryType.Point, fields, SpatialReferences.Wgs84, points));
             }
             if (lines.Count > 0)
             {
-                var layer = await LayerUtility.CreateLayerAsync( GeometryType.Polyline, layers, name: name + "（线）");
-                await layer.AddFeaturesAsync(lines.Select(p => layer.CreateFeature(null, p)), FeaturesChangedSource.Import);
+                layers.Add(new SimpleLayer($"{name}（线）",
+                    GeometryType.Polyline, fields, SpatialReferences.Wgs84, lines));
             }
             if (polygons.Count > 0)
             {
-                var layer = await LayerUtility.CreateLayerAsync( GeometryType.Polygon, layers, name: name + "（面）");
-                await layer.AddFeaturesAsync(polygons.Select(p => layer.CreateFeature(null, p)), FeaturesChangedSource.Import);
+                layers.Add(new SimpleLayer($"{name}（面）",
+                    GeometryType.Polygon, fields, SpatialReferences.Wgs84, polygons));
             }
+            return layers;
         }
 
         /// <summary>
@@ -129,11 +116,12 @@ namespace MapBoard.IO
         /// <param name="layer"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static async Task AddToKmlAsync(IMapLayerInfo layer, KmlNodeCollection nodes)
+        private static async Task AddToKmlAsync(IMapLayerInfo layer, KmlNodeCollection nodes, IEnumerable<Feature> features = null)
         {
-            foreach (var feature in await layer.GetAllFeaturesAsync())
+            features ??= await layer.GetAllFeaturesAsync();
+            foreach (var feature in features)
             {
-                foreach (var g in GeometryUtility.EnsureSinglePart(feature.Geometry))
+                foreach (var g in feature.Geometry.EnsureSinglePart())
                 {
                     var geometry = new KmlGeometry(g, KmlAltitudeMode.ClampToGround);
                     var placemark = new KmlPlacemark(geometry);

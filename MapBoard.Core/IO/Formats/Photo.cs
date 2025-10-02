@@ -16,15 +16,18 @@ using MetadataExtractor;
 using System.Diagnostics;
 using ImageMagick;
 using Rational = MetadataExtractor.Rational;
+using MapBoard.IO.Abstractions;
 
-namespace MapBoard.IO
+namespace MapBoard.IO.Formats
 {
-    public static class Photo
+    public class Photo : IMemoryLayerImporter
     {
         /// <summary>
         /// 照片日期字段名
         /// </summary>
         public static readonly string DateField = "Date";
+
+        public static readonly HashSet<string> ImageExtensions = [".jpg", ".jpeg", ".heif", ".heic", ".dng"];
 
         /// <summary>
         /// 照片位置字段名
@@ -35,6 +38,7 @@ namespace MapBoard.IO
         /// 照片名字段名 
         /// </summary>
         public static readonly string NameField = "name";
+
         /// <summary>
         /// 照片时间字段名
         /// </summary>
@@ -58,14 +62,8 @@ namespace MapBoard.IO
             return tempPath;
         }
 
-        /// <summary>
-        /// 导入照片
-        /// </summary>
-        /// <param name="files"></param>
-        /// <param name="layers"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public static async Task ImportImageLocation(IEnumerable<string> files, MapLayerCollection layers)
+
+        public async ValueTask<IEnumerable<SimpleLayer>> GetLayersAsync(string path)
         {
             var fields = new[]
             {
@@ -73,41 +71,44 @@ namespace MapBoard.IO
                 new FieldInfo(ImagePathField,"路径",FieldInfoType.Text),
                 new FieldInfo(TimeField,"拍摄时间",FieldInfoType.DateTime),
             };
-            var layer = await LayerUtility.CreateLayerAsync( GeometryType.Point, layers, fields: fields);
-            ConcurrentBag<Feature> features = new ConcurrentBag<Feature>();
+
+            ConcurrentBag<SimpleFeature> features = new ConcurrentBag<SimpleFeature>();
             await Task.Run(() =>
             {
+                var files = new DirectoryInfo(path).EnumerateFiles("*", SearchOption.AllDirectories)
+                .Where(p => ImageExtensions.Contains(p.Extension, StringComparer.OrdinalIgnoreCase));
                 Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 4, }, file =>
+                {
+                    try
                     {
-                        try
+                        var info = GetImageExifInfo(file.FullName);
+                        if (info != null)
                         {
-                            var info = GetImageExifInfo(file);
-                            if (info != null)
+                            MapPoint point = new MapPoint(info.Value.lng, info.Value.lat, SpatialReferences.Wgs84);
+                            Dictionary<string, object> attr = new Dictionary<string, object>();
+                            if (info.Value.time.HasValue)
                             {
-                                MapPoint point = new MapPoint(info.Value.lng, info.Value.lat, SpatialReferences.Wgs84);
-                                Dictionary<string, object> attr = new Dictionary<string, object>();
-                                if (info.Value.time.HasValue)
-                                {
-                                    attr.Add(DateField, info.Value.time.Value);
-                                    attr.Add(TimeField, info.Value.time.Value.ToString(Parameters.TimeFormat));
-                                }
-                                attr.Add(NameField, Path.GetFileName(file));
-                                attr.Add(ImagePathField, file);
-                                var feature = layer.CreateFeature(attr, point);
-                                features.Add(feature);
+                                attr.Add(DateField, info.Value.time.Value);
+                                attr.Add(TimeField, info.Value.time.Value.ToString(Parameters.TimeFormat));
                             }
+                            attr.Add(NameField, file.Name);
+                            attr.Add(ImagePathField, file.FullName);
+                            var feature = new SimpleFeature(attr, point);
+                            features.Add(feature);
                         }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"照片{file}解析失败：" + ex.Message);
-                        }
-                    });
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"照片{file}解析失败：" + ex.Message);
+                    }
+                });
             });
             if (features.IsEmpty)
             {
                 throw new Exception("指定的目录中不存在包含坐标信息的图片");
             }
-            await layer.AddFeaturesAsync(features, FeaturesChangedSource.Import);
+            var layer = new SimpleLayer(Path.GetFileName(path), GeometryType.Point, fields, SpatialReferences.Wgs84, features);
+            return [layer];
         }
 
         /// <summary>

@@ -134,7 +134,7 @@ namespace MapBoard.UI.Dialog
                 var layer = await LayerUtility.CreateLayerAsync(GeometryType.Point, Layers, name: LayerName, fields: fields);
                 int failedRowCount = 0;
                 List<Feature> features = new List<Feature>();
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
                     foreach (DataRow row in Table.Rows)
                     {
@@ -160,6 +160,7 @@ namespace MapBoard.UI.Dialog
                                     continue;
                                 }
                                 object value = null;
+                                
                                 value = field.Field.Type switch
                                 {
                                     FieldInfoType.Integer => int.Parse(strValue),
@@ -180,7 +181,7 @@ namespace MapBoard.UI.Dialog
                             continue;
                         }
                     }
-                    layer.AddFeaturesAsync(features, FeaturesChangedSource.Initialize);
+                    await layer.AddFeaturesAsync(features, FeaturesChangedSource.Initialize);
                 });
                 Hide();
                 await ShowOkDialogAsync($"导入了{features.Count}条，失败了{failedRowCount}条");
