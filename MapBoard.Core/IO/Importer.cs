@@ -32,10 +32,12 @@ namespace MapBoard.IO
             return results[0];
         }
 
+#if !RELEASEWITHOUTGDAL
         public static Task<List<IMapLayerInfo>> ImportFileGdbAsync(string path, MapLayerCollection layers)
         {
             return ImportToNewLayers(new FileGeodatabase(), path, layers);
         }
+#endif
 
         public static async Task<IList<Feature>> ImportGpxAsync(string path, IMapLayerInfo existingLayer)
         {

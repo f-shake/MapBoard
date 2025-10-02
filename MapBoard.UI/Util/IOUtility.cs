@@ -464,9 +464,11 @@ namespace MapBoard.Util
                         await Importer.ImportMobileMapPackageAsync(path, layers);
                         break;
 
+#if !RELEASEWITHOUTGDAL
                     case ImportMapType.FgdbDir:
                         await Importer.ImportFileGdbAsync(path, layers);
                         break;
+#endif
 
                     case ImportMapType.GpxDir:
                         var gpxs = await EnumerateFilesAsync([path], [".gpx"]);

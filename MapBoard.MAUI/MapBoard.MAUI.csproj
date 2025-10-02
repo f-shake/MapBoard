@@ -38,6 +38,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<Configurations>Debug;Release;ReleaseWithoutGDAL</Configurations>
 	</PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -279,7 +280,17 @@
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-android|AnyCPU'">
+    <ApplicationId>com.autod.mapboard.maui</ApplicationId>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>False</AndroidKeyStore>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+    <ApplicationId>com.autod.mapboard.maui</ApplicationId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
@@ -287,7 +298,15 @@
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-maccatalyst|AnyCPU'">
+    <ApplicationId>com.autod.mapboard.maui</ApplicationId>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
+    <ApplicationId>com.autod.mapboard.maui</ApplicationId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
   

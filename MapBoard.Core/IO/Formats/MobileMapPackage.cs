@@ -7,7 +7,6 @@ using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using MapBoard.Util;
 using Newtonsoft.Json.Linq;
-using OSGeo.OGR;
 using System;
 using System.Collections.Generic;
 using System.IO;

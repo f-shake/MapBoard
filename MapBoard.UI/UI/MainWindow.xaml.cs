@@ -537,7 +537,7 @@ namespace MapBoard.UI
                 await DoAsync(async p =>
                 {
                     await IOUtility.ExportMapAsync(this, path, arcMap, arcMap.Layers, type);
-                 }, "正在导出");
+                }, "正在导出");
             }
 
             canClosing = true;
@@ -560,6 +560,10 @@ namespace MapBoard.UI
         /// <param name="e"></param>
         private async void ImportMenu_Click(object sender, RoutedEventArgs e)
         {
+#if RELEASEWITHOUTGDAL
+            await CommonDialog.ShowErrorDialogAsync($"当前版本的{nameof(MapBoard)}不包含GDAL，无法使用FileGDB相关功能");
+            return;
+#else
             var type = (ImportMapType)int.Parse((sender as FrameworkElement).Tag as string);
             string path = IOUtility.GetImportMapPath(type, this);
             if (path != null)
@@ -569,7 +573,7 @@ namespace MapBoard.UI
                      await IOUtility.ImportMapAsync(this, path, arcMap.Layers, type, p);
                  }, "正在导入");
             }
-            ;
+#endif
         }
 
         /// <summary>

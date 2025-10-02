@@ -1,5 +1,4 @@
 ﻿try {
-    # 输出信息模块化
     function Show-Message {
         param ([string]$Message)
         Write-Output $Message
@@ -30,35 +29,46 @@
     # 发布WPF应用
     function Publish-WPF {
         param (
+            [string]$Configuration,
             [string]$OutputDir,
             [bool]$SelfContained,
             [bool]$SingleFile
         )
         
-        Show-Message "正在发布WPF到 $OutputDir"
-        dotnet publish MapBoard.UI -c Release -o $OutputDir -r win-x64 --self-contained $SelfContained /p:PublishSingleFile=$SingleFile
+        Show-Message "正在发布WPF（$Configuration）到 $OutputDir"
+        dotnet publish MapBoard.UI `
+            -c $Configuration `
+            -o $OutputDir `
+            -r win-x64 `
+            --self-contained $SelfContained `
+            /p:PublishSingleFile=$SingleFile
     }
 
     # 复制DLL文件
     function Copy-DLLFiles {
         param ([string]$DestinationDir)
-        Copy-Item "Generation/Publish/WPF_Standard/Extension.*.dll" $DestinationDir
-        #Copy-Item C:\Users\$($env:USERNAME)\.nuget\packages\esri.arcgisruntime.runtimes.win\200.4.0\runtimes\win-x64\native\* $DestinationDir
-        #Copy-Item C:\Users\$($env:USERNAME)\.nuget\packages\esri.arcgisruntime.wpf\200.4.0\runtimes\win-x64\native\* $DestinationDir
+        Copy-Item "Generation/Publish/WPF_Standard/Extension.*.dll" $DestinationDir -ErrorAction SilentlyContinue
     }
+    
+    Publish-WPF "Release" "Generation/Publish/WPF_Standard" $false $false
 
-    Publish-WPF "Generation/Publish/WPF_Standard" $false $false
-    Publish-WPF "Generation/Publish/WPF" $false $true
-    Publish-WPF "Generation/Publish/WPF_Contained" $true $true
+    # ---- 有 GDAL 的版本（Release）----
+    Publish-WPF "Release" "Generation/Publish/WPF" $false $true
+    Publish-WPF "Release" "Generation/Publish/WPF_Contained" $true $true
 
-    # 复制DLL文件
     Copy-DLLFiles "Generation/Publish/WPF"
     Copy-DLLFiles "Generation/Publish/WPF_Contained"
-    
+
+    # ---- 无 GDAL 的版本（ReleaseWithoutGDAL）----
+    Publish-WPF "ReleaseWithoutGDAL" "Generation/Publish/WPF_NoGDAL" $false $true
+    Publish-WPF "ReleaseWithoutGDAL" "Generation/Publish/WPF_NoGDAL_Contained" $true $true
+
+    Copy-DLLFiles "Generation/Publish/WPF_NoGDAL"
+    Copy-DLLFiles "Generation/Publish/WPF_NoGDAL_Contained"
 
     Show-Message "正在清理"
-    Remove-Item Generation/Release -Recurse
-    Remove-Item Generation/Publish/WPF_Standard -Recurse
+    Remove-Item Generation/Release -Recurse -ErrorAction SilentlyContinue
+    Remove-Item Generation/Publish/WPF_Standard -Recurse -ErrorAction SilentlyContinue
 
     Show-Message "操作完成"
 
@@ -67,6 +77,3 @@
 } catch {
     Write-Error $_
 }
-
-
-

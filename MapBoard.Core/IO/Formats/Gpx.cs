@@ -8,7 +8,6 @@ using MapBoard.Mapping.Model;
 using MapBoard.Model;
 using MapBoard.Util;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using OSGeo.OGR;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;

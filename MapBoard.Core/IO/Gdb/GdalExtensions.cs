@@ -1,4 +1,5 @@
-﻿using OSGeo.OGR;
+﻿#if !RELEASEWITHOUTGDAL
+using OSGeo.OGR;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -42,3 +43,5 @@ public static class GdalExtensions
 
 //https://blog.csdn.net/lc156845259/article/details/122700578
 //https://github.com/lucas-repo/EM.GIS
+
+#endif

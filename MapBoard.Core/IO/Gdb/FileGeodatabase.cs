@@ -1,4 +1,5 @@
-﻿using Esri.ArcGISRuntime.Data;
+﻿#if !RELEASEWITHOUTGDAL
+using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using FzLib.Collection;
 using FzLib.Program;
@@ -441,3 +442,4 @@ public class FileGeodatabase : IMemoryLayerImporter
         return new ValueTask<IEnumerable<SimpleLayer>>(Task.Run(() => Convert(path).Cast<SimpleLayer>()));
     }
 }
+#endif

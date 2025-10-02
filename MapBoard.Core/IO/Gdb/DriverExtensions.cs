@@ -1,4 +1,5 @@
-﻿using OSGeo.OGR;
+﻿#if !RELEASEWITHOUTGDAL
+using OSGeo.OGR;
 using System;
 using System.Linq;
 
@@ -75,3 +76,4 @@ public static class DriverExtensions
 
 //https://blog.csdn.net/lc156845259/article/details/122700578
 //https://github.com/lucas-repo/EM.GIS
+#endif

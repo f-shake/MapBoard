@@ -13,6 +13,7 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Platforms>AnyCPU;x64</Platforms>
+    <Configurations>Debug;Release;ReleaseWithoutGDAL</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -31,9 +32,19 @@
     <OutputPath>..\Generation\Release\</OutputPath>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithoutGDAL|AnyCPU'">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\Generation\ReleaseWithoutGDAL\</OutputPath>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>..\Generation\Release\</OutputPath>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithoutGDAL|x64'">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\Generation\ReleaseWithoutGDAL\</OutputPath>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -94,7 +105,7 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="PropertyChanged.Fody" />
     <PackageReference Include="System.Drawing.Common" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal"   Condition="'$(Configuration)' != 'ReleaseWithoutGDAL'"/>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UI\Component\colorChart.PNG" />

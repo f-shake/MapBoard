@@ -28,7 +28,7 @@ public partial class SettingPopup : Popup
 
     private async void AboutButton_Click(object sender, EventArgs e)
     {
-        Uri uri = new Uri("https://github.com/autodotua/MapBoard");
+        Uri uri = new Uri("https://github.com/f-shake/MapBoard");
         await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
     }
 }

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>MapBoard</RootNamespace>
+    <Configurations>Debug;Release;ReleaseWithoutGDAL</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,6 +13,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\Generation\Release\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <NoWarn>CS0067;CS4014;CS0168;CA1416;1701;1702</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithoutGDAL|AnyCPU'">
     <OutputPath>..\Generation\Release\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <NoWarn>CS0067;CS4014;CS0168;CA1416;1701;1702</NoWarn>
@@ -27,7 +34,7 @@
     <PackageReference Include="hyjiacan.pinyin4net" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="Mapster" />
-    <PackageReference Include="MaxRev.Gdal.Core" />
+    <PackageReference Include="MaxRev.Gdal.Core" Condition="'$(Configuration)' != 'ReleaseWithoutGDAL'" />
     <PackageReference Include="MetadataExtractor" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Newtonsoft.Json" />

@@ -13,7 +13,9 @@
         Mmpk = 8,
 
         //目录
+#if !RELEASEWITHOUTGDAL
         FgdbDir = 101,
+#endif
         GpxDir = 102,
         PhotoDir = 103
     }
