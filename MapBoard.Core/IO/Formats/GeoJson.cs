@@ -71,7 +71,7 @@ namespace MapBoard.IO.Formats
             foreach (var f in features)
             {
                 JObject jF = new JObject();
-                jF.Add("type", "OFeature");
+                jF.Add("type", "Feature");
 
                 var g = GetGeometryJson(f);
                 if (g == null)
