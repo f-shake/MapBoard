@@ -36,7 +36,10 @@ namespace MapBoard.IO.Formats
                 var json = Convert(features);
                 var s = new JsonSerializer();
                 s.Converters.Add(new GeoJsonStyleConverter());
-                json.Add("style", JObject.FromObject(layer.Renderer.DefaultSymbol, s));
+                if (layer.Renderer.DefaultSymbol != null)
+                {
+                    json.Add("style", JObject.FromObject(layer.Renderer.DefaultSymbol, s));
+                }
                 result = json.ToString(Formatting.Indented);
                 File.WriteAllText(path, result, new UTF8Encoding(true));
             });
@@ -68,7 +71,7 @@ namespace MapBoard.IO.Formats
             foreach (var f in features)
             {
                 JObject jF = new JObject();
-                jF.Add("type", "OFeature");
+                jF.Add("type", "Feature");
 
                 var g = GetGeometryJson(f);
                 if (g == null)
