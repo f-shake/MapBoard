@@ -47,7 +47,7 @@ namespace MapBoard.Util
                 };
                 targetLayer = await CreateLayerAsync(GeometryType.Polygon, layers, template, true, layer.Name + "-缓冲区");
             }
-            await FeatureUtility.BufferToLayerAsync(layer, targetLayer, features == null ? await layer.GetAllFeaturesAsync() : features, meters, union);
+            await FeatureUtility.BufferToLayerAsync(layer, targetLayer, features ?? await layer.GetAllFeaturesAsync(), meters, union);
         }
 
         /// <summary>
@@ -73,7 +73,6 @@ namespace MapBoard.Util
             target.Labels = source.Labels.Select(p => p.Clone() as LabelInfo).ToArray();
             target.Renderer = source.Renderer.Clone() as UniqueValueRendererInfo;
         }
-
         /// <summary>
         /// 创建图层的副本
         /// </summary>
@@ -84,6 +83,7 @@ namespace MapBoard.Util
         /// <returns></returns>
         public static async Task CreateCopyAsync(this IMapLayerInfo layer, MapLayerCollection layers, bool includeFeatures, bool includeFields)
         {
+
             if (includeFeatures)
             {
                 var features = await layer.GetAllFeaturesAsync();
