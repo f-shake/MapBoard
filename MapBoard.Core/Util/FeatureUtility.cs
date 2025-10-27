@@ -144,18 +144,22 @@ namespace MapBoard.Util
             {
                 throw new ArgumentException("仅支持面图层");
             }
-            var newLayer = await LayerUtility.CreateLayerAsync(GeometryType.Point, layers, layer, true, $"{layer.Name} - 中心点");
+            //var newLayer = await LayerUtility.CreateLayerAsync(GeometryType.Point, layers, layer, true, $"{layer.Name} - 中心点", true);
+            var newLayer = await LayerUtility.CreateLayerAsync(GeometryType.Point, layers, $"{layer.Name} - 中心点", layer.Fields, true);
             var newFeatures = new List<Feature>();
-            foreach (var f in features)
+            await Task.Run(() =>
             {
-                if (f.Geometry.GeometryType != GeometryType.Polygon)
+                foreach (var f in features)
                 {
-                    throw new ArgumentException("仅支持面图层");
+                    if (f.Geometry.GeometryType != GeometryType.Polygon)
+                    {
+                        throw new ArgumentException("仅支持面图层");
+                    }
+                    var newGeom = (f.Geometry as Polygon).LabelPoint();
+                    var newFeature = newLayer.CreateFeature(f.Attributes, newGeom);
+                    newFeatures.Add(newFeature);
                 }
-                var newGeom = (f.Geometry as Polygon).LabelPoint();
-                var newFeature = newLayer.CreateFeature(f.Attributes, newGeom);
-                newFeatures.Add(newFeature);
-            }
+            });
             await newLayer.AddFeaturesAsync(newFeatures, Initialize);
         }
 

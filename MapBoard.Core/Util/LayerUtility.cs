@@ -111,9 +111,10 @@ namespace MapBoard.Util
                                                                        GeometryType type,
                                                                        MapLayerCollection layers,
                                                                        string name = null,
-                                                                       IList<FieldInfo> fields = null)
+                                                                       IList<FieldInfo> fields = null,
+                                                                       bool autoOrder = false)
         {
-            return CreateLayerAsync(type, layers, null, false, fields, name);
+            return CreateLayerAsync(type, layers, null, false, fields, name, autoOrder);
         }
 
         /// <summary>
@@ -125,6 +126,7 @@ namespace MapBoard.Util
         /// <param name="importTemplateFields"></param>
         /// <param name="fields"></param>
         /// <param name="name"></param>
+        /// <param name="autoOrder">是否自动选择插入位置。false则放到最后，true则根据点线面的顺序进行排列</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
@@ -134,7 +136,8 @@ namespace MapBoard.Util
                                                                              IMapLayerInfo template,
                                                                              bool importTemplateFields,
                                                                              IEnumerable<FieldInfo> fields,
-                                                                             string name = null)
+                                                                             string name = null,
+                                                                             bool autoOrder = false)
         {
             if (fields != null && importTemplateFields)
             {
@@ -163,10 +166,47 @@ namespace MapBoard.Util
                 : new MgdbMapLayerInfo(template as MapLayerInfo, name, importTemplateFields);
             await MobileGeodatabase.CreateMgdbLayerAsync(type, layer.SourceName, null, fields);
 
-            layer.Fields = fields.ToArray();
+            layer.Fields = [.. fields];
             if (layers != null)
             {
-                await layers.AddAndLoadAsync(layer);
+                if (autoOrder)
+                {
+                    int insertIndex = layers.Count;
+                    for (int i = 0; i < layers.Count; i++)
+                    {
+                        var l = layers[i] as MapLayerInfo;
+                        bool needBreak = false;
+                        switch (type)
+                        {
+                            case GeometryType.Point:
+                            case GeometryType.Multipoint:
+                                if (l.GeometryType != GeometryType.Point && l.GeometryType != GeometryType.Multipoint)
+                                {
+                                    insertIndex = i;
+                                    needBreak = true;
+                                }
+                                break;
+                            case GeometryType.Polyline:
+                                if (l.GeometryType != GeometryType.Point
+                                    && l.GeometryType != GeometryType.Multipoint
+                                    && l.GeometryType != GeometryType.Polyline)
+                                {
+                                    insertIndex = i;
+                                    needBreak = true;
+                                }
+                                break;
+                        }
+                        if (needBreak)
+                        {
+                            break;
+                        }
+                    }
+                    await layers.InsertAndLoadAsync(insertIndex, layer);
+                }
+                else
+                {
+                    await layers.AddAndLoadAsync(layer);
+                }
                 layer.LayerVisible = true;
                 layers.Selected = layer;
             }
@@ -187,9 +227,10 @@ namespace MapBoard.Util
                                                                             MapLayerCollection layers,
                                                                             IMapLayerInfo template,
                                                                             bool includeFields,
-                                                                            string name = null)
+                                                                            string name = null,
+                                                                             bool autoOrder = false)
         {
-            return CreateLayerAsync(type, layers, template, includeFields, null, name);
+            return CreateLayerAsync(type, layers, template, includeFields, null, name, autoOrder);
         }
 
         /// <summary>
