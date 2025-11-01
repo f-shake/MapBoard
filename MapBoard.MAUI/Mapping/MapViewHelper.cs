@@ -15,7 +15,7 @@ namespace MapBoard.Mapping
 {
     public static class MapViewHelper
     {
-        private static readonly List<BaseLayerInfo> DefaultBaseLayers = @"ESRI影像 https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+        private static readonly List<BaseLayerInfo> DefaultBaseLayers = @"ESRI影像 https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
 OpenTopoMap https://tile.opentopomap.org/{z}/{x}/{y}.png
 OpenStreetMap http://a.tile.openstreetmap.org/{z}/{x}/{y}.png
 OpenStreetMap自行车 https://a.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png
