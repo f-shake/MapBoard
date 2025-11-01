@@ -18,7 +18,7 @@ public partial class SettingPopup : Popup
     private void CloseButton_Click(object sender, EventArgs e)
     {
         Config.Instance.Save();
-        Close();
+        this.TryClose();
     }
     protected override Task OnDismissedByTappingOutsideOfPopup(CancellationToken token = default)
     {

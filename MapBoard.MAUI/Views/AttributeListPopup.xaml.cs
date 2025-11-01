@@ -55,11 +55,11 @@ public partial class AttributeListPopup : Popup
     private void ApplyButton_Clicked(object sender, EventArgs e)
     {
         (BindingContext as AttributeListViewModel).Attributes.SaveToFeature(Feature);
-        Close();
+        this.TryClose();
     }
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        Close();
+        this.TryClose();
     }
 }

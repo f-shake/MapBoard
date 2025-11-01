@@ -24,7 +24,7 @@ public partial class LayerQueryPopup : Popup
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        Close();
+        this.TryClose();
     }
 
     private async void SearchButton_Clicked(object sender, EventArgs e)
@@ -45,14 +45,14 @@ public partial class LayerQueryPopup : Popup
             {
                 if (!await MainPage.Current.DisplayAlert("查询", "没有查询到任何要素", "修改条件", "关闭"))
                 {
-                    Close();
+                    this.TryClose();
                 }
             }
             else
             {
                 if (await MainPage.Current.DisplayAlert("查询", $"查询到{result.Count}个要素", "查看结果", "修改条件"))
                 {
-                    Close();
+                    this.TryClose();
                     MainMapView.Current.SearchOverlay.ShowSearchResult(layer, result);
                 }
                 else

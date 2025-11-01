@@ -64,7 +64,7 @@ namespace MapBoard.Views
             void List_ItemTapped(object sender, ItemTappedEventArgs e)
             {
                 list.ItemTapped -= List_ItemTapped;
-                ppp.Close(e.ItemIndex);
+                ppp.TryClose(e.ItemIndex);
             }
 
             VerticalStackLayout layout = new VerticalStackLayout()
