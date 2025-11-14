@@ -29,7 +29,7 @@ public partial class AttributeTablePopup : Popup
         viewModel.SelectFeatureCommand = new Command<Feature>(feature =>
         {
             MainMapView.Current.SelectFeature(feature);
-            Close();
+            this.TryClose();
         });
 
         //同步滚动
@@ -44,7 +44,7 @@ public partial class AttributeTablePopup : Popup
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        Close();
+        this.TryClose();
     }
 
     private async Task LoadAsync()
@@ -74,11 +74,11 @@ public partial class AttributeTablePopup : Popup
         catch (Exception ex)
         {
             await MainPage.Current.DisplayAlert("加载属性失败", ex.Message, "关闭");
-            Close();
+            this.TryClose();
         }
         finally
         {
-            p?.Close();
+            p?.TryClose();
             //btnCancelLoading.IsVisible = false;
         }
     }

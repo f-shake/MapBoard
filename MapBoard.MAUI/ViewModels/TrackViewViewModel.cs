@@ -10,6 +10,7 @@ namespace MapBoard.ViewModels;
 public class TrackViewViewModel : INotifyPropertyChanged
 {
     private ObservableCollection<GpxAndFileInfo> gpxFiles = new ObservableCollection<GpxAndFileInfo>();
+    private bool isLoadingGpxFiles = false;
     private string status;
 
     private TrackService trackService;
@@ -41,33 +42,46 @@ public class TrackViewViewModel : INotifyPropertyChanged
 
     public async Task LoadGpxFilesAsync()
     {
-        GpxFiles.Clear();
-        foreach (var file in Directory
-            .EnumerateFiles(FolderPaths.TrackPath, "*.gpx")
-            .OrderDescending()
-            .Take(50))
+        if (isLoadingGpxFiles)
         {
-            try
+            return;
+        }
+        isLoadingGpxFiles = true;
+        try
+        {
+            GpxFiles.Clear();
+            foreach (var file in Directory
+                .EnumerateFiles(FolderPaths.TrackPath, "*.gpx")
+                .OrderDescending()
+                .Take(50))
             {
-                GpxFiles.Add(new GpxAndFileInfo(file));
-            }
-            catch (Exception ex)
-            {
+                try
+                {
+                    GpxFiles.Add(new GpxAndFileInfo(file));
+                }
+                catch (Exception ex)
+                {
 
+                }
+            }
+            foreach (var gpxFile in GpxFiles.ToList())
+            {
+                try
+                {
+                    await gpxFile.LoadGpxAsync();
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
         }
-        foreach (var gpxFile in GpxFiles)
+        finally
         {
-            try
-            {
-                await gpxFile.LoadGpxAsync();
-            }
-            catch (Exception ex)
-            {
-
-            }
+            isLoadingGpxFiles = false;
         }
     }
+
     private void TrackService_StaticPropertyChanged(object sender, EventArgs e)
     {
         TrackService = TrackService.Current;

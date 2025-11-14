@@ -46,7 +46,8 @@ namespace MapBoard.UI
             InitializeComponent();
             Fonts = [.. FontFamily.FamilyNames.Values];
 
-            FixExpanderProblems();
+            //20251114发现问题关键是在标签WhereClause的TextBox的MaxLines属性，设置了就出问题l
+            //FixExpanderProblems();
         }
 
         /// <summary>

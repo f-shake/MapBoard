@@ -781,17 +781,17 @@
 
                             <TextBlock
                                 VerticalAlignment="Center"
-                                Text="当前标签" />
+                                Text="筛选条件" />
                             <ContentControl
                                 Grid.Column="2"
                                 Margin="4,0"
                                 IsEnabled="{Binding Label, Converter={StaticResource NotNullConverter}}">
                                 <TextBox
+                                    Height="64"
                                     VerticalAlignment="Center"
                                     ui:ControlHelper.PlaceholderText="SQL筛选语句，置空表示所有图形"
                                     IsEnabled="{Binding Label.UseRawJson, Converter={StaticResource InverseBoolConverter}}"
-                                    MaxLines="4"
-                                    MinLines="2"
+                                    ScrollViewer.VerticalScrollBarVisibility="Auto"
                                     Text="{Binding Label.WhereClause}"
                                     TextWrapping="Wrap" />
                             </ContentControl>

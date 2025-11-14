@@ -344,6 +344,10 @@ namespace MapBoard.IO
         {
             foreach (var feature in features)
             {
+                if (feature.Geometry == null)
+                {
+                    continue;
+                }
                 feature.Attributes = NormalizeAttributes(feature.Attributes, fields, map);
                 feature.Geometry = NormalizeGeometry(feature.Geometry);
             }

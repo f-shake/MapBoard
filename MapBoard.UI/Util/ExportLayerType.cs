@@ -11,5 +11,6 @@
         GeoJSONWithStyle = 7,
         Shapefile = 8,
         Csv = 9,
+        CsvXY = 10,
     }
 }

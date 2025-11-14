@@ -30,11 +30,11 @@ public partial class LayerStylePopup : Popup
         RawLayer.Layer.MinScale = Layer.Display.MinScale;
         RawLayer.Layer.MaxScale = Layer.Display.MaxScale;
         RawLayer.Layer.RenderingMode = (FeatureRenderingMode)Layer.Display.RenderingMode;
-        Close();
+        this.TryClose();
     }
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        Close();
+        this.TryClose();
     }
 }

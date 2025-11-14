@@ -180,6 +180,10 @@ namespace MapBoard.UI.Menu
                         () => IOUtility.GetExportLayerPath(layer, ExportLayerType.Csv, MainWindow),
                         p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.Csv),
                     "正在导出CSV属性表");
+                    AddToMenu(menuExport, "CSV坐标表（*.csv）",
+                        () => IOUtility.GetExportLayerPath(layer, ExportLayerType.CsvXY, MainWindow),
+                        p => IOUtility.ExportLayerAsync(MainWindow, p, layer, MapView.Layers, ExportLayerType.CsvXY),
+                    "正在导出CSV坐标表");
                 }
             }
             else//多选

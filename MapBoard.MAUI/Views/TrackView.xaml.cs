@@ -189,7 +189,7 @@ public partial class TrackView : ContentView, ISidePanel
         if (resume != null)
         {
             TrackService.ResumeGpx = resume;
-            TrackService.BeforeLoop = () => popup.Close();
+            TrackService.BeforeLoop = () => popup.TryClose();
         }
 #if ANDROID
         (Platform.CurrentActivity as MainActivity).StartTrackService();

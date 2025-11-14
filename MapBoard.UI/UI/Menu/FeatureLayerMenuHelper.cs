@@ -224,6 +224,8 @@ namespace MapBoard.UI.Menu
                 ("缓冲区","为选中的图形建立缓冲区",BufferAsync, true),
                 ("坐标转换","转换图形的坐标系",CoordinateTransformateAsync, true),
                 ("叠加分析","两个图层之间进行合并、相交、裁切等操作",LayerTopoAsync, true),
+                ("提取中心点","将图形的几何中心点导出为一个新图层",PolygonToPointAsync,
+                    layer.GeometryType is GeometryType.Polygon ),
              };
         }
 
@@ -376,6 +378,11 @@ namespace MapBoard.UI.Menu
             mapView.Selection.Select(feature, true);
         }
 
+        private async Task PolygonToPointAsync()
+        {
+            await FeatureUtility.ConvertToPointAsync(editableLayer, mapView.Layers, features);
+            SnakeBar.Show($"处理完成");
+        }
         /// <summary>
         /// 反向
         /// </summary>

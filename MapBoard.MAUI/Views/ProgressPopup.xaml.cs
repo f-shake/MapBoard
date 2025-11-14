@@ -21,4 +21,9 @@ public partial class ProgressPopup : Popup
         MainPage.Current.ShowPopup(popup);
         return popup;
     }
+
+    public void Close()
+    {
+        this.TryClose();
+    }
 }

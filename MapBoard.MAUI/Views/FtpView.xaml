@@ -40,13 +40,13 @@
             x:Name="stkFtpDirs"
             Grid.Row="2">
             <RadioButton
-                x:Name="rbtnDataDir"
-                Content="地图数据目录"
+                x:Name="rbtnPackageDir"
+                Content="地图包目录"
                 GroupName="FtpDir"
                 IsChecked="True" />
             <RadioButton
-                x:Name="rbtnPackageDir"
-                Content="地图包目录"
+                x:Name="rbtnDataDir"
+                Content="地图数据目录"
                 GroupName="FtpDir" />
             <RadioButton
                 x:Name="rbtnTrackDir"

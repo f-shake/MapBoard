@@ -21,7 +21,7 @@ public partial class GeoShareConfigPopup : Popup
 
     private void CancelButton_Clicked(object sender, EventArgs e)
     {
-        Close();
+        this.TryClose();
     }
 
     private async void LoginButton_Clicked(object sender, EventArgs e)
@@ -40,7 +40,7 @@ public partial class GeoShareConfigPopup : Popup
             viewModel.NotifyConfig();
             Config.Instance.Save();
             await MainPage.Current.DisplayAlert("登陆成功", "登陆成功", "确定");
-            Close();
+            this.TryClose();
         }
         catch (HttpRequestException ex)
         {
@@ -79,7 +79,7 @@ public partial class GeoShareConfigPopup : Popup
             viewModel.NotifyConfig();
             Config.Instance.Save();
             await MainPage.Current.DisplayAlert("注册成功", "注册成功并已登录", "确定");
-            Close();
+            this.TryClose();
         }
         catch (Exception ex)
         {

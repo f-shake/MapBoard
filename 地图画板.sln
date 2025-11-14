@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapBoard.UI", "MapBoard.UI\MapBoard.UI.csproj", "{F45A258E-E3BE-4870-A1FB-F725EF30A852}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案文件", "解决方案文件", "{79FD6694-47B7-4E50-8DE5-2C4F25780295}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "#", "#", "{79FD6694-47B7-4E50-8DE5-2C4F25780295}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore

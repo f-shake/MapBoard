@@ -159,6 +159,10 @@ namespace MapBoard.Util
                         await Exporter.ExportCsvAttributeTableAsync(path, layer);
                         break;
 
+                    case ExportLayerType.CsvXY:
+                        await Exporter.ExportCsvXYTableAsync(path, layer);
+                        break;
+
                     default:
                         break;
                 }
@@ -265,7 +269,8 @@ namespace MapBoard.Util
                         .AddFilterIf(type == ExportLayerType.GeoJSON, "GeoJSON文件", "geojson")
                         .AddFilterIf(type == ExportLayerType.GeoJSONWithStyle, "带样式GeoJSON文件", "geojson")
                         .AddFilterIf(type == ExportLayerType.Shapefile, "Shapefile", "shp")
-                        .AddFilterIf(type == ExportLayerType.Csv, "CSV属性表", "csv");
+                        .AddFilterIf(type == ExportLayerType.Csv, "CSV属性表", "csv")
+                        .AddFilterIf(type == ExportLayerType.CsvXY, "CSV坐标表", "csv");
                 dialog.FileName = $"地图画板图层 - {layer.Name}";
                 return dialog.GetPath(parentWindow);
             }

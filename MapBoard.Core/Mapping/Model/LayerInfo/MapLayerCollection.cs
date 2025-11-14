@@ -171,10 +171,14 @@ namespace MapBoard.Mapping.Model
         /// <param name="index"></param>
         /// <param name="layer"></param>
         /// <returns></returns>
-        public async Task InsertAsync(int index, MapLayerInfo layer)
+        public async Task InsertAndLoadAsync(int index, ILayerInfo layer)
         {
-            await AddAndLoadLayerAsync(layer, Count - index);
-            layer.PropertyChanged += OnLayerPropertyChanged;
+            if (layer is not MapLayerInfo)
+            {
+                layer = new MgdbMapLayerInfo(layer);
+            }
+            await AddAndLoadLayerAsync(layer as MapLayerInfo, Count - index);
+            (layer as MapLayerInfo).PropertyChanged += OnLayerPropertyChanged;
             LayerList.Insert(index, layer);
         }
 
