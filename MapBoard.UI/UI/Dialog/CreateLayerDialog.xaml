@@ -33,6 +33,11 @@
             x:Name="txtName"
             ui:ControlHelper.Header="图层名"
             Text="{Binding LayerName}" />
+        <TextBox
+            ui:ControlHelper.Header="图层实际表名"
+            IsReadOnly="True"
+            Text="{Binding LayerSourceName}"
+            Visibility="{Binding LayerSourceName, Converter={StaticResource NotNullConverter}}" />
         <Grid
             x:Name="grdType"
             Width="360">

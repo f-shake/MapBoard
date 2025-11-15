@@ -24,7 +24,6 @@ namespace MapBoard.UI.Dialog
         /// </summary>
         public IMapLayerInfo editLayer = null;
 
-
         private CreateLayerDialog(MapLayerCollection layers, IMapLayerInfo layer, EsriLayerCollection esriLayers) : base(layers)
         {
             Fields.CollectionChanged += (s, e) => this.Notify(nameof(CanAddCreateTimeField), nameof(CanAddModifiedTimeField));
@@ -35,6 +34,7 @@ namespace MapBoard.UI.Dialog
 
                 editLayer = layer;
                 LayerName = layer.Name;
+                LayerSourceName = layer.SourceName;
                 grdType.Children.Cast<RadioButton>().ForEach(p => p.IsChecked = false);
                 switch (layer.GeometryType)
                 {
@@ -103,6 +103,7 @@ namespace MapBoard.UI.Dialog
         /// </summary>
         public ObservableCollection<FieldInfo> Fields { get; } = new ObservableCollection<FieldInfo>();
 
+        public string LayerSourceName { get; set; }
         /// <summary>
         /// 打开用于创建新图层的对话框
         /// </summary>
