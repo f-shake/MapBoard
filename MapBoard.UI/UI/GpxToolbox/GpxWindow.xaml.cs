@@ -1,4 +1,6 @@
-﻿using Esri.ArcGISRuntime.Data;
+﻿//#define CHECK_TOTAL_POINTS_COUNT_AND_DISTANCE
+
+using Esri.ArcGISRuntime.Data;
 using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.UI;
@@ -424,6 +426,34 @@ namespace MapBoard.UI.GpxToolbox
             {
                 return;
             }
+
+#if CHECK_TOTAL_POINTS_COUNT_AND_DISTANCE
+            int points = 0;
+            double total = 0;
+            foreach (var file in files)
+            {
+                try
+                {
+                    var gpx = GpxSerializer.LoadFromString(File.ReadAllText(file), file);
+                    foreach (var track in gpx.Tracks)
+                    {
+                        foreach (var seg in track.Segments)
+                        {
+                            points += seg.Points.Count;
+                            total += seg.Points.GetDistance();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+
+            await CommonDialog.ShowOkDialogAsync("提示", $"共检测到{points / 10000.0:F1}万个点，约{total / 1000.0:F0}千米长度的轨迹文件。");
+            return;
+
+#endif
 
             List<string> fileList = new List<string>();
             foreach (var file in files)
