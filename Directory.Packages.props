@@ -6,11 +6,11 @@
     <PackageVersion Include="akgul.Maui.DataGrid" Version="4.0.6" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="EmbedIO" Version="3.5.2" />
-    <PackageVersion Include="FluentFTP" Version="53.0.2" />
+    <PackageVersion Include="FluentFTP" Version="54.1.1" />
     <PackageVersion Include="hyjiacan.pinyin4net" Version="4.1.1" />
-    <PackageVersion Include="Mapster" Version="7.4.0" />
-    <PackageVersion Include="MaxRev.Gdal.Core" Version="3.11.4.387" />
-    <PackageVersion Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.11.4.376" />
+    <PackageVersion Include="Mapster" Version="10.0.7" />
+    <PackageVersion Include="MaxRev.Gdal.Core" Version="3.12.3.499" />
+    <PackageVersion Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.12.3.499" />
     <PackageVersion Include="Microsoft.AspNetCore.Authorization" Version="9.0.10" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
@@ -27,8 +27,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
-    <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.9.1" />
-    <PackageVersion Include="MetadataExtractor" Version="2.9.0" />
+    <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.13.0" />
+    <PackageVersion Include="MetadataExtractor" Version="2.9.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="CommunityToolkit.Maui" Version="11.2.0" />
@@ -39,9 +39,9 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="9.0.10" />
     <PackageVersion Include="DesktopBridge.Helpers" Version="1.2.2" />
     <PackageVersion Include="gong-wpf-dragdrop" Version="4.0.0" />
-    <PackageVersion Include="JKang.IpcServiceFramework.Client.Tcp" Version="3.1.0" />
-    <PackageVersion Include="JKang.IpcServiceFramework.Hosting.Tcp" Version="3.1.0" />
-    <PackageVersion Include="log4net" Version="3.2.0" />
+    <PackageVersion Include="JKang.IpcServiceFramework.Client.Tcp" Version="3.2.0" />
+    <PackageVersion Include="JKang.IpcServiceFramework.Hosting.Tcp" Version="3.2.0" />
+    <PackageVersion Include="log4net" Version="3.3.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
     <PackageVersion Include="ModernWpfUI" Version="0.9.6" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />

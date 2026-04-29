@@ -1,24 +1,25 @@
-﻿using MapBoard.Model;
+﻿using Esri.ArcGISRuntime.Data;
+using Esri.ArcGISRuntime.Geometry;
+using FzLib;
 using MapBoard.Mapping;
+using MapBoard.Mapping.Model;
+using MapBoard.Model;
+using MapBoard.Query;
+using MapBoard.Util;
+using ModernWpf.Controls;
+using ModernWpf.FzExtension.CommonDialog;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using MapBoard.Util;
-using ModernWpf.FzExtension.CommonDialog;
-using FzLib;
-using Esri.ArcGISRuntime.Data;
-using System.Diagnostics;
-using System.Collections.ObjectModel;
-using Esri.ArcGISRuntime.Geometry;
 using static Esri.ArcGISRuntime.Data.SpatialRelationship;
-using MapBoard.Mapping.Model;
-using MapBoard.Query;
-using ModernWpf.Controls;
 
 namespace MapBoard.UI.Dialog
 {
@@ -50,25 +51,7 @@ namespace MapBoard.UI.Dialog
                     return;
                 }
                 //选择的图层修改后，更新字段菜单
-                menuFields.Items.Clear();
-                if (value != null)
-                {
-                    foreach (var field in value.Fields)
-                    {
-                        var menu = new MenuItem()
-                        {
-                            Header = field.DisplayName,
-                            Tag = field.Name
-                        };
-                        menu.Click += (s, e) =>
-                        {
-                            string text = (s as MenuItem).Tag as string;
-                            txtWhere.SelectedText = text;
-                        };
-
-                        menuFields.Items.Add(menu);
-                    }
-                }
+                UpdateMenu(value);
             }
         }
 
@@ -96,6 +79,20 @@ namespace MapBoard.UI.Dialog
             ["包含（Contains）"] = Contains,
             ["覆盖（Overlaps）"] = Overlaps,
         };
+
+        private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Layer.Fields.Length == 0)
+            {
+                await CommonDialog.ShowErrorDialogAsync("该图层不含任何字段");
+                return;
+            }
+            QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
+            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                txtWhere.Text = Parameters.WhereClause = QuerySqlBuilder.Build(dialog.Items);
+            }
+        }
 
         /// <summary>
         /// 单击清除图形筛选条件按钮
@@ -203,17 +200,26 @@ namespace MapBoard.UI.Dialog
             }
         }
 
-        private async void BuildSqlButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateMenu(IMapLayerInfo value)
         {
-            if (Layer.Fields.Length == 0)
+            menuFields.Items.Clear();
+            if (value != null)
             {
-                await CommonDialog.ShowErrorDialogAsync("该图层不含任何字段");
-                return;
-            }
-            QuerySqlBuilderDialog dialog = new QuerySqlBuilderDialog(Layer);
-            if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-            {
-                txtWhere.Text = Parameters.WhereClause = QuerySqlBuilder.Build(dialog.Items);
+                foreach (var field in value.Fields)
+                {
+                    var menu = new MenuItem()
+                    {
+                        Header = field.DisplayName,
+                        Tag = field.Name
+                    };
+                    menu.Click += (s, e) =>
+                    {
+                        string text = (s as MenuItem).Tag as string;
+                        txtWhere.SelectedText = text;
+                    };
+
+                    menuFields.Items.Add(menu);
+                }
             }
         }
     }
