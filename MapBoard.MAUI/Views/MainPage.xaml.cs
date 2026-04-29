@@ -37,6 +37,8 @@ using CommunityToolkit.Maui.Views;
 using MapBoard.Models;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Maui.Animations;
+using CommunityToolkit.Maui.Extensions;
+
 
 
 #if ANDROID

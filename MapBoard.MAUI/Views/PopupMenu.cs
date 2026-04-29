@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Maui.Views;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using FzLib.Program;
 using MapBoard.Mapping.Model;
 using Microsoft.Maui.Controls.Shapes;
@@ -32,10 +34,8 @@ namespace MapBoard.Views
             {
                 throw new ArgumentException("没有提供任何菜单项", nameof(items));
             }
-            Popup ppp = new Popup
+            Popup<int?> ppp = new Popup<int?>
             {
-                Color = Colors.Transparent,
-                Anchor = view,
                 CanBeDismissedByTappingOutsideOfPopup = true,
             };
             var template = new DataTemplate(() =>
@@ -100,8 +100,11 @@ namespace MapBoard.Views
             ppp.Content = bd;
             try
             {
-                var result = await MainPage.Current.ShowPopupAsync(ppp);
-                return result == null ? -1 : (int)result;
+                var result = await MainPage.Current.ShowPopupAsync<int?>(ppp,new PopupOptions()
+                {
+                    PageOverlayColor=Colors.Transparent,
+                });
+                return result.Result ?? -1;
             }
             catch (ObjectDisposedException)
             {

@@ -10,11 +10,23 @@ namespace MapBoard.Views
 {
     public static class PopupExtension
     {
-        public static void TryClose(this Popup popup, object result = null)
+        public static void TryClose(this Popup popup)
         {
             try
             {
-                popup.Close(result);
+                popup.CloseAsync();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex);
+            }
+        }
+
+        public static void TryClose<T>(this Popup<T> popup, T result = default)
+        {
+            try
+            {
+                popup.CloseAsync(result);
             }
             catch (Exception ex)
             {

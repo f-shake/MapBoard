@@ -1,46 +1,48 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
+  <PropertyGroup>
     <BuildInParallel>true</BuildInParallel>
     <MauiDisableTargetsValidation>true</MauiDisableTargetsValidation>
     <AndroidUseIntermediateDesignerFile>true</AndroidUseIntermediateDesignerFile>
-    
-		<TargetFrameworks>net9.0-android</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 
-		<!-- Note for MacCatalyst:
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+    <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+
+    <!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
 		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifer>.
 		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- ex. <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
+    <!-- ex. <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
-		<RootNamespace>MapBoard</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MapBoard</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
     <!-- Display name -->
-		<ApplicationTitle>地图画板</ApplicationTitle>
+    <ApplicationTitle>地图画板</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.autod.mapboard</ApplicationId>
+    <!-- App Identifier -->
+    <ApplicationId>com.autod.mapboard</ApplicationId>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<Configurations>Debug;Release;ReleaseWithoutGDAL</Configurations>
-	</PropertyGroup>
-  
+    <!--<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.0</SupportedOSPlatformVersion>-->
+    <!--<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>-->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+    <!--<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>-->
+    <!--<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>-->
+    <Configurations>Debug;Release;ReleaseWithoutGDAL</Configurations>
+    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
+
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <!-- 禁用AOT编译 -->
     <RunAOTCompilation>false</RunAOTCompilation>
@@ -50,202 +52,210 @@
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <AndroidEnableFastDeployment>true</AndroidEnableFastDeployment>
   </PropertyGroup>
-  
-	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#1D8348" ForegroundScale="0.5" />
-		<None Remove="Resources\Images\btn_cancel.svg" />
-		<None Remove="Resources\Images\btn_clear.svg" />
-		<None Remove="Resources\Images\btn_delete.svg" />
-		<None Remove="Resources\Images\btn_delete_vertex.svg" />
-		<None Remove="Resources\Images\btn_draw.svg" />
-		<None Remove="Resources\Images\btn_ftp.svg" />
-		<None Remove="Resources\Images\btn_import.svg" />
-		<None Remove="Resources\Images\btn_menu.svg" />
-		<None Remove="Resources\Images\btn_meter.svg" />
-		<None Remove="Resources\Images\btn_ok.svg" />
-		<None Remove="Resources\Images\btn_redo.svg" />
-		<None Remove="Resources\Images\btn_refresh.svg" />
-		<None Remove="Resources\Images\btn_save.svg" />
-		<None Remove="Resources\Images\btn_table.svg" />
-		<None Remove="Resources\Images\btn_undo.svg" />
-		<None Remove="Resources\Images\btn_zoom_to_layer.svg" />
-		<None Remove="Resources\Images\icon_error.svg" />
 
-		<!-- Splash Screen -->
+  <ItemGroup>
+    <!-- App Icon -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#1D8348" ForegroundScale="0.5" />
+    <None Remove="Resources\Images\btn_cancel.svg" />
+    <None Remove="Resources\Images\btn_clear.svg" />
+    <None Remove="Resources\Images\btn_delete.svg" />
+    <None Remove="Resources\Images\btn_delete_vertex.svg" />
+    <None Remove="Resources\Images\btn_draw.svg" />
+    <None Remove="Resources\Images\btn_ftp.svg" />
+    <None Remove="Resources\Images\btn_import.svg" />
+    <None Remove="Resources\Images\btn_menu.svg" />
+    <None Remove="Resources\Images\btn_meter.svg" />
+    <None Remove="Resources\Images\btn_ok.svg" />
+    <None Remove="Resources\Images\btn_redo.svg" />
+    <None Remove="Resources\Images\btn_refresh.svg" />
+    <None Remove="Resources\Images\btn_save.svg" />
+    <None Remove="Resources\Images\btn_table.svg" />
+    <None Remove="Resources\Images\btn_undo.svg" />
+    <None Remove="Resources\Images\btn_zoom_to_layer.svg" />
+    <None Remove="Resources\Images\icon_error.svg" />
+
+    <!-- Splash Screen -->
     <None Remove="Resources\Splash\splash.svg" />
 
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
+    <!-- Images -->
+    <MauiImage Include="Resources\Images\*" />
 
-		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+    <!-- Custom Fonts -->
+    <MauiFont Include="Resources\Fonts\*" />
 
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
+    <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Platforms\Android\Resources\values\styles.xml" />
-	  <None Remove="Resources\Images\btn_close.svg" />
-	  <None Remove="Resources\Images\btn_layers.svg" />
-	  <None Remove="Resources\Images\btn_location.svg" />
-	  <None Remove="Resources\Images\btn_track.svg" />
-	  <None Remove="Resources\Images\btn_zoom_in.svg" />
-	  <None Remove="Resources\Images\btn_zoom_out.svg" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Platforms\Android\Resources\values\styles.xml" />
+    <None Remove="Resources\Images\btn_close.svg" />
+    <None Remove="Resources\Images\btn_layers.svg" />
+    <None Remove="Resources\Images\btn_location.svg" />
+    <None Remove="Resources\Images\btn_track.svg" />
+    <None Remove="Resources\Images\btn_zoom_in.svg" />
+    <None Remove="Resources\Images\btn_zoom_out.svg" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <MauiSplashScreen Include="Resources\Splash\splash.svg" />
-	</ItemGroup>
+  <ItemGroup>
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" />
+  </ItemGroup>
 
-	<ItemGroup>
+  <ItemGroup>
     <!--虽然不需要AutoMapper，但在FzStandardLib中用到了，如果这边不加上，AOT会报错-->
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="CommunityToolkit.Maui" />
-		<PackageReference Include="CommunityToolkit.Mvvm" />
-		<PackageReference Include="Esri.ArcGISRuntime.Maui" />
-		<PackageReference Include="Esri.ArcGISRuntime.Toolkit.Maui" />
-		<PackageReference Include="FubarDev.FtpServer" />
-		<PackageReference Include="FubarDev.FtpServer.FileSystem.DotNet" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Esri.ArcGISRuntime.Maui" />
+    <PackageReference Include="Esri.ArcGISRuntime.Toolkit.Maui" />
+    <PackageReference Include="FubarDev.FtpServer" />
+    <PackageReference Include="FubarDev.FtpServer.FileSystem.DotNet" />
     <PackageReference Include="Microsoft.Maui.Controls" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
-		<PackageReference Include="System.Formats.Nrbf" />
-		<PackageReference Include="UraniumUI" />
-		<PackageReference Include="UraniumUI.Material" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <PackageReference Include="System.Formats.Nrbf" />
+    <PackageReference Include="UraniumUI" />
+    <PackageReference Include="UraniumUI.Material" />
     <!--可能是由于System.Drawing.Common 9的缘故，若不引用上面这个包，就会通不过AOT编译-->
     <!--https://github.com/dotnet/maui/issues/27057-->
     <!--https://github.com/dotnet/runtime/issues/111865-->
+
   </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\MapBoard.Core\MapBoard.Core.csproj" />
-	  <ProjectReference Include="..\MapBoard.GeoShare.Core\MapBoard.GeoShare.Core.csproj" />
-	  <ProjectReference Include="..\MapBoard.Model\MapBoard.Model.csproj" />
-	</ItemGroup>
+  <ItemGroup  Condition="$(TargetFramework.Contains('-android'))">
+    <PackageReference Include="Xamarin.AndroidX.Tracing.Tracing"  />
+    <PackageReference Include="Xamarin.AndroidX.Tracing.Tracing.Ktx" />
+    <PackageReference Include="Xamarin.AndroidX.Concurrent.Futures" />
+    <PackageReference Include="Xamarin.AndroidX.Concurrent.Futures.Ktx"/>
+  </ItemGroup>
 
-	<ItemGroup>
-	  <Reference Include="FzStandardLib">
-	    <HintPath>..\libs\FzStandardLib.dll</HintPath>
-	  </Reference>
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MapBoard.Core\MapBoard.Core.csproj" />
+    <ProjectReference Include="..\MapBoard.GeoShare.Core\MapBoard.GeoShare.Core.csproj" />
+    <ProjectReference Include="..\MapBoard.Model\MapBoard.Model.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <Compile Update="Views\AttributeListPopup.xaml.cs">
-	    <DependentUpon>AttributeListPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\SearchResultBar.xaml.cs">
-	    <DependentUpon>SearchResultBar.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\GeoShareConfigPopup.xaml.cs">
-	    <DependentUpon>GeoShareConfigPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\LayerQueryPopup.xaml.cs">
-	    <DependentUpon>LayerQueryPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\SettingPopup.xaml.cs">
-	    <DependentUpon>SettingPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\ImportView.xaml.cs">
-	    <DependentUpon>ImportView.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\FtpView.xaml.cs">
-	    <DependentUpon>FtpView.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\BaseLayerView.xaml.cs">
-	    <DependentUpon>BaseLayerView.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\MapPage.xaml.cs">
-	    <DependentUpon>MapPage.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\AttributeListPopup.xaml.cs">
-	    <DependentUpon>AttributeListPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\ProgressPopup.xaml.cs">
-	    <DependentUpon>ProgressPopup.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\EditBar.xaml.cs">
-	    <DependentUpon>EditBar.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\MeterBar.xaml.cs">
-	    <DependentUpon>MeterBar.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\TrackView.xaml.cs">
-	    <DependentUpon>TrackView.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\TrackView.xaml.cs">
-	    <DependentUpon>TrackView.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Properties\Resources.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Resources.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
+  <ItemGroup>
+    <Reference Include="FzStandardLib">
+      <HintPath>..\libs\FzStandardLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
-	<ItemGroup>
-	  <EmbeddedResource Update="Properties\Resources.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
-	</ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\AttributeListPopup.xaml.cs">
+      <DependentUpon>AttributeListPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\SearchResultBar.xaml.cs">
+      <DependentUpon>SearchResultBar.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\GeoShareConfigPopup.xaml.cs">
+      <DependentUpon>GeoShareConfigPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\LayerQueryPopup.xaml.cs">
+      <DependentUpon>LayerQueryPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\SettingPopup.xaml.cs">
+      <DependentUpon>SettingPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ImportView.xaml.cs">
+      <DependentUpon>ImportView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\FtpView.xaml.cs">
+      <DependentUpon>FtpView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\BaseLayerView.xaml.cs">
+      <DependentUpon>BaseLayerView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MapPage.xaml.cs">
+      <DependentUpon>MapPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\AttributeListPopup.xaml.cs">
+      <DependentUpon>AttributeListPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ProgressPopup.xaml.cs">
+      <DependentUpon>ProgressPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\EditBar.xaml.cs">
+      <DependentUpon>EditBar.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MeterBar.xaml.cs">
+      <DependentUpon>MeterBar.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\TrackView.xaml.cs">
+      <DependentUpon>TrackView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\TrackView.xaml.cs">
+      <DependentUpon>TrackView.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
-	<ItemGroup>
-	  <MauiXaml Update="Views\AttributeListPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\SearchResultBar.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\GeoShareConfigPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LayerQueryPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\SettingPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\ImportView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\BaseLayerView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LayerStylePopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\MapPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\AttributeListPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\ProgressPopup.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\EditBar.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\MeterBar.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\TrackingBar.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\TrackView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\FtpView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\LayerListView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
-	<!-- Build Properties must be defined within these property groups to ensure successful publishing
+  <ItemGroup>
+    <MauiXaml Update="Views\AttributeListPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SearchResultBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\GeoShareConfigPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\LayerQueryPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SettingPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\ImportView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\BaseLayerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\LayerStylePopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\MapPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\AttributeListPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\ProgressPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\EditBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\MeterBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\TrackingBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\TrackView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\FtpView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\LayerListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
+
+  <!-- Build Properties must be defined within these property groups to ensure successful publishing
        to the Mac App Store. See: https://aka.ms/maui-publish-app-store#define-build-properties-in-your-project-file -->
   <PropertyGroup Condition="$(TargetFramework.Contains('-maccatalyst')) and '$(Configuration)' == 'Debug'">
     <CodesignEntitlements>Platforms/MacCatalyst/Entitlements.Debug.plist</CodesignEntitlements>
@@ -256,70 +266,74 @@
     <UseHardenedRuntime>true</UseHardenedRuntime>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-android|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui.debug</ApplicationId>
     <ApplicationTitle>（调试）地图画板</ApplicationTitle>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-maccatalyst|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net10.0-android|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidKeyStore>False</AndroidKeyStore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-ios|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net10.0-ios|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-maccatalyst|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-maccatalyst|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net10.0-maccatalyst|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net9.0-windows10.0.19041.0|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='ReleaseWithoutGDAL|net10.0-windows10.0.19041.0|AnyCPU'">
     <ApplicationId>com.autod.mapboard.maui</ApplicationId>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
     <AndroidSigningKeyStore>keys\key.keystore</AndroidSigningKeyStore>
     <AndroidSigningKeyAlias>key0</AndroidSigningKeyAlias>
     <AndroidSigningKeyPass>1234qwerASDF</AndroidSigningKeyPass>
     <AndroidSigningStorePass>1234qwerASDF</AndroidSigningStorePass>
-</PropertyGroup>
-
-  <PropertyGroup>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.22621.0</TargetFrameworks>
   </PropertyGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionMapBoardMAUIHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+  <PropertyGroup>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.22621.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties XamarinHotReloadDebuggerTimeoutExceptionMapBoardMAUIHideInfoBar="True" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
