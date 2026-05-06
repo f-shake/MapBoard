@@ -9,8 +9,7 @@
     x:DataType="{x:Type vm:GeoShareViewModel}"
     CanBeDismissedByTappingOutsideOfPopup="False"
     HorizontalOptions="Fill"
-    VerticalOptions="Fill"
-    Color="Transparent">
+    VerticalOptions="Fill">
     <toolkit:Popup.Resources>
         <Style TargetType="Button">
             <Style.Triggers>

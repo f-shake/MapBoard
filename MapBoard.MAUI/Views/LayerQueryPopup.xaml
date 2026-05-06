@@ -9,8 +9,7 @@
     xmlns:vm="clr-namespace:MapBoard.ViewModels"
     x:DataType="{x:Type vm:LayerQueryViewModel}"
     HorizontalOptions="Fill"
-    VerticalOptions="Fill"
-    Color="Transparent">
+    VerticalOptions="Fill">
     <ContentView ControlTemplate="{StaticResource StandardPopupTemplate}">
         <Grid RowDefinitions="Auto,8,*,8,Auto">
             <Grid ColumnDefinitions="*,8,Auto">

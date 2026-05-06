@@ -27,7 +27,4 @@
   <ItemGroup>
     <EmbeddedResource Include="SRID.csv.gz" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" />
-  </ItemGroup>
 </Project>
