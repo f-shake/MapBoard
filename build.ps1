@@ -6,7 +6,7 @@
 
     Show-Message "请先阅读ReadMe"
     Show-Message "请确保："
-    Show-Message "已经安装.NET 8 SDK"
+    Show-Message "已经安装.NET 10 SDK"
     Show-Message "已经安装Microsoft Visual C++ 2015-2019 Redistributable"
 
     pause
